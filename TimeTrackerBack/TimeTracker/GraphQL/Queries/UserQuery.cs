@@ -14,21 +14,14 @@ namespace TimeTracker.GraphQL.Queries
             repo = Repo;
 
             Field<ListGraphType<UserType>>("users")
-                .ResolveAsync(async context => await repo.GetUsers());
+                .ResolveAsync(async context => repo.GetUsers());
 
             Field<UserType>("user")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
                 .ResolveAsync(async context =>
                 {
                     int id = context.GetArgument<int>("id");
-                    return await repo.GetUser(id);
-                });
-            Field<PermissionsType>("permissions")
-                .Argument<NonNullGraphType<IntGraphType>>("id")
-                .ResolveAsync(async context =>
-                {
-                    int id = context.GetArgument<int>("id");
-                    return await repo.GetPermissions(id);
+                    return repo.GetUser(id);
                 });
         }
     }

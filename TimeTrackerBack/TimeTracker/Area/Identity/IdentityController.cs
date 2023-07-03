@@ -23,14 +23,12 @@ namespace TimeTracker.Area.Identity
                 return BadRequest("Invalid data");
             }
 
-            var user = await userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
+            var user = userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
 
             if (user == null)
             {
                 return BadRequest("User does not exist");
             }
-
-            var permissions = await userRepository.GetPermissions(user.Id);
 
             var jwt = new JwtSecurityToken(
             issuer: configuration["JWT:Author"],
@@ -38,12 +36,12 @@ namespace TimeTracker.Area.Identity
             claims: new[] {
             
             new Claim("LoginOrEmail", UserLogData.LoginOrEmail),
-            new Claim("CRUDUsers",permissions.CRUDUsers.ToString()),
-            new Claim("ViewUsers",permissions.ViewUsers.ToString()),
-            new Claim("EditPermiters",permissions.EditPermiters.ToString()),
-            new Claim("ImportExcel",permissions.ImportExcel.ToString()),
-            new Claim("ControlPresence",permissions.ControlPresence.ToString()),
-            new Claim("ControlDayOffs",permissions.ControlDayOffs.ToString())
+            new Claim("CRUDUsers",user.CRUDUsers.ToString()),
+            new Claim("ViewUsers",user.ViewUsers.ToString()),
+            new Claim("EditPermiters",user.EditPermiters.ToString()),
+            new Claim("ImportExcel",user.ImportExcel.ToString()),
+            new Claim("ControlPresence",user.ControlPresence.ToString()),
+            new Claim("ControlDayOffs",user.ControlDayOffs.ToString())
             },
             expires: DateTime.UtcNow.Add(TimeSpan.FromDays(365)),
             signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
