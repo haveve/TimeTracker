@@ -1,22 +1,34 @@
-import {useEffect} from 'react';
-import Userslist from './UsersList';
-import { Route, Routes } from 'react-router';
-import type {RootState} from "../Redux/store";
-import UserDetails from './UserDetails';
-import { useSelector, useDispatch  } from 'react-redux';
 import '../Custom.css';
-import { getUsers } from '../Redux/epics';
 import Login from '../Login/Features/Login';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Userslist from './UsersList';
+import AppNavbar from './Navbar';
+
+const router = createBrowserRouter([
+  {
+    element: <AppNavbar />,
+    children: [
+      {
+        path: "/",
+        element: <p>Page not found</p>
+      },
+      {
+        path: "/Users",
+        element: <Userslist />
+      },
+      {
+        path: "/Login",
+        element: <Login />
+      }
+    ]
+  }
+])
 
 
 function AppContent() {
   return (
     <div className='Content'>
-      <Routes>
-        <Route path='/Login' element={<Login />}></Route>
-        <Route path='/Users' element={<Userslist />}></Route>
-        <Route path="/users/:userId" element={<UserDetails />} />
-      </Routes>
+      <RouterProvider router={router}/>
     </div>
   );
 }

@@ -5,8 +5,7 @@ import './Custom.css';
 
 function App() {
   return (
-    <div className="App">
-      <AppNavbar />
+    <div className="App" data-bs-theme="dark">
       <AppContent />
     </div>
   );

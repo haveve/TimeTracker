@@ -1,21 +1,7 @@
-$theme-colors: (
-  "green1": #132A13,
-  "green2": #31572C,
-  "green3": #4F772D,
-  "green4": #90A955,
-  "beige": #ECF39E
-);
-
-$body-bg: #4F772D;
-$body-color: #ECF39E;
-$navbar-dark-brand-color: #ECF39E;
-$navbar-dark-color: #ECF39E;
-$navbar-dark-brand-hover-color: #ECF39E;
-$table-bg: #31572C;
-$table-border-color: #132A13;
-$card-bg: #31572C;
-
-
+$body-bg: black;
+$body-color: white;
+$table-bg: black;
+$card-bg: black;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -24,9 +10,6 @@ td, th{
   vertical-align: middle;
 }
 
-input {
-  background-color: #ECF39E;
-  color: #4F772D;
-  border: none;
-  border-radius: 5px;
+body {
+  background-color: rgb(13, 17, 23);
 }
