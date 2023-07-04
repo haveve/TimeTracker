@@ -16,12 +16,10 @@ namespace TimeTracker.GraphQL.Queries
 
             Field<StringGraphType>("createUser")
                 .Argument<NonNullGraphType<UserInputType>>("User")
-                .Argument<NonNullGraphType<PermissionsInputType>>("Permissions")
                 .ResolveAsync(async context =>
                 {
                     var user = context.GetArgument<User>("User");
-                    var permissions = context.GetArgument<Permissions>("Permissions");
-                    await repo.CreateUser(user, permissions);
+                    repo.CreateUser(user);
                     return "User created successfully";
                 });
 
@@ -30,7 +28,7 @@ namespace TimeTracker.GraphQL.Queries
                 .ResolveAsync(async context =>
                 {
                     int id = context.GetArgument<int>("id");
-                    await repo.DeleteUser(id);
+                    repo.DeleteUser(id);
                     return "User deleted successfully";
                 });
         }

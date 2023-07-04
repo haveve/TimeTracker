@@ -17,7 +17,7 @@ export function RequestUsers(): Observable<User[]> {
         },
         body: JSON.stringify({
             query: `
-                query GetUsers {
+                query GetUsers{
                     users{
                         id
                         login

@@ -12,39 +12,37 @@ namespace TimeTracker.Repositories
         {
             connectionString = context.CreateConnection().ConnectionString;
         }
-        public async Task<List<User>> GetUsers()
+        public List<User> GetUsers()
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 return db.Query<User>("SELECT * FROM Users").ToList();
             }
         }
-        public async Task<User> GetUser(int id)
+        public User GetUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 return db.Query<User>("SELECT * FROM Users WHERE Id = @id", new { id }).First();
             }
         }
-
-        public async Task<Permissions> GetPermissions(int id)
+        public User? GetUserByCredentials(string login, string password)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                return db.Query<Permissions>("SELECT * FROM Permissions WHERE Id = @id", new { id }).First();
+                return db.Query<User>($"SELECT * FROM Users WHERE Login = '{login}' AND Password = '{password}'").FirstOrDefault();
             }
         }
-        public async Task CreateUser(User user, Permissions permissions)
+        public void CreateUser(User user)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "INSERT INTO Users (Id, Login, Password, FullName) OUTPUT INSERTED.Id VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Login, @Password, @FullName)";
-                permissions.Id = db.QuerySingle<int>(sqlQuery, user);
-                sqlQuery = "INSERT INTO Permissions (Id, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs) VALUES(@Id, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs)";
-                db.Execute(sqlQuery, permissions);
+                var sqlQuery = "INSERT INTO Users (Id, Login, Password, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs)" +
+                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Login, @Password, @FullName, @Id, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs)";
+                db.Execute(sqlQuery, user);
             }
         }
-        public async Task UpdateUser(User user)
+        public void UpdateUser(User user)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
@@ -52,20 +50,12 @@ namespace TimeTracker.Repositories
                 db.Execute(sqlQuery, user);
             }
         }
-        public async Task DeleteUser(int id)
+        public void DeleteUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var sqlQuery = "DELETE FROM Users WHERE Id = @id";
                 db.Execute(sqlQuery, new { id });
-            }
-        }
-
-        public async Task<User?> GetUserByCredentials(string login, string password)
-        {
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                return db.Query<User>($"SELECT * FROM Users WHERE Login = '{login}' AND Password = '{password}'").FirstOrDefault();
             }
         }
     }

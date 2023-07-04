@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import {Container, Nav, Navbar, NavDropdown, Button, Card, Table } from "react-bootstrap";
+import { Container, Nav, Navbar, ButtonGroup, Button, ListGroup, ListGroupItem } from "react-bootstrap";
 import '../Custom.css';
-import { useSelector, useDispatch  } from 'react-redux';
-import type {RootState} from "../Redux/store";
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState } from "../Redux/store";
 import { deleteUser, getUsers } from '../Redux/epics';
 import { useNavigate } from 'react-router';
+import { Link } from 'react-router-dom';
 
 function Userslist() {
     const users = useSelector((state: RootState) => state.users.Users);
@@ -13,51 +14,37 @@ function Userslist() {
     const navigate = useNavigate();
 
     useEffect(() => {
-      dispatch(getUsers());
-  }, []);
+        dispatch(getUsers());
+    }, []);
 
-  const handleUserDelete = (id: number) => {
-    dispatch(deleteUser(id));
-  }
-  
-  const handleUserDetails = (id: number) => {
-    navigate(id)
-  }
+    const handleUserDelete = (id: number) => {
+        dispatch(deleteUser(id));
+    }
 
-  return (
-    <div className='Userslist d-flex align-items-center flex-column m-1'>
-        <h1>Users</h1>
-        <Card style={{ width: '18rem' }} className='w-75'>
-            <Card.Body>
-                <Table striped bordered hover className='m-0'>
-                    <thead>
-                        <tr>
-                        <th>Login</th>
-                        <th>Password</th>
-                        <th>Full Name</th>
-                        <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                            {
-                                users.map((user) => 
-                                    <tr key={user.id}>
-                                    <td>{user.login}</td>
-                                    <td>{user.password}</td>
-                                    <td>{user.fullName}</td>
-                                    <td>
-                                        <Button  onClick={() => handleUserDetails(user.id)}>details</Button>
-                                        <Button onClick={() => handleUserDelete(user.id)}>delete</Button>
-                                    </td>
-                                    </tr>
-                                )
-                            }
-                    </tbody>
-                </Table>
-            </Card.Body>
-        </Card>
-    </div>
-  );
+    const handleUserDetails = (id: number) => {
+        navigate(id)
+    }
+
+    return (
+        <div className='Userslist d-flex align-items-center flex-column m-1'>
+            <h5>Users</h5>
+            <ListGroup className='w-50 d-flex'>
+                {
+                    users.map((user) =>
+                        <ListGroup.Item key={user.id} className='d-flex flex-row align-items-center justify-content-between'>
+                            <div>
+                                <p className='m-0 fs-5'>{user.fullName}</p>
+                                <Link to={"/Users/" + user.id} className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</Link>
+                            </div>
+                            <p className='m-0'>Worker</p>
+                        </ListGroup.Item>
+
+                    )
+                }
+            </ListGroup>
+
+        </div>
+    );
 }
 
 export default Userslist;
