@@ -39,7 +39,7 @@ return (
               formik.handleSubmit(e);
               }}>
                 <p className='m-0'>Username or email adress</p>
-                <input
+                <Form.Control
                   type="text"
                   className="w-100 mb-3"
                   {...formik.getFieldProps('LoginOrEmail')}
@@ -48,7 +48,7 @@ return (
                   <p className='error'>{formik.errors.LoginOrEmail}</p>
                 ) : null}
                 <p className='m-0'>Password</p>
-                <input
+                <Form.Control
                   type="text"
                   className="w-100 mb-3"
                   {...formik.getFieldProps('Password')}

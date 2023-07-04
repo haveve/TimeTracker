@@ -25,8 +25,9 @@ function AppNavbar() {
               <Offcanvas.Body>
                 <Nav className="justify-content-end flex-grow-1 pe-3">
                   <ListGroup>
-                    <ListGroup.Item action className='border-0'><Nav.Link as={Link} to={"/Users"} className='m-0'>Users</Nav.Link></ListGroup.Item>
-                    <ListGroup.Item action className='border-0'><Nav.Link as={Link} to={"/Login"} className='m-0'>Login</Nav.Link></ListGroup.Item>
+                    <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Users"} className='m-0'>Users</Nav.Link></ListGroup.Item>
+                    <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/CreateUser"} className='m-0'>Create user</Nav.Link></ListGroup.Item>
+                    <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Login"} className='m-0'>Login</Nav.Link></ListGroup.Item>
                   </ListGroup>
                 </Nav>
               </Offcanvas.Body>

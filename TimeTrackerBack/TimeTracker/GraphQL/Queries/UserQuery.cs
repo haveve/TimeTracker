@@ -12,7 +12,6 @@ namespace TimeTracker.GraphQL.Queries
         public UserQuery(IUserRepository Repo)
         {
             repo = Repo;
-
             Field<ListGraphType<UserType>>("users")
                 .ResolveAsync(async context => repo.GetUsers());
 
