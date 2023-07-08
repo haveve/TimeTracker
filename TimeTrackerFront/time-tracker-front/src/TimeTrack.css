@@ -1,0 +1,8 @@
+:root{
+    --time-track-back-color:black;
+    --time-track-font-size:2em;
+}
+
+.time-track-font{
+    font-size: var(--time-track-font-size);
+}

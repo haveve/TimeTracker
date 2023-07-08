@@ -24,6 +24,9 @@ var builder = WebApplication.CreateBuilder(args);
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<ITimeRepository, TimeRepository>();
+
+//Token
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
