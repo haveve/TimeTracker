@@ -25,6 +25,7 @@ namespace TimeTracker.Area.Identity
 
             var user = userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
 
+            Console.WriteLine(user);
             if (user == null)
             {
                 return BadRequest("User does not exist");
@@ -48,7 +49,9 @@ namespace TimeTracker.Area.Identity
 
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-            var response = new { access_token = encodedJwt };
+            var response = new { access_token = encodedJwt,
+                current_user = user
+            };
 
             //HttpContext.Response.Cookies.Append("gdfg", "gdfdgdf", new()
             //{

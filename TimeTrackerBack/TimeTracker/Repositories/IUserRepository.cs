@@ -14,6 +14,8 @@ namespace TimeTracker.Repositories
         public User? GetUserByCredentials(string login, string password);
         public void CreateUser(User user);
         public void UpdateUser(User user);
+        public void UpdateUserPassword(int id,string Password);
+        public void UpdateUserPermissions(Permissions permissions);
         public void DeleteUser(int id);
     }
 }

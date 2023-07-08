@@ -3,6 +3,7 @@ $body-color: white;
 $table-bg: black;
 $card-bg: black;
 
+
 @import "../node_modules/bootstrap/scss/bootstrap";
 
 td, th{
@@ -12,4 +13,7 @@ td, th{
 
 body {
   background-color: rgb(13, 17, 23);
+}
+.modal-content{
+  background-color: #2a2a2a;
 }

@@ -1,10 +1,13 @@
 import '../Custom.css';
+import React, { useEffect, useState } from 'react';
 import Login from '../Login/Features/Login';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import Userslist from './UsersList';
 import AppNavbar from './Navbar';
 import UserDetails from './UserDetails';
 import CreateUser from './CreateUser';
+import UserPermissions from './UserPermissions';
+import UserProfile from './UserProfile';
 
 const router = createBrowserRouter([
   {
@@ -27,8 +30,16 @@ const router = createBrowserRouter([
         element: <UserDetails />
       },
       {
+        path: "/UserPermissions/:userId",
+        element: <UserPermissions />
+      },
+      {
         path: "/CreateUser",
         element: <CreateUser />
+      },
+      {
+        path: "/User/:login",
+        element: <UserProfile />
       }
     ]
   }
@@ -36,9 +47,10 @@ const router = createBrowserRouter([
 
 
 function AppContent() {
+
   return (
     <div className='Content'>
-      <RouterProvider router={router}/>
+      <RouterProvider router={router} />
     </div>
   );
 }
