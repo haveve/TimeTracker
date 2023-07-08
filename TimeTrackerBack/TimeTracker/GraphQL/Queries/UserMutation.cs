@@ -23,6 +23,42 @@ namespace TimeTracker.GraphQL.Queries
                     return "User created successfully";
                 });
 
+            Field<StringGraphType>("updateUser")
+                .Argument<NonNullGraphType<IntGraphType>>("Id")
+                .Argument<NonNullGraphType<UserInputType>>("User")
+                .ResolveAsync(async context =>
+                {
+                    var Id = context.GetArgument<int>("Id");
+                    var NewUser = context.GetArgument<User>("User");
+                    if (NewUser.Password != repo.GetUser(Id).Password) return "Password is incorrect";
+                    NewUser.Id = Id;
+                    repo.UpdateUser(NewUser);
+                    return "User updated successfully";
+                });
+
+            Field<StringGraphType>("updateUserPassword")
+                .Argument<NonNullGraphType<IntGraphType>>("Id")
+                .Argument<NonNullGraphType<StringGraphType>>("Password")
+                .Argument<NonNullGraphType<StringGraphType>>("NewPassword")
+                .ResolveAsync(async context =>
+                {
+                    var Id = context.GetArgument<int>("Id");
+                    var Password = context.GetArgument<string>("Password");
+                    var NewPassword = context.GetArgument<string>("NewPassword");
+                    if (Password != repo.GetUser(Id).Password) return "Password is incorrect";
+                    repo.UpdateUserPassword(Id, NewPassword);
+                    return "Password updated successfully";
+                });
+
+            Field<StringGraphType>("updateUserPermissions")
+                .Argument<NonNullGraphType<PermissionsType>>("Permissions")
+                .ResolveAsync(async context =>
+                {
+                    var permissions = context.GetArgument<Permissions>("Permissions");
+                    repo.UpdateUserPermissions(permissions);
+                    return "permissions updated successfully";
+                });
+
             Field<StringGraphType>("deleteUser")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
                 .ResolveAsync(async context =>

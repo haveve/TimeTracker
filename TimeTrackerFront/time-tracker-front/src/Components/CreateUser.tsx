@@ -26,37 +26,37 @@ function CreateUser() {
                         <InputGroup className="mb-3 d-flex flex-column">
                             <Form.Check
                                 type="switch"
-                                id="custom-switch"
+                                id="custom-switch-1"
                                 label="View users"
                             />
                             <Form.Check
                                 type="switch"
-                                id="custom-switch"
+                                id="custom-switch-2"
                                 label="Import excell"
                             />
                             <Form.Check
                                 type="switch"
-                                id="custom-switch"
+                                id="custom-switch-3"
                                 label="Manage users"
                             />
                             <Form.Check
                                 type="switch"
-                                id="custom-switch"
+                                id="custom-switch-4"
                                 label="Manage permiters"
                             />
                             <Form.Check
                                 type="switch"
-                                id="custom-switch"
+                                id="custom-switch-5"
                                 label="Manage work hours"
                             />
                             <Form.Check
                                 type="switch"
-                                id="custom-switch"
+                                id="custom-switch-6"
                                 label="Manage presence"
                             />
                             <Form.Check
                                 type="switch"
-                                id="custom-switch"
+                                id="custom-switch-7"
                                 label="Manage day offs"
                             />
                         </InputGroup>

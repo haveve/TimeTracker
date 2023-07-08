@@ -1,13 +1,13 @@
 export interface User {
-    id: number,
-    login: string,
-    password: string,
-    fullName: string,
-    CRUDUsers: boolean,
-    EditPermiters: boolean,
-    ViewUsers: boolean,
-    EditWorkHours: boolean,
-    ImportExcel: boolean,
-    ControlPresence: boolean,
-    ControlDayOffs: boolean
+    id?: number,
+    login?: string,
+    password?: string,
+    fullName?: string,
+    cRUDUsers?: boolean,
+    editPermiters?: boolean,
+    viewUsers?: boolean,
+    editWorkHours?: boolean,
+    importExcel?: boolean,
+    controlPresence?: boolean,
+    controlDayOffs?: boolean
 }

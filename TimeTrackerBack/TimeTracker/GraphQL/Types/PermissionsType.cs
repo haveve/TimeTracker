@@ -3,7 +3,7 @@ using TimeTracker.Models;
 
 namespace TimeTracker.GraphQL.Types
 {
-    public class PermissionsType : ObjectGraphType<Permissions>
+    public class PermissionsType : InputObjectGraphType<Permissions>
     {
         public PermissionsType()
         {
