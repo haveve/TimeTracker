@@ -8,22 +8,20 @@ import UserDetails from './UserDetails';
 import CreateUser from './CreateUser';
 import UserPermissions from './UserPermissions';
 import UserProfile from './UserProfile';
-
+import { getTokenOrNavigate } from '../Login/Api/login-logout';
+import TimeStatistic from "./TimeStatistic"
 const router = createBrowserRouter([
   {
     element: <AppNavbar />,
+    loader:async()=>getTokenOrNavigate(),
     children: [
       {
         path: "/",
-        element: <p>Page not found</p>
+        element: <TimeStatistic/>
       },
       {
         path: "/Users",
         element: <Userslist />
-      },
-      {
-        path: "/Login",
-        element: <Login />
       },
       {
         path: "/Users/:userId",
@@ -42,6 +40,11 @@ const router = createBrowserRouter([
         element: <UserProfile />
       }
     ]
+  },
+  {
+    path: "/Login",
+    element: <Login />,
+    loader:async()=>getTokenOrNavigate(true),
   }
 ])
 

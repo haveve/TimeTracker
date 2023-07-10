@@ -1,11 +1,12 @@
 ﻿using GraphQL;
 using GraphQL.Types;
 using TimeTracker.GraphQL.Types;
+using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Queries
 {
-    public class UserQuery: ObjectGraphType
+    public class UserQuery : ObjectGraphType
     {
         private readonly IUserRepository repo;
 
@@ -22,6 +23,8 @@ namespace TimeTracker.GraphQL.Queries
                     int id = context.GetArgument<int>("id");
                     return repo.GetUser(id);
                 });
+            Field<TimeQueryGraphqlType>("time")
+            .Resolve(context => new { });
         }
     }
 }

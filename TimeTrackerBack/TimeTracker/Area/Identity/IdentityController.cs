@@ -37,6 +37,7 @@ namespace TimeTracker.Area.Identity
             claims: new[] {
             
             new Claim("LoginOrEmail", UserLogData.LoginOrEmail),
+            new Claim("UserId", user.Id.ToString()),
             new Claim("CRUDUsers",user.CRUDUsers.ToString()),
             new Claim("ViewUsers",user.ViewUsers.ToString()),
             new Claim("EditPermiters",user.EditPermiters.ToString()),
