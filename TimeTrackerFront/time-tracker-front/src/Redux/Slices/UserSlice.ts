@@ -4,12 +4,10 @@ import { Permissions } from "../Types/Permissions";
 
 
 export interface taskState {
-    Users: User[],
-    Permissions: Permissions[]
+    Users: User[]
 }
 const initialState: taskState = {
-    Users: [],
-    Permissions: []
+    Users: []
 };
 
 export const userSlice = createSlice({
@@ -19,16 +17,11 @@ export const userSlice = createSlice({
         getUsersList: (state,
             action: PayloadAction<User[]>) => {
             state.Users = action.payload
-        },
-        getPermissions: (state,
-            action: PayloadAction<Permissions[]>) => {
-            state.Permissions = action.payload
         }
     }
 });
 
 export const {
-    getUsersList,
-    getPermissions
+    getUsersList
 } = userSlice.actions;
 export default userSlice.reducer;

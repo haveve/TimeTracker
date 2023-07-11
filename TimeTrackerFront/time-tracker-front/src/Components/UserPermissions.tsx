@@ -4,21 +4,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import '../Custom.css';
-import { getUsers, getUsersPermissions, updateUserPermissions } from '../Redux/epics';
+import { getUsers, updateUserPermissions } from '../Redux/epics';
 import { Permissions } from '../Redux/Types/Permissions';
+import { RequestUserPermissions } from '../Redux/Requests/UserRequests';
 
 
 function UserPermissions() {
     const { userId = "" } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [permissions, setPermissions] = useState({} as Permissions)
 
 
     useEffect(() => {
-        dispatch(getUsersPermissions());
+        RequestUserPermissions(parseInt(userId)).subscribe((x) => {
+            setPermissions(x);
+        })
     }, []);
-    
-    let permissions = useSelector((state: RootState) => state.users.Permissions).find(u => u.id == parseInt(userId))!;
 
     const [cRUDUsers, setCRUDUsers] = useState(false)
     const [editPermiters, setEditPermiters] = useState(false)
@@ -29,16 +31,14 @@ function UserPermissions() {
     const [controlDayOffs, setControlDayOffs] = useState(false)
 
     useEffect(() => {
-        if (permissions) {
-            setCRUDUsers(permissions.cRUDUsers)
-            setEditPermiters(permissions.editPermiters)
-            setViewUsers(permissions.viewUsers)
-            setEditWorkHours(permissions.editWorkHours)
-            setImportExcel(permissions.importExcel)
-            setControlPresence(permissions.controlPresence)
-            setControlDayOffs(permissions.controlDayOffs)
-        }
-    }, [permissions])
+        setCRUDUsers(permissions.cRUDUsers)
+        setEditPermiters(permissions.editPermiters)
+        setViewUsers(permissions.viewUsers)
+        setEditWorkHours(permissions.editWorkHours)
+        setImportExcel(permissions.importExcel)
+        setControlPresence(permissions.controlPresence)
+        setControlDayOffs(permissions.controlDayOffs)
+    }, [permissions]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -76,50 +76,50 @@ function UserPermissions() {
                                 type="switch"
                                 id="custom-switch-1"
                                 label="View users"
-                                defaultChecked={permissions.viewUsers}
-                                onChange={() => { setViewUsers(!viewUsers) }}
+                                checked={viewUsers}
+                                onClick={() => { setViewUsers(!viewUsers); }}
                             />
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-2"
                                 label="Import excell"
-                                defaultChecked={permissions.importExcel}
-                                onChange={() => { setImportExcel(!importExcel) }}
+                                checked={importExcel}
+                                onClick={() => { setImportExcel(!importExcel) }}
                             />
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-3"
                                 label="Manage users"
-                                defaultChecked={permissions.cRUDUsers}
-                                onChange={() => { setCRUDUsers(!cRUDUsers) }}
+                                checked={cRUDUsers}
+                                onClick={() => { setCRUDUsers(!cRUDUsers) }}
                             />
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-4"
                                 label="Manage permiters"
-                                defaultChecked={permissions.editPermiters}
-                                onChange={() => { setEditPermiters(!editPermiters) }}
+                                checked={editPermiters}
+                                onClick={() => { setEditPermiters(!editPermiters) }}
                             />
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-5"
                                 label="Manage work hours"
-                                defaultChecked={permissions.editWorkHours}
-                                onChange={() => { setEditWorkHours(!editWorkHours) }}
+                                checked={editWorkHours}
+                                onClick={() => { setEditWorkHours(!editWorkHours) }}
                             />
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-6"
                                 label="Manage presence"
-                                defaultChecked={permissions.controlPresence}
-                                onChange={() => { setControlPresence(!controlPresence) }}
+                                checked={controlPresence}
+                                onClick={() => { setControlPresence(!controlPresence) }}
                             />
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-7"
                                 label="Manage day offs"
-                                defaultChecked={permissions.controlDayOffs}
-                                onChange={() => { setControlDayOffs(!controlDayOffs) }}
+                                checked={controlDayOffs}
+                                onClick={() => { setControlDayOffs(!controlDayOffs) }}
                             />
                         </InputGroup>
                     </Modal.Body>

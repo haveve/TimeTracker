@@ -38,13 +38,48 @@ export function RequestUsers(): Observable<User[]> {
     );
 }
 
-interface GraphqlPermissions {
+interface GraphqlUser {
     data: {
-        users: Permissions[]
+        user: User
     }
 }
 
-export function RequestUsersPermissions(): Observable<Permissions[]> {
+export function RequestUser(Id: Number): Observable<User> {
+    return ajax<GraphqlUser>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetUser($Id: Int!){
+                     user(id: $Id){
+                        id
+                        login
+                        fullName
+                      }
+                  }
+            `,
+            variables: {
+                "Id": Id
+            }
+        })
+    }).pipe(
+        map(res => { {
+            return res.response.data.user}
+        })
+    );
+}
+
+interface GraphqlPermissions {
+    data: {
+        user: Permissions
+    }
+}
+
+export function RequestUserPermissions(Id: Number): Observable<Permissions> {
     return ajax<GraphqlPermissions>({
         url,
         method: "POST",
@@ -54,8 +89,8 @@ export function RequestUsersPermissions(): Observable<Permissions[]> {
         },
         body: JSON.stringify({
             query: `
-                query GetUsers{
-                     users{
+                query GetUser($Id: Int!){
+                     user(id: $Id){
                         id
                         cRUDUsers
                         viewUsers
@@ -66,12 +101,14 @@ export function RequestUsersPermissions(): Observable<Permissions[]> {
                         controlDayOffs
                       }
                   }
-            `
+            `,
+            variables: {
+                "Id": Id
+            }
         })
     }).pipe(
-        map(res => {
-            let permissions: Permissions[] = res.response.data.users;
-            return permissions;
+        map(res => { {
+            return res.response.data.user}
         })
     );
 }

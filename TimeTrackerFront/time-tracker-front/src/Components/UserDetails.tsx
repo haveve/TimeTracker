@@ -14,10 +14,6 @@ function UserDetails() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    dispatch(getUsers());
-  }, []);
-
   let user = useSelector((state: RootState) => state.users.Users).find(u => u.id == parseInt(userId))!;
 
   const handleCloseDelete = () => setShowDelete(false);
