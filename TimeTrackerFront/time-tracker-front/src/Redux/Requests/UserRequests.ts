@@ -9,9 +9,11 @@ interface GraphqlUsers {
         users: User[]
     }
 }
+const url = "https://localhost:7226/graphql";
+
 export function RequestUsers(): Observable<User[]> {
     return ajax<GraphqlUsers>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -44,7 +46,7 @@ interface GraphqlPermissions {
 
 export function RequestUsersPermissions(): Observable<Permissions[]> {
     return ajax<GraphqlPermissions>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -53,7 +55,7 @@ export function RequestUsersPermissions(): Observable<Permissions[]> {
         body: JSON.stringify({
             query: `
                 query GetUsers{
-                    users{
+                     users{
                         id
                         cRUDUsers
                         viewUsers
@@ -82,7 +84,7 @@ interface GraphqlUpdateUser {
 
 export function RequestUpdateUser(user: User): Observable<string> {
     return ajax<GraphqlUpdateUser>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -117,7 +119,7 @@ interface GraphqlUpdatePassword {
 
 export function RequestUpdatePassword(id: Number, NewPassword: string, Password : string): Observable<string> {
     return ajax<GraphqlUpdatePassword>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -142,7 +144,7 @@ export function RequestUpdatePassword(id: Number, NewPassword: string, Password 
 
 export function RequestUpdateUserPermissions(permissions: Permissions): Observable<string> {
     return ajax<string>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -174,7 +176,7 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
 
 export function RequestDeleteUser(id: number): Observable<string> {
     return ajax<string>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',

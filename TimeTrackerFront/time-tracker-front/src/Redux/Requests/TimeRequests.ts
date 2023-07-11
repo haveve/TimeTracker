@@ -11,9 +11,12 @@ interface GraphqlTime {
         }
     }
 }
+const url = "https://localhost:7226/graphql";
+
+
 export function RequestGetTime(): Observable<Time> {
     return ajax<GraphqlTime>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -40,9 +43,10 @@ export function RequestGetTime(): Observable<Time> {
     );
 }
 
-export function RequestAddOneSecond(): Observable<string> {
+
+export function RequestSetStartDate(): Observable<string> {
     return ajax<string>({
-        url: "https://localhost:7226/graphql",
+        url,
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -52,7 +56,29 @@ export function RequestAddOneSecond(): Observable<string> {
             query: `
             mutation{
                 time{
-                  addOneSecond
+                  setStartDate
+                }
+              }              
+            `
+        })
+    }).pipe(
+        map(res => res.response)
+    );
+}
+
+export function RequestSetEndDate(): Observable<string> {
+    return ajax<string>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+            mutation{
+                time{
+                  setEndDate
                 }
               }
             `

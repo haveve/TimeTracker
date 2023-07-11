@@ -11,7 +11,7 @@ import {ajaxForLoginLogout,getQueryObserver} from "../Api/login-logout";
 export default function Login() {
 
   const navigate = useNavigate();
-  const initialValues: Login = { Password: "", LoginOrEmail: "" };
+  const initialValues: Login = { password: "", loginOrEmail: "" };
   const [WrongMessage, setWrongMessage] = useState("");
 
 return (
@@ -21,15 +21,15 @@ return (
         <Card.Body className='p-3 w-100'>
           <Formik
             validationSchema={Yup.object({
-              Password: Yup.string()
+              password: Yup.string()
                 .required('Required')
                 .min(8, "Password must have min 8 symbols")
                 .max(20, "Password must have max 20 symbols"),
-              LoginOrEmail: Yup.string().required('Required')
+              loginOrEmail: Yup.string().required('Required')
             })}
             initialValues={initialValues}
             onSubmit={(value: Login, action) => {
-              ajaxForLoginLogout("Login",value).subscribe(getQueryObserver(setWrongMessage,navigate,"/"))
+              ajaxForLoginLogout({"login":value}).subscribe(getQueryObserver(setWrongMessage,navigate,"/"))
               action.setSubmitting(false);
             }
             }
@@ -42,19 +42,19 @@ return (
                 <Form.Control
                   type="text"
                   className="w-100 mb-3"
-                  {...formik.getFieldProps('LoginOrEmail')}
+                  {...formik.getFieldProps('loginOrEmail')}
                 />
-              {formik.touched.LoginOrEmail && formik.errors.LoginOrEmail ? (
-                  <p className='error'>{formik.errors.LoginOrEmail}</p>
+              {formik.touched.loginOrEmail && formik.errors.loginOrEmail ? (
+                  <p className='error'>{formik.errors.loginOrEmail}</p>
                 ) : null}
                 <p className='m-0'>Password</p>
                 <Form.Control
                   type="text"
                   className="w-100 mb-3"
-                  {...formik.getFieldProps('Password')}
+                  {...formik.getFieldProps('password')}
                 />
-              {formik.touched.Password && formik.errors.Password ? (
-                  <p className='error'>{formik.errors.Password}</p>
+              {formik.touched.password && formik.errors.password ? (
+                  <p className='error'>{formik.errors.password}</p>
                 ) : null}
                 <Button type="submit" className="btn-success w-100">
                   Sign in

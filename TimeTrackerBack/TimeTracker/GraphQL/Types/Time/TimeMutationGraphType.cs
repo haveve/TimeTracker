@@ -4,19 +4,34 @@ using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Types.Time
 {
-    public class TimeMutationGraphType:ObjectGraphType
+    public class TimeMutationGraphType : ObjectGraphType
     {
         private readonly ITimeRepository _timeRepository;
         public TimeMutationGraphType(ITimeRepository timeRepository)
         {
             _timeRepository = timeRepository;
 
-            Field<StringGraphType>("addOneSecond")
+            Field<StringGraphType>("setStartDate")
                 .Resolve(context =>
                 {
-                    _timeRepository.AddOneSecond(TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
+
+
+                    _timeRepository.SetStartOrEndTrackDate(
+                        StartOrEnd.Start,
+                        TimeQueryGraphqlType.ToUkraineDateTime(DateTime.Now),
+                        TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
                     return "Successfully";
                 });
+            Field<StringGraphType>("setEndDate")
+                .Resolve(context =>
+                 {
+                     _timeRepository.SetStartOrEndTrackDate(
+                        StartOrEnd.End,
+                        TimeQueryGraphqlType.ToUkraineDateTime(DateTime.Now),
+                        TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
+                     return "Successfully";
+                 });
+
         }
     }
 }

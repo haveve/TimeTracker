@@ -52,7 +52,7 @@ const router = createBrowserRouter([
 function AppContent() {
 
   return (
-    <div className='Content'>
+    <div className='Content container-fluid p-0 h-100'>
       <RouterProvider router={router} />
     </div>
   );

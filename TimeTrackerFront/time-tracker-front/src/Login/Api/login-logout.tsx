@@ -6,23 +6,43 @@ import {
 } from "react-router-dom";
 import { User } from '../../Redux/Types/User';
 
-const url = "https://localhost:7226/";
+const url = "https://localhost:7226/graphql-login";
 
-export function ajaxForLoginLogout(path: string, value: {}) {
+export function ajaxForLoginLogout(variables: {}) {
   return ajax({
-    url: url + path,
+    url: url,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(value),
+    body: JSON.stringify({
+      query:`query($login:LoginInputType!){
+        login(login:$login){
+          access_token
+          current_user {
+            id
+            login
+            password
+            fullName
+            cRUDUsers
+            editPermiters
+            viewUsers
+            editWorkHours
+            importExcel
+            controlPresence
+            controlDayOffs
+          }
+        }
+      }`,
+      variables
+    }),
     withCredentials: true,
   }).pipe(
     map((value): void => {
 
-      var response = value.response as { access_token: string, current_user: User }
-
+      let fullResponse = value.response as { data:{login:{access_token: string, current_user: User}} }
+      let response = fullResponse.data.login;
       if ((200 > value.status && value.status > 300) || !response || !response.access_token)
         throw "statuse error";
 

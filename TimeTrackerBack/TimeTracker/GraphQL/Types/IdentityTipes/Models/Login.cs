@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace TimeTracker.Area.Identity.Models
+namespace TimeTracker.GraphQL.Types.IdentityTipes.Models
 {
     public class Login
     {

@@ -8,18 +8,19 @@ import { Link, Outlet } from 'react-router-dom';
 import { Subscription, timer } from 'rxjs';
 import Clock from 'react-clock';
 import '../Clock.css'
-import { plusOneSecondE } from '../Redux/epics';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
-import { setloadingStatus, setIdleStatus, statusType } from '../Redux/Slices/TimeSlice';
-
+import { setloadingStatus, setIdleStatus, statusType, plusOneSecond } from '../Redux/Slices/TimeSlice';
+import { RequestSetStartDate,RequestSetEndDate } from '../Redux/Requests/TimeRequests';
+import { error } from 'console';
 export default function TimeTracker() {
     const [isStarted, setStarted] = useState(false);
     const [buttonMassage, setButtonMassage] = useState("Start");
     const [unsubTimer, setUnsubTimer] = useState(new Subscription());
     const [localTimeInSeconds,setLocalTimeInSeconds] = useState(0)
+
 
     const dispatcher = useDispatch();
     useEffect(() => {
@@ -42,12 +43,20 @@ export default function TimeTracker() {
         <Button variant={isSuccessOrIdle?"success":"dark"} disabled={isSuccessOrIdle? false : true} className='m-5 my-0 ' onClick={() => {
 
             if (!isStarted) {
+                RequestSetStartDate().subscribe({
+                    next:()=>{},
+                    error:()=>{}
+                });
                 setUnsubTimer(timer(0, 1000).subscribe(n => {
-                    dispatcher(plusOneSecondE());
+                    dispatcher(plusOneSecond());
                     setLocalTimeInSeconds(n=>n+1);
                 }));
             }
             else {
+                RequestSetEndDate().subscribe({
+                    next:()=>{},
+                    error:()=>{}
+                });
                 unsubTimer.unsubscribe();
             }
             setStarted(!isStarted);

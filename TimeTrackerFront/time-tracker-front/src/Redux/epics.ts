@@ -5,9 +5,9 @@ import { User } from "./Types/User";
 import { Permissions } from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
 import { getUsersList, getPermissions } from "./Slices/UserSlice";
-import { RequestGetTime,RequestAddOneSecond } from "./Requests/TimeRequests";
+import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time } from "./Types/Time";
-import {plusOneSecond,setTime} from "./Slices/TimeSlice"
+import {setTime} from "./Slices/TimeSlice"
 
 export const getUsers = () => ({ type: "getUsers"});
 export const getUsersEpic: Epic = action$ => action$.pipe(
@@ -53,13 +53,6 @@ export const deleteUserEpic: Epic = (action$: Observable<PayloadAction<number>>)
 );
 
 //TimeSlice
-export const plusOneSecondE = ()=>({ type:"plusOneSecond"})
-export const plusOneSecondEpic: Epic = action$ => action$.pipe(
-    ofType("plusOneSecond"),
-    mergeMap(() => RequestAddOneSecond().pipe(
-        map(() =>plusOneSecond())
-    ))
-);
 
 export const setTimeE = ()=>({ type:"setTime"})
 export const setTimeEpic: Epic = action$ =>{ 

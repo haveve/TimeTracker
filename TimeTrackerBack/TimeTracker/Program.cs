@@ -18,6 +18,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using TimeTracker.Repositories;
+using Microsoft.AspNetCore.Antiforgery;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,15 +52,27 @@ builder.Services.AddCors();
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddAntiforgery(opt =>
+{
+    opt.HeaderName = "X-XSRF-TOKEN";
+});
+
 builder.Services.AddSingleton<ISchema, UserShema>(services =>
 {
     var scheme = new UserShema(new SelfActivatingServiceProvider(services));
-    scheme.AuthorizeWithPolicy("Authorized").AuthorizeWithPolicy("CRUDUsers");
+    //scheme.AuthorizeWithPolicy("Authorized").AuthorizeWithPolicy("CRUDUsers");
+    return scheme;
+});
+
+builder.Services.AddSingleton<ISchema, IdentitySchema>(services =>
+{
+    var scheme = new IdentitySchema(new SelfActivatingServiceProvider(services));
     return scheme;
 });
 
 builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                   .AddSchema<UserShema>()
+                                  .AddSchema<IdentitySchema>()
                                   .AddAuthorization(setting =>
                                   {
                                       setting.AddPolicy("CRUDUsers", p => p.RequireClaim("CRUDUsers", "True"));
@@ -69,6 +83,8 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                       setting.AddPolicy("ControlDayOffs", p => p.RequireClaim("ControlDayOffs", "True"));
                                       setting.AddPolicy("Authorized", p => p.RequireAuthenticatedUser());
                                   })
+                                  .AddGraphTypes(typeof(UserShema).Assembly)
+                                  .AddGraphTypes(typeof(IdentitySchema).Assembly)
                                   );
 
 
@@ -84,20 +100,33 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-//app.UseCookiePolicy(new CookiePolicyOptions
-//{
-//    MinimumSameSitePolicy = SameSiteMode.None,
-//});
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.None,
+    Secure = CookieSecurePolicy.Always,
+});
 
-app.UseGraphQL();
+app.UseGraphQL<UserShema>("/graphql", (config) =>
+{
+
+});
+
+app.UseGraphQL<IdentitySchema>("/graphql-login", (config) =>
+{
+
+});
 app.UseGraphQLAltair();
 
-app.MapControllerRoute("myRoute","{area:exists}/{controller}/{action}");
+var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
 
+app.MapGet("antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
+{
+    var tokens = forgeryService.GetAndStoreTokens(context);
+    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+            new CookieOptions { HttpOnly = false });
 
-app.MapControllerRoute("myRoute", "{action}", 
-    defaults:new{area = "Identity",controller = "Identity" 
-});
+    return Results.Ok();
+}).RequireAuthorization();
 
 app.Run();
 

@@ -3,6 +3,7 @@ using GraphQL.Types;
 using System;
 using System.Security.Claims;
 using TimeTracker.GraphQL.Types.Time;
+using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.ViewModels;
 
@@ -32,33 +33,58 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
         public static TimeTracker.Models.Time CheckExpires(TimeTracker.Models.Time time, int userId, ITimeRepository repo)
         {
-            if (time.toDayDate == null)
-                time.toDayDate = DateTime.Now;
-            else if (DateOnly.FromDateTime(time.toDayDate ?? new()).AddDays(1) <= DateOnly.FromDateTime(DateTime.Now))
+            if (time.ToDayDate == null)
             {
-                time.toDayDate = DateTime.Now;
-                time.DaySeconds = 0;
+                time.ToDayDate = DateTime.Now;
             }
-
-            if (time.startWeekDate == null)
-                time.startWeekDate = DateTime.Now;
-            else if (DateOnly.FromDateTime(time.startWeekDate ?? new()).AddDays(7) <= DateOnly.FromDateTime(DateTime.Now))
+            else if (DateOnly.FromDateTime(ToUkraineDateTime(time.ToDayDate.Value)).AddDays(1) <= DateOnly.FromDateTime(ToUkraineDateTime(DateTime.Now)))
             {
-                time.toDayDate = DateTime.Now;
+                var date = DateOnly.FromDateTime(ToUkraineDateTime(time.ToDayDate.Value));
+
+                if (date.DayNumber / 7 < DateOnly.FromDateTime(ToUkraineDateTime(DateTime.Now)).DayNumber / 7)
+                {
+                    time.WeekSeconds = 0;
+                }
+
+                time.ToDayDate = DateTime.Now;
                 time.DaySeconds = 0;
-            }
 
-            if (time.startMonthDate == null)
-                time.startMonthDate = DateTime.Now;
-            else if (DateOnly.FromDateTime(time.startMonthDate ?? new()).AddDays(DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month)) <= DateOnly.FromDateTime(DateTime.Now))
+                time.StartTimeTrackDate = null;
+                time.EndTimeTrackDate = null;
+            }
+            else
             {
-                time.toDayDate = DateTime.Now;
-                time.MonthSeconds = 0;
+                TimeTrackManage(time, repo,userId);
             }
 
             repo.UpdateTime(time, userId);
-
             return time;
         }
+
+        public static DateTime ToUkraineDateTime(DateTime date)
+        {
+            var dateTime = TimeZoneInfo.ConvertTime(date,TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"));
+            return dateTime;
+        }
+
+        public static void TimeTrackManage(TimeTracker.Models.Time time,ITimeRepository repo,int userId)
+        {
+            if (time.StartTimeTrackDate == null)
+                return;
+            
+            if (time.EndTimeTrackDate == null)
+                return;
+
+            var addSecond = (time.EndTimeTrackDate - time.StartTimeTrackDate).Value.Seconds;
+
+            time.DaySeconds+= addSecond;
+            time.MonthSeconds += addSecond;
+            time.WeekSeconds += addSecond;
+
+            time.StartTimeTrackDate = null;
+            time.EndTimeTrackDate = null;
+
+        }
+
     }
 }

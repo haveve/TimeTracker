@@ -9,8 +9,8 @@ function AppNavbar() {
   const user = JSON.parse(localStorage.getItem("User")!);
 
   return (
-    <>
-      <Navbar expand={false} className="bg-black ">
+    <Container fluid className='p-0 h-100'>
+      <Navbar expand={false} className="bg-black height-header">
         <Container fluid className='justify-content-start'>
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-false`} />
           <Navbar.Brand as={Link} to={"/"} className='ms-1'>TimeTracker</Navbar.Brand>
@@ -45,7 +45,7 @@ function AppNavbar() {
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
-      <Row className='justify-content-end p-0 m-0 height-main'>
+      <Row className='justify-content-end p-0 m-0 height-main height-main'>
         <Col className='mt-3' >
           <Outlet />
         </Col>
@@ -53,7 +53,7 @@ function AppNavbar() {
           <TimeTracker />
         </Col>
       </Row >
-    </>
+    </Container>
   );
 }
 
