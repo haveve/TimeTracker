@@ -35,7 +35,7 @@ export default function TimeTracker() {
     const isSuccessOrIdle = IsSuccessOrIdle(dispatcher,status);
     const clockTime = TimeStringFromSeconds(localTimeInSeconds);
 
-    return <Card className='rounded-0 border-0 d-flex flex-column h-100 '>
+    return <Card className='rounded-0 border-0 d-flex flex-column h-100'>
         <Row className='p-0 m-0 justify-content-center'>
             <Clock size={190} value={new Date(localTimeInSeconds * 1000)} ></Clock>
         </Row>

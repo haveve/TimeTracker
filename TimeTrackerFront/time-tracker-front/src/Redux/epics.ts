@@ -1,20 +1,31 @@
 import {Epic, ofType} from "redux-observable";
 import {map, mergeMap, Observable, of} from "rxjs";
-import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestUpdateUser, RequestUser } from "./Requests/UserRequests";
+import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestUpdateUser, RequestUser, RequestPagedUsers } from "./Requests/UserRequests";
 import { User } from "./Types/User";
 import { Permissions } from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
-import { getUsersList } from "./Slices/UserSlice";
+import { getUsersPage, getUsersList } from "./Slices/UserSlice";
 import { getTheCurrentUser } from "./Slices/CurrentUserSlice";
 import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time } from "./Types/Time";
 import {setTime} from "./Slices/TimeSlice"
+import { Page } from "./Types/Page";
+import { UsersPage } from "./Types/UsersPage";
 
 export const getUsers = () => ({ type: "getUsers"});
 export const getUsersEpic: Epic = action$ => action$.pipe(
     ofType("getUsers"),
     mergeMap(() => RequestUsers().pipe(
         map((res: User[]) => getUsersList(res))
+    ))
+);
+
+export const getPagedUsers = (page: Page) => ({ type: "getPagedUsers", payload: page});
+export const getPagedUsersEpic: Epic = (action$: Observable<PayloadAction<Page>>) => action$.pipe(
+    ofType("getPagedUsers"),
+    map(action => action.payload),
+    mergeMap((page) => RequestPagedUsers(page).pipe(
+        map((res: UsersPage) => getUsersPage(res))
     ))
 );
 

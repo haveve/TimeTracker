@@ -17,7 +17,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <TimeStatistic/>
+        element: <TimeStatistic />
       },
       {
         path: "/Users",
@@ -50,7 +50,6 @@ const router = createBrowserRouter([
 
 
 function AppContent() {
-
   return (
     <div className='Content container-fluid p-0 h-100'>
       <RouterProvider router={router} />

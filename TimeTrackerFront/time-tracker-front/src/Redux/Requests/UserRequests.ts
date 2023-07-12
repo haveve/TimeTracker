@@ -4,6 +4,8 @@ import { User } from "../Types/User";
 import { Permissions } from "../Types/Permissions";
 import { getCookie } from "../../Login/Api/login-logout";
 import { number } from "yup";
+import { Page } from "../Types/Page";
+import { UsersPage } from "../Types/UsersPage";
 
 interface GraphqlUsers {
     data: {
@@ -43,6 +45,55 @@ export function RequestUsers(): Observable<User[]> {
     );
 }
 
+interface GraphqlPagedUsers {
+    data: {
+        user: {
+            pagedUsers: {
+                userList: User[],
+                totalCount: number,
+                pageIndex: number
+            }
+        }
+    }
+}
+
+export function RequestPagedUsers(page: Page): Observable<UsersPage> {
+    return ajax<GraphqlPagedUsers>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetUsers($first: Int!, $after: Int!){
+                    user{
+                        pagedUsers(first: $first, after: $after){
+                            userList{
+                                id
+                                login
+                                fullName
+                              }
+                              totalCount
+                              pageIndex
+                          }
+                    }
+                  }
+            `,
+            variables: {
+                "first": page.first,
+                "after": page.after
+            }
+
+        })
+    }).pipe(
+        map(res => {
+            let page: UsersPage = res.response.data.user.pagedUsers;
+            return page;
+        })
+    );
+}
 interface GraphqlUser {
     data: {
         user: {
