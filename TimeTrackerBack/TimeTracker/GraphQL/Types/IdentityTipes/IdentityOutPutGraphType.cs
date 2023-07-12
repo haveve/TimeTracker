@@ -1,5 +1,6 @@
 ﻿using GraphQL.Types;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using TimeTracker.GraphQL.Types.UserTypes;
 
 namespace TimeTracker.GraphQL.Types.IdentityTipes
 {

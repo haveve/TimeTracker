@@ -3,10 +3,13 @@ import { map, Observable } from "rxjs";
 import { User } from "../Types/User";
 import { Permissions } from "../Types/Permissions";
 import { getCookie } from "../../Login/Api/login-logout";
+import { number } from "yup";
 
 interface GraphqlUsers {
     data: {
-        users: User[]
+        user: {
+            users: User[]
+        }
     }
 }
 const url = "https://localhost:7226/graphql";
@@ -22,17 +25,19 @@ export function RequestUsers(): Observable<User[]> {
         body: JSON.stringify({
             query: `
                 query GetUsers{
-                    users{
-                        id
-                        login
-                        fullName
-                      }
+                    user{
+                        users{
+                            id
+                            login
+                            fullName
+                          }
+                    }
                   }
             `
         })
     }).pipe(
         map(res => {
-            let users: User[] = res.response.data.users;
+            let users: User[] = res.response.data.user.users;
             return users;
         })
     );
@@ -40,7 +45,9 @@ export function RequestUsers(): Observable<User[]> {
 
 interface GraphqlUser {
     data: {
-        user: User
+        user: {
+            user: User
+        }
     }
 }
 
@@ -55,11 +62,13 @@ export function RequestUser(Id: Number): Observable<User> {
         body: JSON.stringify({
             query: `
                 query GetUser($Id: Int!){
-                     user(id: $Id){
+                    user{
+                        user(id: $Id){
                         id
                         login
                         fullName
                       }
+                    }
                   }
             `,
             variables: {
@@ -67,15 +76,19 @@ export function RequestUser(Id: Number): Observable<User> {
             }
         })
     }).pipe(
-        map(res => { {
-            return res.response.data.user}
+        map(res => {
+            {
+                return res.response.data.user.user
+            }
         })
     );
 }
 
 interface GraphqlPermissions {
     data: {
-        user: Permissions
+        user: {
+            user: Permissions
+        }
     }
 }
 
@@ -90,7 +103,8 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
         body: JSON.stringify({
             query: `
                 query GetUser($Id: Int!){
-                     user(id: $Id){
+                    user{
+                        user(id: $Id){
                         id
                         cRUDUsers
                         viewUsers
@@ -100,6 +114,7 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
                         controlPresence
                         controlDayOffs
                       }
+                    }
                   }
             `,
             variables: {
@@ -107,15 +122,19 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
             }
         })
     }).pipe(
-        map(res => { {
-            return res.response.data.user}
+        map(res => {
+            {
+                return res.response.data.user.user
+            }
         })
     );
 }
 
 interface GraphqlUpdateUser {
     data: {
-        updateUser: string
+        user:{
+            updateUser: string
+        }
     }
 }
 
@@ -129,32 +148,36 @@ export function RequestUpdateUser(user: User): Observable<string> {
         },
         body: JSON.stringify({
             query: `
-                mutation updateUser($id : Int!, $user: UserInputType!){
-                    updateUser(id : $id, user: $user)
+                mutation updateUser($Id : Int!, $User: UserInputType!){
+                    user{
+                        updateUser(id : $Id, user: $User)
+                    }
                   }
             `,
             variables: {
-                "user": {
+                "User": {
                     "login": user.login,
                     "fullName": user.fullName,
                     "password": user.password
                 },
-                "id": user.id
+                "Id": Number(user.id)
             }
         })
     }).pipe(
-        map(res => {return res.response.data.updateUser})
+        map(res => { return res.response.data.user.updateUser })
     );
 }
 
 
 interface GraphqlUpdatePassword {
     data: {
-        updateUserPassword: string
+        user:{
+            updateUserPassword: string
+        }
     }
 }
 
-export function RequestUpdatePassword(id: Number, NewPassword: string, Password : string): Observable<string> {
+export function RequestUpdatePassword(id: Number, NewPassword: string, Password: string): Observable<string> {
     return ajax<GraphqlUpdatePassword>({
         url,
         method: "POST",
@@ -165,17 +188,19 @@ export function RequestUpdatePassword(id: Number, NewPassword: string, Password 
         body: JSON.stringify({
             query: `
                 mutation updateUserPassword($id : Int!, $Password: String!, $NewPassword: String!){
-                    updateUserPassword(id : $id, password: $Password, newPassword: $NewPassword)
+                    user{
+                        updateUserPassword(id : $id, password: $Password, newPassword: $NewPassword)
+                    }
                   }
             `,
             variables: {
-                "id": id,
+                "id": Number(id),
                 "Password": Password,
                 "NewPassword": NewPassword
             }
         })
     }).pipe(
-        map(res => {return res.response.data.updateUserPassword})
+        map(res => { return res.response.data.user.updateUserPassword })
     );
 }
 
@@ -190,7 +215,9 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
         body: JSON.stringify({
             query: `
                 mutation  updateUserPermissions($PermissionsType : PermissionsType!){
-                    updateUserPermissions(permissions : $PermissionsType)
+                    user{
+                        updateUserPermissions(permissions : $PermissionsType)
+                    }
                   }
             `,
             variables: {
@@ -222,7 +249,9 @@ export function RequestDeleteUser(id: number): Observable<string> {
         body: JSON.stringify({
             query: `
                 mutation DeleteUser($id: Int!) {
-                    deleteUser(id: $id)
+                    user{
+                        deleteUser(id: $id)
+                    }
                 }
             `,
             variables: {

@@ -1,16 +1,13 @@
 ﻿using GraphQL.Types;
 using TimeTracker.Models;
 
-namespace TimeTracker.GraphQL.Types
+namespace TimeTracker.GraphQL.Types.UserTypes
 {
-    public class UserType : ObjectGraphType<User>
+    public class PermissionsType : InputObjectGraphType<Permissions>
     {
-        public UserType()
+        public PermissionsType()
         {
             Field(i => i.Id, type: typeof(IdGraphType));
-            Field(i => i.Login);
-            Field(i => i.Password);
-            Field(i => i.FullName);
             Field(i => i.CRUDUsers, type: typeof(BooleanGraphType));
             Field(i => i.EditPermiters, type: typeof(BooleanGraphType));
             Field(i => i.ViewUsers, type: typeof(BooleanGraphType));
