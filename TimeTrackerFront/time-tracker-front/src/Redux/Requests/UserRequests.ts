@@ -72,7 +72,7 @@ export function RequestUser(Id: Number): Observable<User> {
                   }
             `,
             variables: {
-                "Id": Id
+                "Id": Number(Id)
             }
         })
     }).pipe(

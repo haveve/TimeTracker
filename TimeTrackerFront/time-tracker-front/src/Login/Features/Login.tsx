@@ -50,7 +50,7 @@ export default function Login() {
                 ) : null}
                 <p className='m-0'>Password</p>
                 <Form.Control
-                  type="text"
+                  type="password"
                   className="w-100 mb-3"
                   {...formik.getFieldProps('password')}
                 />

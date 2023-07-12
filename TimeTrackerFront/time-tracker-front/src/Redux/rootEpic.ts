@@ -1,12 +1,13 @@
 import { combineEpics, Epic } from "redux-observable";
-import { deleteUserEpic, getUsersEpic, updateUserPermissionsEpic, setTimeEpic } from "./epics";
+import { deleteUserEpic, getUsersEpic, updateUserPermissionsEpic, setTimeEpic, getCurrentUserEpic } from "./epics";
 import { catchError } from "rxjs";
 
 export const rootEpic: Epic = (action$, store$, dependencies) =>
     combineEpics(
-        deleteUserEpic,
+        getCurrentUserEpic,
         getUsersEpic,
         updateUserPermissionsEpic,
+        deleteUserEpic,
         //Time
         setTimeEpic
     )(action$, store$, dependencies).pipe(

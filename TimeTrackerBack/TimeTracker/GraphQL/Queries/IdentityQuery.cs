@@ -52,7 +52,7 @@ namespace TimeTracker.GraphQL.Queries
                 var response = new LoginOutput()
                 {
                     access_token = encodedJwt,
-                    current_user = user
+                    user_id = user.Id
                 };
 
                 //HttpContext.Response.Cookies.Append("gdfg", "gdfdgdf", new()

@@ -1,10 +1,11 @@
 import {Epic, ofType} from "redux-observable";
 import {map, mergeMap, Observable, of} from "rxjs";
-import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestUpdateUser } from "./Requests/UserRequests";
+import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestUpdateUser, RequestUser } from "./Requests/UserRequests";
 import { User } from "./Types/User";
 import { Permissions } from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
 import { getUsersList } from "./Slices/UserSlice";
+import { getTheCurrentUser } from "./Slices/CurrentUserSlice";
 import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time } from "./Types/Time";
 import {setTime} from "./Slices/TimeSlice"
@@ -14,6 +15,15 @@ export const getUsersEpic: Epic = action$ => action$.pipe(
     ofType("getUsers"),
     mergeMap(() => RequestUsers().pipe(
         map((res: User[]) => getUsersList(res))
+    ))
+);
+
+export const getCurrentUser = (id: number) => ({ type: "getCurrentUser", payload: id});
+export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
+    ofType("getCurrentUser"),
+    map(action => action.payload),
+    mergeMap((id) => RequestUser(id).pipe(
+        map((res: User) => getTheCurrentUser(res))
     ))
 );
 

@@ -3,15 +3,15 @@ import { User } from "../Types/User";
 import { Permissions } from "../Types/Permissions";
 
 
-export interface taskState {
+export interface usersState {
     Users: User[]
 }
-const initialState: taskState = {
+const initialState: usersState = {
     Users: []
 };
 
 export const userSlice = createSlice({
-    name: "todolist",
+    name: "userList",
     initialState,
     reducers: {
         getUsersList: (state,

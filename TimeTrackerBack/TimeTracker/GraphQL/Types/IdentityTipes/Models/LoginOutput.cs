@@ -4,7 +4,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.Models
 {
     public class LoginOutput
     {
-        public User current_user { get; set; } = null!;
+        public int user_id { get; set; }
         public string access_token { get; set; } = null!;
     }
 }

@@ -2,6 +2,7 @@ import {configureStore} from "@reduxjs/toolkit";
 import {createEpicMiddleware} from "redux-observable";
 import { rootEpic } from "./rootEpic";
 import UserReducer from "./Slices/UserSlice";
+import CurrentUserReducer from "./Slices/CurrentUserSlice";
 import TimeReducer from "./Slices/TimeSlice";
 
 const epicMiddleware = createEpicMiddleware();
@@ -9,6 +10,7 @@ const epicMiddleware = createEpicMiddleware();
 const store = configureStore({
    reducer: {
       users: UserReducer,
+      currentUser: CurrentUserReducer,
       time:TimeReducer
    },
    middleware: [epicMiddleware]
