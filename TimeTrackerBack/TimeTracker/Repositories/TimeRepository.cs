@@ -40,12 +40,12 @@ namespace TimeTracker.Repositories
             string query = "";
             switch (startOrEnd)
             {
-                case StartOrEnd.Start: query = $"UPDATE Time SET StartTimeTrackDate = '{date}' WHERE UserId = {userId}"; break;
-                case StartOrEnd.End: query = $"UPDATE Time SET EndTimeTrackDate = '{date}' WHERE UserId = {userId}"; break;
+                case StartOrEnd.Start: query = $"UPDATE Time SET StartTimeTrackDate = @date WHERE UserId = {userId}"; break;
+                case StartOrEnd.End: query = $"UPDATE Time SET EndTimeTrackDate = @date WHERE UserId = {userId}"; break;
             }
 
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query);
+            connection.Execute(query,new{date});
         }
     }
 }

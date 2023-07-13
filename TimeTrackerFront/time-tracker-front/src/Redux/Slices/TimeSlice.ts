@@ -28,7 +28,6 @@ export const timeSlicer = createSlice({
             state.time.daySeconds++;
             state.time.monthSeconds++;
             state.time.weekSeconds++;
-            state.status = "success"
         },
         setTime:(state,action:PayloadAction<Time>)=>{
             state.time = action.payload;

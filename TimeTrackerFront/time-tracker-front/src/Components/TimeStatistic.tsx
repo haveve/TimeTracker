@@ -21,8 +21,8 @@ export default function TimeStatistic() {
 
     return <Container fluid className='p-0 m-0 h-100'>
             <Row className='justify-content-between flex flex-row p-0 m-0 h-100'>
-                <Col className='  p-2 m-0'>
-                    <Row>
+                <Col className='  p-0 m-0'>
+                    <Row className='  p-0 m-0'>
                     <Col>
                         <Card>
                             <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color1 rounded'>

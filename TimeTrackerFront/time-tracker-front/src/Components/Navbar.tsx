@@ -15,7 +15,7 @@ function AppNavbar() {
   const dispatcher = useDispatch();
 
   return (
-    <Container fluid className='p-0 h-100'>
+    <Container fluid className='p-0 m-0 h-100'>
       <Navbar expand={false} className="bg-black height-header">
         <Container fluid className='justify-content-start'>
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-false`} />

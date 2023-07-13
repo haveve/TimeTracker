@@ -9,6 +9,8 @@ import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time } from "./Types/Time";
 import {setTime,setErrorStatusAndError} from "./Slices/TimeSlice"
 
+export const ErrorMassagePattern =  "There is occured error from server. For details check console and turn to administrator ";
+
 export const getUsers = () => ({ type: "getUsers"});
 export const getUsersEpic: Epic = action$ => action$.pipe(
     ofType("getUsers"),
@@ -60,6 +62,6 @@ export const setTimeEpic: Epic = action$ =>{
     ofType("setTime"),
     mergeMap(() => RequestGetTime().pipe(
         map((res:Time)=>setTime(res)),
-        catchError(()=>of(setErrorStatusAndError("There is occured error from server. For details check console and turn to administrator ")))
+        catchError(()=>of(setErrorStatusAndError(ErrorMassagePattern)))
     )),
 )};
