@@ -20,14 +20,21 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field<UserPageType>("pagedUsers")
                 .Argument<NonNullGraphType<IntGraphType>>("first")
                 .Argument<NonNullGraphType<IntGraphType>>("after")
+                .Argument<StringGraphType>("search")
+                .Argument<StringGraphType>("orderfield")
+                .Argument<StringGraphType>("order")
                 .ResolveAsync(async context =>
                 {
                     int first = context.GetArgument<int>("first");
                     int after = context.GetArgument<int>("after");
-                    List<User> list = repo.GetUsers();
+                    string search = context.GetArgument<string>("search");
+                    string orderfield = context.GetArgument<string>("orderfield");
+                    string order = context.GetArgument<string>("order");
+                    if(orderfield == "") orderfield = null;
+                    List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order);
                     return new UserPageViewModel()
                     {
-                        UserList = repo.GetUsers().Skip(after).Take(first).ToList(),
+                        UserList = repo.GetSearchedSortedfUsers(search, orderfield, order).Skip(after).Take(first).ToList(),
                         TotalCount = (list.Count() + first - 1) / first,
                         PageIndex = (after + first - 1) / first
                     };

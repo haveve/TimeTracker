@@ -67,9 +67,9 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
         },
         body: JSON.stringify({
             query: `
-                query GetUsers($first: Int!, $after: Int!){
+                query GetUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String){
                     user{
-                        pagedUsers(first: $first, after: $after){
+                        pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order){
                             userList{
                                 id
                                 login
@@ -83,7 +83,10 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
             `,
             variables: {
                 "first": page.first,
-                "after": page.after
+                "after": page.after,
+                "search": page.search,
+                "orderfield": page.orderfield,
+                "order": page.order
             }
 
         })
