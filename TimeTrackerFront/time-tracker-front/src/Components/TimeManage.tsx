@@ -10,17 +10,33 @@ import { setloadingStatus, setIdleStatus, statusType, plusOneSecond } from '../R
 import { RequestSetStartDate, RequestSetEndDate } from '../Redux/Requests/TimeRequests';
 import { Time } from '../Redux/Types/Time';
 import { useImmer } from 'use-immer';
-import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import { TimeStringFromSeconds } from './TimeTracker';
 import NotificationModalWindow from './NotificationModalWindow';
 import { MasssgeType } from './NotificationModalWindow';
 import CheckModalWindow from './CheckModalWindow';
+
+export const maxForDay = 8 * 60 * 60;
+export const maxForWeek = 8 * 60 * 60 * 5;
+export const maxForMonth = 8 * 60 * 60 * 15;
+
+export const uncorrectTimeError = `Uncorrect data or signature. You must stick to defined pattern - hh:mm
+and your input must have only figures and one separate sign ':'
+example of correct input - 34:12 (34:12 means - 34 hours 12 minutes)`;
+
+export const negativeTimeError = "hours and monutes must be both positive"
+
+export const uncorrectMinutesError = `Uncorrect minutes. Minutes must be high and equal than 0 and less and equal than 60 `
+
+export const lessThanZeroError = `Changes that you do does user time negative. In this way you must choose less value of changing or change time by hand`
+
+export const higherThanMaxError = `Changes that you do does user time over than max value (for day = ${maxForDay / (60 * 60)} h for week = ${maxForWeek / (60 * 60)} h for month = ${maxForMonth / (60 * 60)}  ). In this way you must choose less value of changing or change time by hand`
+
 export default function TimeManage(props: { isShowed: boolean, setShowed: (smth: boolean) => void, userId: number }) {
 
   const [selected, setSelected] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [checkWarning, setCheckWarning] = useState("");
-
 
   const timeUser: Time = {
     daySeconds: 4252,
@@ -52,7 +68,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
 
     switch (selected) {
       case 0:
-        if (checkWhetherIsPositive(changedTime, seconds, setError, selected))
+        if (checkWhetherIsPositive(changedTime, seconds, setError, selected) && checkWhetherIsLessThanMax(changedTime, seconds, setError, selected))
           setChangedTime((time) => {
             time.daySeconds += seconds
             time.monthSeconds += seconds
@@ -61,14 +77,14 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
         break;
 
       case 1:
-        if (checkWhetherIsPositive(changedTime, seconds, setError, selected))
+        if (checkWhetherIsPositive(changedTime, seconds, setError, selected) && checkWhetherIsLessThanMax(changedTime, seconds, setError, selected))
           setChangedTime((time) => {
             time.monthSeconds += seconds
             time.weekSeconds += seconds
           })
         break;
       case 2:
-        if (checkWhetherIsPositive(changedTime, seconds, setError, selected))
+        if (checkWhetherIsPositive(changedTime, seconds, setError, selected) && checkWhetherIsLessThanMax(changedTime, seconds, setError, selected))
           setChangedTime((time) => {
             time.monthSeconds += seconds
           })
@@ -76,30 +92,36 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
     }
   }
 
-  const handleChangeAssign = (seconds: number) => {
+  const canDoChangeAssign = (seconds: number) => {
     switch (selected) {
       case 0:
-        if (checkWhetherIsPositive(changedTime, seconds, setError, selected))
+        if (seconds>=0 && seconds<= maxForDay) {
           setChangedTime((time) => {
             time.monthSeconds += seconds - time.daySeconds
             time.weekSeconds += seconds - time.daySeconds
             time.daySeconds = seconds
           })
-        break;
+          return true;
+        }
+        return false;
 
       case 1:
-        if (checkWhetherIsPositive(changedTime, seconds, setError, selected))
+        if (seconds>=0 && seconds<= maxForWeek) {
           setChangedTime((time) => {
             time.monthSeconds += seconds - time.weekSeconds
             time.weekSeconds = seconds
           })
-        break;
+          return true;
+        }
+        return false;
       case 2:
-        if (checkWhetherIsPositive(changedTime, seconds, setError, selected))
+        if (seconds>=0 && seconds<= maxForMonth) {
           setChangedTime((time) => {
             time.monthSeconds = seconds
           })
-        break;
+          return true;
+        }
+        return false;
     }
   }
 
@@ -149,11 +171,11 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
             <FloatingLabel label="I wanna set ">
               <Form.Control type='text' onChange={(e) => setAnyInputTimeString(e.target.value)}></Form.Control>
             </FloatingLabel>
-            <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32) </Form.Label>
+          <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32). If you wanna change time by button, you must clear above field</Form.Label>
           </Col>
           <Col>
             <Alert className='p-1 text-center' variant='secondary'>
-              Current time for {FromIndexToString(selected)} <br /> {TimeForStatisticFromSeconds(time)}
+              Current time for {FromIndexToString(selected)} <br /> {FullTimeFromSeconds(time)}
             </Alert>
           </Col>
         </Row>
@@ -188,32 +210,30 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
                 const minutes = numberTimeArray[1];
 
                 if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-                  setError(`Uncorrect data or signature. You must stick to defined pattern - hh:mm
-                            and your input must have only figures and one separate sign ':'
-                            example of correct input - 34:12 (34:12 means - 34 hours 12 minutes)`)
+                  setError(uncorrectTimeError)
                   return;
                 }
 
                 if (hours < 0 || minutes < 0) {
-                  setError("hours and monutes must be both positive");
+                  setError(negativeTimeError);
                 }
 
                 if (minutes > 60) {
-                  setError(`Uncorrect minutes. Minutes must be high and equal than 0 and less and equal than 60 `)
+                  setError(uncorrectMinutesError)
                   return;
                 }
 
                 const seconds = hours * 60 * 60 + minutes * 60;
-
                 if (!isCorrectUltimateTime(seconds, selected, setError))
                   return;
 
-                setError("");
-                setSuccess("Changes was successfully saved")
-                handleChangeAssign(seconds);
+                  if(!canDoChangeAssign(seconds))
+                  return;
               }
-              handleSaveChange();
 
+              handleSaveChange();
+              setError("");
+              setSuccess("Changes was successfully saved")
             }}>Save changes</Button>
           </Col>
         </Row>
@@ -247,19 +267,19 @@ export function checkWhetherIsPositive(time: Time, secods: number, setError: (er
   switch (selected) {
     case 0:
       if (time.daySeconds + secods < 0 || time.weekSeconds + secods < 0 || time.monthSeconds + secods < 0) {
-        setError(`Changes that you do does user time negative. In this way you must choose less value of changing or change time by hand`)
+        setError(lessThanZeroError)
         return false;
       }
       break;
     case 1:
       if (time.weekSeconds + secods < 0 || time.monthSeconds + secods < 0) {
-        setError(`Changes that you do does user time negative. In this way you must choose less value of changing or change time by hand`)
+        setError(lessThanZeroError)
         return false;
       }
       break;
     case 2:
       if (time.monthSeconds + secods < 0) {
-        setError(`Changes that you do does user time negative. In this way you must choose less value of changing or change time by hand`)
+        setError(lessThanZeroError)
         return false;
       }
       break;
@@ -268,22 +288,48 @@ export function checkWhetherIsPositive(time: Time, secods: number, setError: (er
   return true;
 }
 
+export function checkWhetherIsLessThanMax(time: Time, secods: number, setError: (error: string) => void, selected: number) {
+  switch (selected) {
+    case 0:
+      if (time.daySeconds + secods > maxForDay || time.weekSeconds + secods > maxForWeek || time.monthSeconds + secods > maxForMonth) {
+        setError(higherThanMaxError)
+        return false;
+      }
+      break;
+    case 1:
+      if (time.weekSeconds + secods > maxForWeek || time.monthSeconds + secods > maxForMonth) {
+        setError(higherThanMaxError)
+        return false;
+      }
+      break;
+    case 2:
+      if (time.monthSeconds + secods > maxForMonth) {
+        setError(higherThanMaxError)
+        return false;
+      }
+      break;
+  }
+
+  return true;
+}
+
+
 export function isCorrectUltimateTime(seconds: number, selected: number, setError: (error: string) => void) {
 
   switch (selected) {
-    case 0: if (seconds > 8 * 60 * 60) {
-      setError("Your employer cannot work higher than 8 hours per day")
+    case 0: if (seconds > maxForDay) {
+      setError(`Your employer cannot work higher than ${maxForDay / (60 * 60)} hours per day`)
       return false;
     }
       break;
-    case 1: if (seconds > 8 * 60 * 60 * 5) {
-      setError(`Your employer cannot work higher than ${8 * 5} hours per day`)
+    case 1: if (seconds > maxForWeek) {
+      setError(`Your employer cannot work higher than ${maxForWeek / (60 * 60)} hours per week`)
       return false;
     }
       break;
 
-    case 2: if (seconds > 8 * 60 * 60 * 15) {
-      setError(`Your employer cannot work higher than ${8 * 15} hours per day`)
+    case 2: if (seconds > maxForMonth) {
+      setError(`Your employer cannot work higher than ${maxForMonth / (60 * 60)} hours per month`)
       return false;
     }
       break;
@@ -291,4 +337,10 @@ export function isCorrectUltimateTime(seconds: number, selected: number, setErro
   }
   return true;
 
+}
+
+
+export function FullTimeFromSeconds(secods: number) {
+  const timeArray = TimeStringFromSeconds(secods).stringTime.split(":");
+  return `${timeArray[0]}h ${timeArray[1]}m ${timeArray[2]}s`
 }
