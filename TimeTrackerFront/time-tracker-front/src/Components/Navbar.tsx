@@ -4,9 +4,15 @@ import '../Custom.css';
 import { Link, Outlet } from 'react-router-dom';
 import TimeTracker from './TimeTracker';
 import { deleteCookie } from '../Login/Api/login-logout';
+import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../Redux/store';
+import { clearErroMassage } from '../Redux/Slices/TimeSlice';
 
 function AppNavbar() {
   const user = JSON.parse(localStorage.getItem("User")!);
+  const error = useSelector((state:RootState)=>state.time.error?state.time.error:"");
+  const dispatcher = useDispatch();
 
   return (
     <Container fluid className='p-0 h-100'>
@@ -50,6 +56,7 @@ function AppNavbar() {
           <Outlet />
         </Col>
       </Row >
+      <NotificationModalWindow isShowed = {error !== ""} dropMassege={()=>dispatcher(clearErroMassage())} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
     </Container>
   );
 }

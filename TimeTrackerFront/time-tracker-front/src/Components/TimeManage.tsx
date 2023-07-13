@@ -18,6 +18,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
 
   const [selected, setSelected] = useState(0);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [checkWarning, setCheckWarning] = useState("");
 
 
@@ -208,6 +209,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
                   return;
 
                 setError("");
+                setSuccess("Changes was successfully saved")
                 handleChangeAssign(seconds);
               }
               handleSaveChange();
@@ -218,6 +220,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
       </Modal.Footer>
     </Modal>
     <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
+    <NotificationModalWindow isShowed={success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
     <CheckModalWindow isShowed={checkWarning !== ""} dropMassege={setCheckWarning} messegeType={MasssgeType.Warning} agree={() => {
       setChangedTime(time => {
         time.daySeconds = 0;

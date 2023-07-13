@@ -3,19 +3,18 @@ import { map, Observable } from "rxjs";
 import { User } from "../Types/User";
 import { getCookie } from "../../Login/Api/login-logout";
 import { Time } from "../Types/Time";
+import { response } from "../Types/ResponseType";
 
 interface GraphqlTime {
-    data: {
         time:{
             getTime:Time
         }
-    }
 }
 const url = "https://localhost:7226/graphql";
 
 
 export function RequestGetTime(): Observable<Time> {
-    return ajax<GraphqlTime>({
+    return ajax<response<GraphqlTime>>({
         url,
         method: "POST",
         headers: {
@@ -37,6 +36,10 @@ export function RequestGetTime(): Observable<Time> {
         })
     }).pipe(
         map(res => {
+            if(res.response.errors){ 
+                throw "error"
+            }
+
             let time: Time = res.response.data.time.getTime;
             return time;
         })
@@ -45,7 +48,7 @@ export function RequestGetTime(): Observable<Time> {
 
 
 export function RequestSetStartDate(): Observable<string> {
-    return ajax<string>({
+    return ajax<response<string>>({
         url,
         method: "POST",
         headers: {
@@ -62,12 +65,16 @@ export function RequestSetStartDate(): Observable<string> {
             `
         })
     }).pipe(
-        map(res => res.response)
+        map(res =>{
+            if(res.response.errors){ 
+                throw "error"
+            }
+        return res.response.data})
     );
 }
 
 export function RequestSetEndDate(): Observable<string> {
-    return ajax<string>({
+    return ajax<response<string>>({
         url,
         method: "POST",
         headers: {
@@ -84,12 +91,16 @@ export function RequestSetEndDate(): Observable<string> {
             `
         })
     }).pipe(
-        map(res => res.response)
+        map(res =>{
+            if(res.response.errors){ 
+                throw "error"
+            }
+        return res.response.data})
     );
 }
 
 export function RequestUpdateDate(variables: {}): Observable<string> {
-    return ajax<string>({
+    return ajax<response<string>>({
         url,
         method: "POST",
         headers: {
@@ -109,6 +120,10 @@ export function RequestUpdateDate(variables: {}): Observable<string> {
             variables
         })
     }).pipe(
-        map(res => res.response)
+        map(res =>{
+            if(res.response.errors){ 
+                throw "error"
+            }
+        return res.response.data})
     );
 }
