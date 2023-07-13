@@ -87,3 +87,28 @@ export function RequestSetEndDate(): Observable<string> {
         map(res => res.response)
     );
 }
+
+export function RequestUpdateDate(variables: {}): Observable<string> {
+    return ajax<string>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+            mutation($Id:Int!,$Time:InputTimeManage!){
+                time{
+                  manageTime{
+                    updateTime(time:$Time,userId:$Id)
+                    }
+                }
+              }
+            `,
+            variables
+        })
+    }).pipe(
+        map(res => res.response)
+    );
+}

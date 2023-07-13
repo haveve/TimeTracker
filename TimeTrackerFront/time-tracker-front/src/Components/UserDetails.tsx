@@ -6,10 +6,13 @@ import type { RootState } from "../Redux/store";
 import '../Custom.css';
 import { deleteUser } from '../Redux/epics';
 import { getUsers } from '../Redux/epics';
+import TimeManage from './TimeManage';
 
 function UserDetails() {
   const { userId = "" } = useParams();
   const [showDelete, setShowDelete] = useState(false);
+  const [showTimeManage, setShowTimeManage] = useState(false);
+
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -49,6 +52,7 @@ function UserDetails() {
               </div>
               <p className='m-0'>Worker</p>
               <div className='ms-auto'>
+                <Button variant='outline-success me-2' onClick={()=>setShowTimeManage(n=>!n)}>TimeManage</Button>
                 <Button variant='outline-secondary me-2' onClick={handleShowPermissions}>Permissions</Button>
                 <Button variant='outline-danger' onClick={handleShowDelete}>Delete</Button>
               </div>
@@ -73,6 +77,7 @@ function UserDetails() {
               <Button variant="danger" onClick={handleUserDelete}>Delete</Button>
             </Modal.Footer>
           </Modal>
+          <TimeManage isShowed = {showTimeManage} setShowed={setShowTimeManage} userId = {parseInt(userId)}/>
         </>
       )
         : (

@@ -45,12 +45,9 @@ function AppNavbar() {
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
-      <Row className='justify-content-end p-0 m-0 height-main height-main'>
-        <Col className='mt-3' >
+      <Row className='justify-content-end p-0 m-0 height-main'>
+        <Col className='p-0 m-0 h-100'>
           <Outlet />
-        </Col>
-        <Col className='p-0 m-0 h-100' md={3} lg={3}>
-          <TimeTracker />
         </Col>
       </Row >
     </Container>

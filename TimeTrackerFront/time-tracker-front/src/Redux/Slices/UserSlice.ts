@@ -2,14 +2,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../Types/User";
 import { Permissions } from "../Types/Permissions";
 
-
 export interface taskState {
     Users: User[],
     Permissions: Permissions[]
 }
 const initialState: taskState = {
     Users: [],
-    Permissions: []
+    Permissions: [],
 };
 
 export const userSlice = createSlice({
