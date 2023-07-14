@@ -1,5 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -63,6 +64,17 @@ namespace TimeTracker.GraphQL.Queries
 
                 return response;
             });
+            Field<StringGraphType>("getToken")
+                .Resolve(context =>
+            {
+                var httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
+                var forgeryService = context.RequestServices!.GetService<IAntiforgery>()!;
+
+                var tokens = forgeryService.GetAndStoreTokens(httpContext);
+                httpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+                        new CookieOptions { HttpOnly = false });
+                return "Successfully";
+            }).AuthorizeWithPolicy("Authorized");
         }
     }
 }

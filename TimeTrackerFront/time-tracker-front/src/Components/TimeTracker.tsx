@@ -13,14 +13,14 @@ import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
 import { setloadingStatus, setIdleStatus, statusType, plusOneSecond, setErrorStatusAndError } from '../Redux/Slices/TimeSlice';
-import { RequestSetStartDate,RequestSetEndDate } from '../Redux/Requests/TimeRequests';
+import { RequestSetStartDate, RequestSetEndDate, RequestGetToken } from '../Redux/Requests/TimeRequests';
 import { ErrorMassagePattern } from '../Redux/epics';
 
 export default function TimeTracker() {
     const [isStarted, setStarted] = useState(false);
     const [buttonMassage, setButtonMassage] = useState("Start");
     const [unsubTimer, setUnsubTimer] = useState(new Subscription());
-    const [localTimeInSeconds,setLocalTimeInSeconds] = useState(0)
+    const [localTimeInSeconds, setLocalTimeInSeconds] = useState(0)
 
 
     const dispatcher = useDispatch();
@@ -32,8 +32,8 @@ export default function TimeTracker() {
         dispatcher(setloadingStatus());
         dispatcher(setTimeE());
 
-        if(status === "success")
-        dispatcher(setIdleStatus())
+        if (status === "success")
+            dispatcher(setIdleStatus())
     }, [])
 
 
@@ -45,27 +45,37 @@ export default function TimeTracker() {
             <Clock size={190} value={new Date(localTimeInSeconds * 1000)} ></Clock>
         </Row>
         <Card.Body className='text-center time-track-font'>{clockTime.stringTime}</Card.Body>
-        <Button variant={isSuccessOrIdle?"success":"dark"} disabled={isSuccessOrIdle? false : true} className='m-5 my-0 ' onClick={() => {
+        <Button variant={isSuccessOrIdle ? "success" : "dark"} disabled={isSuccessOrIdle ? false : true} className='m-5 my-0 ' onClick={() => {
 
             if (!isStarted) {
 
                 const subscriber = timer(0, 1000).subscribe(n => {
                     dispatcher(plusOneSecond());
-                    setLocalTimeInSeconds(n=>n+1);
+                    setLocalTimeInSeconds(n => n + 1);
                 });
 
-                RequestSetStartDate().subscribe({
-                    next:()=>{dispatcher(setIdleStatus());},
-                    error:()=>{subscriber.unsubscribe();dispatcher(setErrorStatusAndError(ErrorMassagePattern))}
-                });
+                RequestGetToken().subscribe({
+                    next: (token) => {
+                        RequestSetStartDate(token).subscribe({
+                            next: () => { dispatcher(setIdleStatus()); },
+                            error: () => { subscriber.unsubscribe(); dispatcher(setErrorStatusAndError(ErrorMassagePattern)) }
+                        });
+                    },
+                    error: () => { subscriber.unsubscribe(); dispatcher(setErrorStatusAndError(ErrorMassagePattern)) }
 
+                })
                 setUnsubTimer(subscriber);
 
             }
             else {
-                RequestSetEndDate().subscribe({
-                    next:()=>{dispatcher(setIdleStatus())},
-                    error:()=>{dispatcher(setErrorStatusAndError(ErrorMassagePattern))}
+                RequestGetToken().subscribe({
+                    next: (token) => {
+                        RequestSetEndDate(token).subscribe({
+                            next: () => { dispatcher(setIdleStatus()) },
+                            error: () => { dispatcher(setErrorStatusAndError(ErrorMassagePattern)) }
+                        });
+                    },
+                    error: () => {dispatcher(setErrorStatusAndError(ErrorMassagePattern))}
                 });
                 unsubTimer.unsubscribe();
             }
@@ -97,7 +107,7 @@ export type timeClockType = {
     stringTime: string
 };
 
-export function IsSuccessOrIdle( status: statusType) {
+export function IsSuccessOrIdle(status: statusType) {
     if (status == "success") {
         return true;
     }

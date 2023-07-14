@@ -1,5 +1,7 @@
-﻿using GraphQL;
+﻿using Azure.Core;
+using GraphQL;
 using GraphQL.Types;
+using Microsoft.AspNetCore.Antiforgery;
 using TimeTracker.GraphQL.Types;
 using TimeTracker.GraphQL.Types.Time;
 using TimeTracker.Models;
@@ -10,10 +12,12 @@ namespace TimeTracker.GraphQL.Queries
     public class UserMutation : ObjectGraphType
     {
         private readonly IUserRepository repo;
+        private readonly IAntiforgery antiforgery;
 
-        public UserMutation(IUserRepository Repo)
+        public UserMutation(IUserRepository Repo, IAntiforgery Antiforgery)
         {
             repo = Repo;
+            antiforgery = Antiforgery;
 
             Field<StringGraphType>("createUser")
                 .Argument<NonNullGraphType<UserInputType>>("User")
@@ -69,7 +73,16 @@ namespace TimeTracker.GraphQL.Queries
                     return "User deleted successfully";
                 });
             Field<TimeMutationGraphType>("time")
-            .Resolve(context => new { });
+            .ResolveAsync(async context => {
+                var httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
+
+                var isValid = await antiforgery.IsRequestValidAsync(httpContext);
+                if (!isValid)
+                {
+                    throw new ApplicationException("Invalid AntiForgeryToken");
+                }
+                return new { };
+                });
         }
     }
 }
