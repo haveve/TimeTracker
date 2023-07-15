@@ -12,30 +12,42 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
-import { setloadingStatus, setIdleStatus, statusType, plusOneSecond, setErrorStatusAndError } from '../Redux/Slices/TimeSlice';
+import { setloadingStatus, setIdleStatus, statusType, setErrorStatusAndError } from '../Redux/Slices/TimeSlice';
 import { RequestSetStartDate, RequestSetEndDate, RequestGetToken } from '../Redux/Requests/TimeRequests';
 import { ErrorMassagePattern } from '../Redux/epics';
+import { changeTimerState  } from '../Redux/Slices/TimeSlice';
 
 export default function TimeTracker() {
-    const [isStarted, setStarted] = useState(false);
     const [buttonMassage, setButtonMassage] = useState("Start");
     const [unsubTimer, setUnsubTimer] = useState(new Subscription());
     const [localTimeInSeconds, setLocalTimeInSeconds] = useState(0)
 
 
-    const dispatcher = useDispatch();
+    const dispatch = useDispatch();
     const status = useSelector((state: RootState) => {
         return state.time.status;
     });
 
+    const isStarted = useSelector((state: RootState) => {
+        return state.time.time.isStarted;
+    });
+
+    useEffect(()=>{        
+        dispatch(setloadingStatus());
+        dispatch(setTimeE());
+
+    },[])
     useEffect(() => {
-        dispatcher(setloadingStatus());
-        dispatcher(setTimeE());
+        if (isStarted) {
+            const subscriber = timer(0, 1000).subscribe(n => {
+                setLocalTimeInSeconds(n=>n+1);
+            });
+            setUnsubTimer(subscriber);
+            unsubTimer.unsubscribe();
+        }
+        setButtonMassage(isStarted ? "End":"Start")
 
-        if (status === "success")
-            dispatcher(setIdleStatus())
-    }, [])
-
+    },[isStarted])
 
     const isSuccessOrIdle = IsSuccessOrIdle(status);
     const clockTime = TimeStringFromSeconds(localTimeInSeconds);
@@ -48,39 +60,31 @@ export default function TimeTracker() {
         <Button variant={isSuccessOrIdle ? "success" : "dark"} disabled={isSuccessOrIdle ? false : true} className='m-5 my-0 ' onClick={() => {
 
             if (!isStarted) {
-
-                const subscriber = timer(0, 1000).subscribe(n => {
-                    dispatcher(plusOneSecond());
-                    setLocalTimeInSeconds(n => n + 1);
-                });
-
                 RequestGetToken().subscribe({
                     next: (token) => {
                         RequestSetStartDate(token).subscribe({
-                            next: () => { dispatcher(setIdleStatus()); },
-                            error: () => { subscriber.unsubscribe(); dispatcher(setErrorStatusAndError(ErrorMassagePattern)) }
+                            next: () => { dispatch(setIdleStatus()); },
+                            error: () => { unsubTimer.unsubscribe(); dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
                         });
                     },
-                    error: () => { subscriber.unsubscribe(); dispatcher(setErrorStatusAndError(ErrorMassagePattern)) }
+                    error: () => { unsubTimer.unsubscribe(); dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
 
                 })
-                setUnsubTimer(subscriber);
-
             }
             else {
                 RequestGetToken().subscribe({
                     next: (token) => {
                         RequestSetEndDate(token).subscribe({
-                            next: () => { dispatcher(setIdleStatus()) },
-                            error: () => { dispatcher(setErrorStatusAndError(ErrorMassagePattern)) }
+                            next: () => { dispatch(setIdleStatus()) },
+                            error: () => { dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
                         });
                     },
-                    error: () => {dispatcher(setErrorStatusAndError(ErrorMassagePattern))}
+                    error: () => {dispatch(setErrorStatusAndError(ErrorMassagePattern))}
                 });
                 unsubTimer.unsubscribe();
             }
-            setStarted(!isStarted);
-            setButtonMassage(isStarted ? "Start" : "Pause")
+            
+            dispatch(changeTimerState());
         }}>{buttonMassage}</Button>
         <Image src={picture}></Image>
     </Card>

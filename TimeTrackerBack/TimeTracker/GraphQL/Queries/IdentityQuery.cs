@@ -25,7 +25,7 @@ namespace TimeTracker.GraphQL.Queries
 
                 var user = userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
 
-                Console.WriteLine(user);
+                
                 if (user == null)
                 {
                     throw new Exception("User does not exist");

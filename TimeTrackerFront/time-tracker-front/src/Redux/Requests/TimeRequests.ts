@@ -2,12 +2,13 @@ import { ajax } from "rxjs/internal/ajax/ajax";
 import { map, Observable } from "rxjs";
 import { User } from "../Types/User";
 import { getCookie } from "../../Login/Api/login-logout";
-import { Time } from "../Types/Time";
+import { Time, TimeResponse,TimeRequest } from "../Types/Time";
 import { response } from "../Types/ResponseType";
+import { Alert } from "react-bootstrap";
 
 interface GraphqlTime {
     time: {
-        getTime: Time
+        getTime: TimeResponse
     }
 }
 const url = "https://localhost:7226/graphql";
@@ -64,17 +65,20 @@ export function RequestGetToken(): Observable<string> {
     );
 }
 
-export function RequestGetTime(): Observable<Time> {
+export function RequestGetTime(): Observable<TimeResponse> {
     return GetAjaxObservable<GraphqlTime>(`
     query{
         time{
           getTime{
-            monthSeconds,
-            daySeconds,
-            weekSeconds
+            isStarted,
+            time{
+              daySeconds,
+              weekSeconds,
+              monthSeconds
+            }
           }
         }
-    }
+      }
     `, {}).pipe(
         map(res => {
             if (res.response.errors) {
@@ -82,7 +86,7 @@ export function RequestGetTime(): Observable<Time> {
                 throw "error"
             }
 
-            let time: Time = res.response.data.time.getTime;
+            let time = res.response.data.time.getTime;
             return time;
         })
     );
@@ -125,22 +129,22 @@ export function RequestSetEndDate(token: string): Observable<string> {
     );
 }
 
-export function RequestUpdateDate(variables: {},token:string): Observable<string> {
+export function RequestUpdateDate(time:TimeRequest,token:string): Observable<TimeRequest> {
     return GetAjaxObservable<string>(`
-    mutation($Id:Int!,$Time:InputTimeManage!){
+    mutation($id:Int!,$time:ManageTimeInputGrpahqType!){
         time{
           manageTime{
-            updateTime(time:$Time,userId:$Id)
+            updateTime(userId:$id,userTime:$time)
             }
         }
       }
-    `, variables,token,true).pipe(
+    `,time,token,true).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return res.response.data
+            return time
         })
     );
 }

@@ -16,12 +16,12 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
         {
             _timeRepository = timeRepository;
 
-            Field<TimeOutPutGraphql>("getTime")
+            Field<TimeWithFlagOutPutGraphql>("getTime")
                 .Resolve(context =>
                 {
                     var userId = GetUserIdFromClaims(context.User!);
                     var time = _timeRepository.GetTime(userId);
-                    return new TimeView(CheckExpires(time, userId, _timeRepository));
+                    return new TimeWithFlagViewModel(){Time = new TimeViewModel(CheckExpires(time, userId, _timeRepository)), isStarted = time.StartTimeTrackDate != null};
                 });
         }
 
@@ -57,7 +57,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 TimeTrackManage(time, repo,userId);
             }
 
-            repo.UpdateTime(time, userId);
+            repo.UpdateTime(time, userId,UpdateTimeE.FullTime);
             return time;
         }
 

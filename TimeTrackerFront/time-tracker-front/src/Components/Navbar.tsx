@@ -4,14 +4,17 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
 import TimeTracker from './TimeTracker';
 import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
-import { clearErroMassage } from '../Redux/Slices/TimeSlice';
+import { clearErroMassage as clearErroMassageTime} from '../Redux/Slices/TimeSlice';
 import { deleteCookie, getCookie } from '../Login/Api/login-logout';
 import { getCurrentUser } from '../Redux/epics';
 import { RootState } from '../Redux/store';
+import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
 import '../Custom.css';
 
 function AppNavbar() {
-  const error = useSelector((state: RootState) => state.time.error ? state.time.error : "");
+  const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
+  const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
+
   const dispatch = useDispatch();
   useEffect(() => {
     var id = getCookie("user_id");
@@ -77,7 +80,8 @@ function AppNavbar() {
           <Outlet />
         </Col>
       </Row >
-      <NotificationModalWindow isShowed={error !== ""} dropMassege={() => dispatch(clearErroMassage())} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
     </Container>
   );
 }

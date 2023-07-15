@@ -1,12 +1,15 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../Types/User";
-
+import { statusType } from "./TimeSlice";
 
 export interface currentUserState {
-    User: User
+    User: User,
+    status:statusType,
+    error?:string
 }
 const initialState: currentUserState = {
-    User: {} as User
+    User: {} as User,
+    status:"idle"
 };
 
 export const userSlice = createSlice({
@@ -16,6 +19,20 @@ export const userSlice = createSlice({
         getTheCurrentUser: (state,
             action: PayloadAction<User>) => {
             state.User = action.payload
+        },
+        setloadingStatus: (state) => {
+            state.status = "loading";
+        },
+        setErrorStatusAndError: (state, action: PayloadAction<string>) => {
+            state.status = "error";
+            state.error = action.payload;
+        },
+        setIdleStatus: (state) => {
+            state.status = "idle"
+            state.error = ""
+        },
+        clearErroMassage: (state) => {
+            state.error = ""
         }
     }
 });

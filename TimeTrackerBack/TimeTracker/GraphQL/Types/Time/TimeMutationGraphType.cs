@@ -1,4 +1,5 @@
 ﻿using GraphQL.Types;
+using TimeTracker.GraphQL.Types.Time.ManageTime;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Repositories;
 
@@ -14,8 +15,6 @@ namespace TimeTracker.GraphQL.Types.Time
             Field<StringGraphType>("setStartDate")
                 .Resolve(context =>
                 {
-
-
                     _timeRepository.SetStartOrEndTrackDate(
                         StartOrEnd.Start,
                         TimeQueryGraphqlType.ToUkraineDateTime(DateTime.Now),
@@ -31,7 +30,8 @@ namespace TimeTracker.GraphQL.Types.Time
                         TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
                      return "Successfully";
                  });
-
+            Field<ManageTimeMutationGraphType>("manageTime")
+                .Resolve(context => new { });
         }
     }
 }

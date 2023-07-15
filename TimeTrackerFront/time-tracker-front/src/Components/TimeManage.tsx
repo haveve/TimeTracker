@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
-import { setloadingStatus, setIdleStatus, statusType, plusOneSecond } from '../Redux/Slices/TimeSlice';
+import { setloadingStatus, setIdleStatus, statusType} from '../Redux/Slices/TimeSlice';
 import { RequestSetStartDate, RequestSetEndDate } from '../Redux/Requests/TimeRequests';
 import { Time } from '../Redux/Types/Time';
 import { useImmer } from 'use-immer';
@@ -14,6 +14,7 @@ import { TimeStringFromSeconds } from './TimeTracker';
 import NotificationModalWindow from './NotificationModalWindow';
 import { MasssgeType } from './NotificationModalWindow';
 import CheckModalWindow from './CheckModalWindow';
+import { updateTimeE } from '../Redux/epics';
 
 export const maxForDay = 8 * 60 * 60;
 export const maxForWeek = 8 * 60 * 60 * 5;
@@ -38,30 +39,23 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
   const [success, setSuccess] = useState("");
   const [checkWarning, setCheckWarning] = useState("");
 
+  const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
+
+  const dispatch = useDispatch();
+
+  const User = useSelector((state: RootState) => state.users.Users.filter(u => u.id == props.userId))
+
   const timeUser: Time = {
-    daySeconds: 4252,
-    weekSeconds: 33252,
-    monthSeconds: 53252
+    daySeconds: User[0].daySeconds!,
+    weekSeconds: User[0].weekSeconds!,
+    monthSeconds: User[0].monthSeconds!
   }
 
   const [changedTime, setChangedTime] = useImmer({ ...timeUser })
   const [anyInputTimeString, setAnyInputTimeString] = useState("")
 
-  const handleSaveChange = () => {
-    switch (selected) {
-      case 0:
-        timeUser.daySeconds = changedTime.daySeconds;
-        timeUser.weekSeconds = changedTime.weekSeconds;
-        timeUser.monthSeconds = changedTime.monthSeconds;
-        break;
-
-      case 1:
-        timeUser.weekSeconds = changedTime.weekSeconds;
-        timeUser.monthSeconds = changedTime.monthSeconds;
-        break;
-      case 2:
-        timeUser.monthSeconds = changedTime.monthSeconds;
-    }
+  const handleSaveChange = (time: Time) => {
+    dispatch(updateTimeE(props.userId, time));
   }
 
   const handleChangeAdd = (seconds: number) => {
@@ -92,33 +86,27 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
     }
   }
 
-  const canDoChangeAssign = (seconds: number) => {
+  const canDoChangeAssign = (time:Time,seconds: number) => {
     switch (selected) {
       case 0:
-        if (seconds>=0 && seconds<= maxForDay) {
-          setChangedTime((time) => {
+        if (seconds >= 0 && seconds <= maxForDay) {
             time.monthSeconds += seconds - time.daySeconds
             time.weekSeconds += seconds - time.daySeconds
             time.daySeconds = seconds
-          })
           return true;
         }
         return false;
 
       case 1:
-        if (seconds>=0 && seconds<= maxForWeek) {
-          setChangedTime((time) => {
+        if (seconds >= 0 && seconds <= maxForWeek) {
             time.monthSeconds += seconds - time.weekSeconds
             time.weekSeconds = seconds
-          })
           return true;
         }
         return false;
       case 2:
-        if (seconds>=0 && seconds<= maxForMonth) {
-          setChangedTime((time) => {
+        if (seconds >= 0 && seconds <= maxForMonth) {
             time.monthSeconds = seconds
-          })
           return true;
         }
         return false;
@@ -160,7 +148,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
                 onChange={(e) => {
                   setSelected(e.target.selectedIndex);
                 }}
-                defaultValue={0}>
+                defaultValue={selected}>
                 <option value="0">Day</option>
                 <option value="1">Week</option>
                 <option value="2">Month</option>
@@ -169,9 +157,9 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
           </Col>
           <Col>
             <FloatingLabel label="I wanna set ">
-              <Form.Control type='text' onChange={(e) => setAnyInputTimeString(e.target.value)}></Form.Control>
+              <Form.Control type='text' onChange={(e) => setAnyInputTimeString(e.target.value)} value={anyInputTimeString} ></Form.Control>
             </FloatingLabel>
-          <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32). If you wanna change time by button, you must clear above field</Form.Label>
+            <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32). If you wanna change time by button, you must clear above field</Form.Label>
           </Col>
           <Col>
             <Alert className='p-1 text-center' variant='secondary'>
@@ -197,41 +185,33 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
               });
               setSelected(0);
               setError("");
+              setAnyInputTimeString("");
               props.setShowed(!props.isShowed)
             }}>Cancel</Button>
             <Button variant="success" onClick={() => {
 
+              let timeC = {...changedTime};
+
               if (anyInputTimeString != "") {
-                const timeStr = anyInputTimeString.split(':');
-                const numberTimeArray = timeStr.map(function (element) {
-                  return Number.parseInt(element);
-                });
-                const hours = numberTimeArray[0];
-                const minutes = numberTimeArray[1];
+                const seconds =  GetTimeFromString(anyInputTimeString,setError);
 
-                if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-                  setError(uncorrectTimeError)
-                  return;
-                }
+                if(seconds === -1.5)
+                return;
 
-                if (hours < 0 || minutes < 0) {
-                  setError(negativeTimeError);
-                }
-
-                if (minutes > 60) {
-                  setError(uncorrectMinutesError)
-                  return;
-                }
-
-                const seconds = hours * 60 * 60 + minutes * 60;
                 if (!isCorrectUltimateTime(seconds, selected, setError))
                   return;
 
-                  if(!canDoChangeAssign(seconds))
+                if (!canDoChangeAssign(timeC,seconds))
                   return;
+
+                setChangedTime(time => {
+                  time.daySeconds = timeC.daySeconds;
+                  time.weekSeconds = timeC.weekSeconds;
+                  time.monthSeconds = timeC.monthSeconds;
+                });
               }
 
-              handleSaveChange();
+              handleSaveChange(timeC);
               setError("");
               setSuccess("Changes was successfully saved")
             }}>Save changes</Button>
@@ -239,17 +219,27 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
         </Row>
       </Modal.Footer>
     </Modal>
-    <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
-    <NotificationModalWindow isShowed={success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
-    <CheckModalWindow isShowed={checkWarning !== ""} dropMassege={setCheckWarning} messegeType={MasssgeType.Warning} agree={() => {
+    <NotificationModalWindow isShowed={errorUserList === ""&&error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
+    <NotificationModalWindow isShowed={errorUserList === ""&&success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
+    <CheckModalWindow isShowed={errorUserList === ""&&checkWarning !== ""} dropMassege={setCheckWarning} messegeType={MasssgeType.Warning} agree={() => {
+
+      let time = {
+        daySeconds: 0,
+        weekSeconds: 0,
+        monthSeconds: 0
+      }
+
       setChangedTime(time => {
         time.daySeconds = 0;
         time.weekSeconds = 0;
         time.monthSeconds = 0;
       });
+
+      alert(JSON.stringify(time));
+
       setSelected(0);
       setError("");
-      handleSaveChange();
+      handleSaveChange(time);
     }} reject={() => { }}>{checkWarning}</CheckModalWindow>
   </>
     ;
@@ -343,4 +333,30 @@ export function isCorrectUltimateTime(seconds: number, selected: number, setErro
 export function FullTimeFromSeconds(secods: number) {
   const timeArray = TimeStringFromSeconds(secods).stringTime.split(":");
   return `${timeArray[0]}h ${timeArray[1]}m ${timeArray[2]}s`
+}
+
+export function GetTimeFromString(str:string,setError:(error:string)=>void){
+  const timeStr = str.split(':');
+  const numberTimeArray = timeStr.map(function (element) {
+    return Number.parseInt(element);
+  });
+  const hours = numberTimeArray[0];
+  const minutes = numberTimeArray[1];
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    setError(uncorrectTimeError)
+    return -1.5;
+  }
+
+  if (hours < 0 || minutes < 0) {
+    setError(negativeTimeError);
+    return -1.5;
+  }
+
+  if (minutes > 60) {
+    setError(uncorrectMinutesError)
+    return -1.5;
+  }
+
+  return hours * 60 * 60 + minutes * 60;
 }

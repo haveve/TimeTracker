@@ -20,17 +20,28 @@ namespace TimeTracker.Repositories
             var time = connection.QuerySingle<Time>(query);
             return time;
         }
-        public void AddTimeInSeconds(int seconds,int userId)
+        public void AddTimeInSeconds(int seconds, int userId)
         {
             string query = $"UPDATE Users SET DaySeconds = DaySeconds+{seconds}, WeekSeconds = WeekSeconds+{seconds}, MonthSeconds = MonthSeconds+{seconds} WHERE Id = {userId}";
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query);
         }
 
-        public void UpdateTime(Time time, int userId)
+        public void UpdateTime(Time time, int userId, UpdateTimeE updateTime)
         {
-            string query =
-                @$"UPDATE Users SET TodayDate = @TodayDate, DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, StartTimeTrackDate = @StartTimeTrackDate, EndTimeTrackDate = @EndTimeTrackDate WHERE Id = {userId}";
+            string query = "";
+
+            switch (updateTime)
+            {
+                case UpdateTimeE.FullTime:
+                    query =
+                       @$"UPDATE Users SET TodayDate = @TodayDate, DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, StartTimeTrackDate = @StartTimeTrackDate, EndTimeTrackDate = @EndTimeTrackDate WHERE Id = {userId}";
+                    break;
+                case UpdateTimeE.OnlySeconds:
+                    query =
+                        @$"UPDATE Users SET DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds WHERE Id = {userId}";
+                    break;
+            }
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query, time);
         }
@@ -45,7 +56,7 @@ namespace TimeTracker.Repositories
             }
 
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query,new{date});
+            connection.Execute(query, new { date });
         }
     }
 }

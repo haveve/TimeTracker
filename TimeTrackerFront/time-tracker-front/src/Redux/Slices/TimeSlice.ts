@@ -1,56 +1,57 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Time } from "../Types/Time";
+import {TimeResponse } from "../Types/Time";
 
-export type statusType = "idle"|"error"|"success"|"loading";
+export type statusType = "idle" | "error" | "success" | "loading";
 
 export type stateTimeType = {
-    time:Time,
-    error?:string,
-    status:statusType
+    time: TimeResponse,
+    error?: string,
+    status: statusType
 }
 
-const time:Time = {
-    daySeconds: 0,
-    weekSeconds: 0,
-    monthSeconds: 0 
+const time: TimeResponse = {
+    time: {
+        daySeconds: 0,
+        weekSeconds: 0,
+        monthSeconds: 0
+    },
+    isStarted: false
 }
 
-const initialState:stateTimeType = {
+const initialState: stateTimeType = {
     time,
-    status:"idle"
+    status: "idle"
 }
 
 export const timeSlicer = createSlice({
-    name:"time",
+    name: "time",
     initialState,
-    reducers:{
-        plusOneSecond:(state)=>{
-            state.time.daySeconds++;
-            state.time.monthSeconds++;
-            state.time.weekSeconds++;
-        },
-        setTime:(state,action:PayloadAction<Time>)=>{
+    reducers: {
+        setTime: (state, action: PayloadAction<TimeResponse>) => {
             state.time = action.payload;
             state.status = "success"
             state.error = ""
         },
-        setloadingStatus:(state)=>{
+        setloadingStatus: (state) => {
             state.status = "loading";
         },
-        setErrorStatusAndError:(state,action:PayloadAction<string>)=>{
+        setErrorStatusAndError: (state, action: PayloadAction<string>) => {
             state.status = "error";
             state.error = action.payload;
         },
-        setIdleStatus:(state)=>{
+        setIdleStatus: (state) => {
             state.status = "idle"
             state.error = ""
         },
-        clearErroMassage:(state)=>{
+        clearErroMassage: (state) => {
             state.error = ""
+        },
+        changeTimerState: (state)=>{
+            state.time.isStarted = !state.time.isStarted;
         }
     },
 })
 
 export const timeSlicerAction = timeSlicer.actions;
-export const {plusOneSecond,setTime,setloadingStatus,setErrorStatusAndError,setIdleStatus,clearErroMassage} = timeSlicer.actions;
+export const {setTime, setloadingStatus,changeTimerState, setErrorStatusAndError, setIdleStatus, clearErroMassage } = timeSlicer.actions;
 export default timeSlicer.reducer;

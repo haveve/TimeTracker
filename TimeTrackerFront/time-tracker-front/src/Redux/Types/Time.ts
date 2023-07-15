@@ -3,3 +3,13 @@ export interface Time{
     weekSeconds:number,
     monthSeconds:number
 }
+
+export interface TimeResponse{
+    time:Time,
+    isStarted:boolean
+}
+
+export interface TimeRequest{
+    id:number,
+    time:Time
+}

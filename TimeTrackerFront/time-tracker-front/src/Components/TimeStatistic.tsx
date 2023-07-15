@@ -26,7 +26,7 @@ export default function TimeStatistic() {
                     <Col>
                         <Card>
                             <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color1 rounded'>
-                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Day</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.daySeconds)}</span></div>
+                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Day</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.time.daySeconds)}</span></div>
                                 <Image height={90} src={picture}></Image>
                             </Card.Body>
                         </Card>
@@ -34,7 +34,7 @@ export default function TimeStatistic() {
                     <Col>
                         <Card>
                             <Card.Body className='d-flex flex-row justify-content-between p-0 time-card-color2 rounded'>
-                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Week</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.weekSeconds)}</span></div>
+                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Week</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.time.weekSeconds)}</span></div>
                                 <Image height={90} src={picture}></Image>
                             </Card.Body>
                         </Card>
@@ -42,7 +42,7 @@ export default function TimeStatistic() {
                     <Col>
                         <Card>
                             <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color3 rounded'>
-                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Month</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.monthSeconds)}</span></div>
+                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Month</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.time.monthSeconds)}</span></div>
                                 <Image height={90} src={picture}></Image>
                             </Card.Body>
                         </Card>

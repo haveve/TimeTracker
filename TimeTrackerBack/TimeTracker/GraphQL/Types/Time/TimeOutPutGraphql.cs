@@ -4,7 +4,7 @@ using TimeTracker.ViewModels;
 
 namespace TimeTracker.GraphQL.Types.Time
 {
-    public class TimeOutPutGraphql: ObjectGraphType<TimeView>
+    public class TimeOutPutGraphql: ObjectGraphType<TimeViewModel>
     {
         public TimeOutPutGraphql()
         {
