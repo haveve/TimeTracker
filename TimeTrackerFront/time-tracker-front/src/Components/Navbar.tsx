@@ -1,18 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Col, Row, Nav, Navbar, NavDropdown, Button, Offcanvas, Form, ListGroup, ListGroupItem } from "react-bootstrap";
-import '../Custom.css';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
 import TimeTracker from './TimeTracker';
-import { deleteCookie } from '../Login/Api/login-logout';
 import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../Redux/store';
 import { clearErroMassage } from '../Redux/Slices/TimeSlice';
+import { deleteCookie, getCookie } from '../Login/Api/login-logout';
+import { getCurrentUser } from '../Redux/epics';
+import { RootState } from '../Redux/store';
+import '../Custom.css';
 
 function AppNavbar() {
-  const user = JSON.parse(localStorage.getItem("User")!);
-  const error = useSelector((state:RootState)=>state.time.error?state.time.error:"");
-  const dispatcher = useDispatch();
+  const error = useSelector((state: RootState) => state.time.error ? state.time.error : "");
+  const dispatch = useDispatch();
+  useEffect(() => {
+    var id = getCookie("user_id");
+    dispatch(getCurrentUser(parseInt(id!)));
+  }, []);
+  let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
     <Container fluid className='p-0 m-0 h-100'>
@@ -35,19 +40,35 @@ function AppNavbar() {
             <Offcanvas.Body>
               <Nav className="justify-content-end flex-grow-1 pe-3">
                 <ListGroup>
-                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Users"} className='m-0'>Users</Nav.Link></ListGroup.Item>
-                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/CreateUser"} className='m-0'>Create user</Nav.Link></ListGroup.Item>
+                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Users"} className='m-0'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-people me-1 mb-1" viewBox="0 0 16 16">
+                      <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
+                    </svg>
+                    Users
+                  </Nav.Link></ListGroup.Item>
+                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/CreateUser"} className='m-0'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person-plus me-1 mb-1" viewBox="0 0 16 16">
+                      <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.289 10 6 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+                      <path fillRule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z" />
+                    </svg>
+                    Create user
+                  </Nav.Link></ListGroup.Item>
                 </ListGroup>
               </Nav>
             </Offcanvas.Body>
             <Nav className="justify-content-center ps-2 mb-3 flex flex-grow-1">
-                <ListGroup className="justify-content-end flex flex-grow-1 pe-3 ">
-                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Login"} className='m-0'
-                    onClick={() => {
-                      deleteCookie("access_token");
-                    }}>Logout</Nav.Link></ListGroup.Item>
-                </ListGroup>
-              </Nav>
+              <ListGroup className="justify-content-end flex flex-grow-1 pe-3 ">
+                <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Login"} className='m-0'
+                  onClick={() => {
+                    deleteCookie("access_token");
+                  }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-left me-1 mb-1" viewBox="0 0 16 16">
+                    <path fillRule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z" />
+                    <path fillRule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z" />
+                  </svg>
+                  Logout</Nav.Link></ListGroup.Item>
+              </ListGroup>
+            </Nav>
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
@@ -56,7 +77,7 @@ function AppNavbar() {
           <Outlet />
         </Col>
       </Row >
-      <NotificationModalWindow isShowed = {error !== ""} dropMassege={()=>dispatcher(clearErroMassage())} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={error !== ""} dropMassege={() => dispatch(clearErroMassage())} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
     </Container>
   );
 }

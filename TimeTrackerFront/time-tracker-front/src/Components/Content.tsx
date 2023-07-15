@@ -10,14 +10,15 @@ import UserPermissions from './UserPermissions';
 import UserProfile from './UserProfile';
 import { getTokenOrNavigate } from '../Login/Api/login-logout';
 import TimeStatistic from "./TimeStatistic"
+
 const router = createBrowserRouter([
   {
     element: <AppNavbar />,
-    loader:async()=>getTokenOrNavigate(),
+    loader: async () => getTokenOrNavigate(),
     children: [
       {
         path: "/",
-        element: <TimeStatistic/>
+        element: <TimeStatistic />
       },
       {
         path: "/Users",
@@ -44,13 +45,12 @@ const router = createBrowserRouter([
   {
     path: "/Login",
     element: <Login />,
-    loader:async()=>getTokenOrNavigate(true),
+    loader: async () => getTokenOrNavigate(true),
   }
 ])
 
 
 function AppContent() {
-
   return (
     <div className='Content container-fluid p-0 h-100'>
       <RouterProvider router={router} />

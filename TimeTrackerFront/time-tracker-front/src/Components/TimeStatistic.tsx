@@ -21,7 +21,7 @@ export default function TimeStatistic() {
 
     return <Container fluid className='p-0 m-0 h-100'>
             <Row className='justify-content-between flex flex-row p-0 m-0 h-100'>
-                <Col className='  p-0 m-0'>
+                <Col className='  p-0 m-0 pt-2'>
                     <Row className='  p-0 m-0'>
                     <Col>
                         <Card>

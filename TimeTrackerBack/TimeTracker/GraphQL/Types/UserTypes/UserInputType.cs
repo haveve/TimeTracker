@@ -1,7 +1,7 @@
 ﻿using GraphQL.Types;
 using TimeTracker.Models;
 
-namespace TimeTracker.GraphQL.Types
+namespace TimeTracker.GraphQL.Types.UserTypes
 {
     public class UserInputType : InputObjectGraphType<User>
     {

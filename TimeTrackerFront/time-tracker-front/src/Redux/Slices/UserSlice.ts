@@ -1,33 +1,34 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../Types/User";
 import { Permissions } from "../Types/Permissions";
+import { UsersPage } from "../Types/UsersPage";
 
-export interface taskState {
+export interface usersState {
     Users: User[],
-    Permissions: Permissions[]
+    UsersPage: UsersPage
 }
-const initialState: taskState = {
+const initialState: usersState = {
     Users: [],
-    Permissions: [],
+    UsersPage: {} as UsersPage
 };
 
 export const userSlice = createSlice({
-    name: "todolist",
+    name: "userList",
     initialState,
     reducers: {
         getUsersList: (state,
             action: PayloadAction<User[]>) => {
             state.Users = action.payload
         },
-        getPermissions: (state,
-            action: PayloadAction<Permissions[]>) => {
-            state.Permissions = action.payload
+        getUsersPage: (state,
+            action: PayloadAction<UsersPage>) => {
+            state.UsersPage = action.payload
         }
     }
 });
 
 export const {
     getUsersList,
-    getPermissions
+    getUsersPage
 } = userSlice.actions;
 export default userSlice.reducer;

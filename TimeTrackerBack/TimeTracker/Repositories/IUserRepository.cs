@@ -10,6 +10,7 @@ namespace TimeTracker.Repositories
     public interface IUserRepository
     {
         public List<User> GetUsers();
+        public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order);
         public User GetUser(int id);
         public User? GetUserByCredentials(string login, string password);
         public void CreateUser(User user);

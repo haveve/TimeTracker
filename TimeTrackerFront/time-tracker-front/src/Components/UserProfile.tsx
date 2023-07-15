@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Card, Modal } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import '../Custom.css';
+import { useSelector, useDispatch } from 'react-redux';
 import { User } from '../Redux/Types/User';
 import { RequestUpdateUser, RequestUpdatePassword } from '../Redux/Requests/UserRequests';
-import { map, mergeMap, Observable, of } from "rxjs";
+import { RootState } from '../Redux/store';
 import { getUsers } from '../Redux/epics';
+import '../Custom.css';
 
 
 function UserProfile() {
@@ -23,7 +23,7 @@ function UserProfile() {
     const handleClosePassword = () => setShowPassword(false);
     const handleShowPassword = () => setShowPassword(true);
 
-    let user = JSON.parse(localStorage.getItem("User")!);
+    let user  = useSelector((state: RootState) => state.currentUser.User);
 
 
     const [id, setId] = useState(0);
@@ -34,14 +34,13 @@ function UserProfile() {
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
 
-
     useEffect(() => {
         if (user) {
-            setId(user.id)
-            setFullName(user.fullName)
-            setLogin(user.login)
+            setId(user.id!)
+            setFullName(user.fullName!)
+            setLogin(user.login!)
         }
-    }, [])
+    }, [user])
 
 
     const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
@@ -86,9 +85,9 @@ function UserProfile() {
     }
 
     return (
-
+        
         <div className='UserDetails d-flex align-items-center flex-column m-1'>
-            <Button variant='dark' className='ms-2 me-auto' onClick={() => navigate("/Users")}>
+            <Button variant='dark' className='ms-2 me-auto' onClick={() => navigate(-1)}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
                     <path fillRule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4z" />
                 </svg>

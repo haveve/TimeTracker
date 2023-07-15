@@ -12043,36 +12043,39 @@ body {
 
 .modal-content {
   background-color: #2a2a2a;
-}/*# sourceMappingURL=Custom.css.map */
-.height-main{
+}
+
+.height-main {
   height: 90% !important;
 }
-.height-header{
+
+.height-header {
   height: 10% !important;
 }
-.garamond-font{
+
+.garamond-font {
   font-family: Garamond;
 }
 
-.time-stat-title-font-size{
+.time-stat-title-font-size {
   font-size: 1.5em;
 }
 
-.time-stat-content-font-size{
+.time-stat-content-font-size {
   font-size: 1.2em;
 }
 
-.time-card-color1{
+.time-card-color1 {
   background-color: #355070 !important;
   color: rgb(201, 199, 199) !important;
 }
 
-.time-card-color2{
+.time-card-color2 {
   background-color: #6d597a !important;
   color: rgb(201, 199, 199) !important;
 }
 
-.time-card-color3{
+.time-card-color3 {
   background-color: #b56576 !important;
   color: rgb(201, 199, 199) !important;
-}
+}/*# sourceMappingURL=Custom.css.map */

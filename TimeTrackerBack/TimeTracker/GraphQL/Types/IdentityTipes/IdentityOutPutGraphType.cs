@@ -1,5 +1,6 @@
 ﻿using GraphQL.Types;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using TimeTracker.GraphQL.Types.UserTypes;
 
 namespace TimeTracker.GraphQL.Types.IdentityTipes
 {
@@ -8,7 +9,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes
         public IdentityOutPutGraphType() 
         {
             Field(l => l.access_token, nullable: false);
-            Field(l => l.current_user, nullable: false,type: typeof(UserType));
+            Field(l => l.user_id, nullable: false,type: typeof(IntGraphType));
         }
     }
 }

@@ -1,14 +1,16 @@
 import {Epic, ofType} from "redux-observable";
 import {catchError, map, mergeMap, Observable, of} from "rxjs";
-import { RequestDeleteUser, RequestUsers, RequestUsersPermissions, RequestUpdateUserPermissions, RequestUpdateUser } from "./Requests/UserRequests";
+import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestUpdateUser, RequestUser, RequestPagedUsers } from "./Requests/UserRequests";
 import { User } from "./Types/User";
 import { Permissions } from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
-import { getUsersList, getPermissions } from "./Slices/UserSlice";
+import { getUsersPage, getUsersList } from "./Slices/UserSlice";
+import { getTheCurrentUser } from "./Slices/CurrentUserSlice";
 import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time } from "./Types/Time";
 import {setTime,setErrorStatusAndError} from "./Slices/TimeSlice"
-
+import { Page } from "./Types/Page";
+import { UsersPage } from "./Types/UsersPage";
 export const ErrorMassagePattern =  "There is occured error from server. For details check console and turn to administrator ";
 
 export const getUsers = () => ({ type: "getUsers"});
@@ -19,29 +21,30 @@ export const getUsersEpic: Epic = action$ => action$.pipe(
     ))
 );
 
-export const getUsersPermissions = () => ({ type: "getUsersPermissions"});
-export const getUsersPermissionsEpic: Epic = action$ => action$.pipe(
-    ofType("getUsersPermissions"),
-    mergeMap(() => RequestUsersPermissions().pipe(
-        map((res: Permissions[]) => getPermissions(res))
+export const getPagedUsers = (page: Page) => ({ type: "getPagedUsers", payload: page});
+export const getPagedUsersEpic: Epic = (action$: Observable<PayloadAction<Page>>) => action$.pipe(
+    ofType("getPagedUsers"),
+    map(action => action.payload),
+    mergeMap((page) => RequestPagedUsers(page).pipe(
+        map((res: UsersPage) => getUsersPage(res))
     ))
 );
 
-// export const updateUser = (user: User) => ({type: "updateUser", payload: user});
-// export const updateUserEpic: Epic = (action$: Observable<PayloadAction<User>>) => action$.pipe(
-//     ofType("updateUser"),
-//     map(action => action.payload),
-//     mergeMap((user) => RequestUpdateUser(user).pipe(
-//         map(() => getUsers())
-//     ))
-// );
+export const getCurrentUser = (id: number) => ({ type: "getCurrentUser", payload: id});
+export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
+    ofType("getCurrentUser"),
+    map(action => action.payload),
+    mergeMap((id) => RequestUser(id).pipe(
+        map((res: User) => getTheCurrentUser(res))
+    ))
+);
 
 export const updateUserPermissions = (permissions: Permissions) => ({type: "updateUserPermissions", payload: permissions});
 export const updateUserPermissionsEpic: Epic = (action$: Observable<PayloadAction<Permissions>>) => action$.pipe(
     ofType("updateUserPermissions"),
     map(action => action.payload),
     mergeMap((permissions) => RequestUpdateUserPermissions(permissions).pipe(
-        map(() => getUsersPermissions())
+        map(() => getUsers())
     ))
 );
 

@@ -20,19 +20,7 @@ export function ajaxForLoginLogout(variables: {}) {
       query:`query($login:LoginInputType!){
         login(login:$login){
           access_token
-          current_user {
-            id
-            login
-            password
-            fullName
-            cRUDUsers
-            editPermiters
-            viewUsers
-            editWorkHours
-            importExcel
-            controlPresence
-            controlDayOffs
-          }
+          user_id
         }
       }`,
       variables
@@ -41,13 +29,13 @@ export function ajaxForLoginLogout(variables: {}) {
   }).pipe(
     map((value): void => {
 
-      let fullResponse = value.response as { data:{login:{access_token: string, current_user: User}} }
+      let fullResponse = value.response as { data:{login:{access_token: string, user_id: string}} }
       let response = fullResponse.data.login;
       if ((200 > value.status && value.status > 300) || !response || !response.access_token)
         throw "statuse error";
 
       setCookie({ name: "access_token", value: response.access_token, expires_second: 365 * 24 * 60 * 60, path: "/" });
-      localStorage.setItem("User", JSON.stringify(response.current_user));
+      setCookie({ name: "user_id", value: response.user_id, expires_second: 365 * 24 * 60 * 60, path: "/" });
     }),
     catchError((error) => {
       throw error

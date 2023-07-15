@@ -9,5 +9,8 @@ export interface User {
     editWorkHours?: boolean,
     importExcel?: boolean,
     controlPresence?: boolean,
-    controlDayOffs?: boolean
+    controlDayOffs?: boolean,
+    daySeconds?:number,
+    weekSeconds?:number,
+    monthSeconds?:number
 }
