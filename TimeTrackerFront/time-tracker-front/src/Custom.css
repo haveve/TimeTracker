@@ -4353,7 +4353,7 @@ textarea.form-control-lg {
   --bs-card-cap-color: ;
   --bs-card-height: ;
   --bs-card-color: ;
-  --bs-card-bg: black;
+  --bs-card-bg: var(--bs-body-bg);
   --bs-card-img-overlay-padding: 1rem;
   --bs-card-group-margin: 0.75rem;
   position: relative;
@@ -12043,36 +12043,8 @@ body {
 
 .modal-content {
   background-color: #2a2a2a;
+}
+
+Card {
+  background-color: dark;
 }/*# sourceMappingURL=Custom.css.map */
-.height-main{
-  height: 90% !important;
-}
-.height-header{
-  height: 10% !important;
-}
-.garamond-font{
-  font-family: Garamond;
-}
-
-.time-stat-title-font-size{
-  font-size: 1.5em;
-}
-
-.time-stat-content-font-size{
-  font-size: 1.2em;
-}
-
-.time-card-color1{
-  background-color: #355070 !important;
-  color: rgb(201, 199, 199) !important;
-}
-
-.time-card-color2{
-  background-color: #6d597a !important;
-  color: rgb(201, 199, 199) !important;
-}
-
-.time-card-color3{
-  background-color: #b56576 !important;
-  color: rgb(201, 199, 199) !important;
-}

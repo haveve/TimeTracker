@@ -32,6 +32,9 @@ export function RequestUsers(): Observable<User[]> {
                             id
                             login
                             fullName
+                            daySeconds
+                            weekSeconds
+                            monthSeconds
                           }
                     }
                   }
@@ -74,6 +77,9 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
                                 id
                                 login
                                 fullName
+                                daySeconds
+                                weekSeconds
+                                monthSeconds
                               }
                               totalCount
                               pageIndex

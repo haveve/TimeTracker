@@ -16,5 +16,8 @@ namespace TimeTracker.Models
         public bool ImportExcel { get; set; } = false;
         public bool ControlPresence { get; set; } = false;
         public bool ControlDayOffs { get; set; } = false;
+        public int DaySeconds { get; set; }
+        public int WeekSeconds { get; set; }
+        public int MonthSeconds { get; set; }
     }
 }

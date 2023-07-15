@@ -18,6 +18,9 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field(i => i.ImportExcel, type: typeof(BooleanGraphType));
             Field(i => i.ControlPresence, type: typeof(BooleanGraphType));
             Field(i => i.ControlDayOffs, type: typeof(BooleanGraphType));
+            Field(t => t.DaySeconds, nullable: false);
+            Field(t => t.WeekSeconds, nullable: false);
+            Field(t => t.MonthSeconds, nullable: false);
         }
     }
 }
