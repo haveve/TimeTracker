@@ -40,7 +40,7 @@ function UserProfile() {
             setFullName(user.fullName!)
             setLogin(user.login!)
         }
-    }, [])
+    }, [user])
 
 
     const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {

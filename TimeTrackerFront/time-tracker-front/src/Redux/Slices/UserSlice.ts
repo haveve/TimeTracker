@@ -3,7 +3,6 @@ import { User } from "../Types/User";
 import { Permissions } from "../Types/Permissions";
 import { UsersPage } from "../Types/UsersPage";
 
-
 export interface usersState {
     Users: User[],
     UsersPage: UsersPage

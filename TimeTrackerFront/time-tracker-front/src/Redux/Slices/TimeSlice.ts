@@ -28,11 +28,11 @@ export const timeSlicer = createSlice({
             state.time.daySeconds++;
             state.time.monthSeconds++;
             state.time.weekSeconds++;
-            state.status = "success"
         },
         setTime:(state,action:PayloadAction<Time>)=>{
             state.time = action.payload;
             state.status = "success"
+            state.error = ""
         },
         setloadingStatus:(state)=>{
             state.status = "loading";
@@ -43,10 +43,14 @@ export const timeSlicer = createSlice({
         },
         setIdleStatus:(state)=>{
             state.status = "idle"
+            state.error = ""
+        },
+        clearErroMassage:(state)=>{
+            state.error = ""
         }
     },
 })
 
 export const timeSlicerAction = timeSlicer.actions;
-export const {plusOneSecond,setTime,setloadingStatus,setErrorStatusAndError,setIdleStatus} = timeSlicer.actions;
+export const {plusOneSecond,setTime,setloadingStatus,setErrorStatusAndError,setIdleStatus,clearErroMassage} = timeSlicer.actions;
 export default timeSlicer.reducer;

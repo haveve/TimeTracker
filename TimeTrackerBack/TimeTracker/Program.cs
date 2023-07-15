@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using TimeTracker.Repositories;
 using Microsoft.AspNetCore.Antiforgery;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Azure.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +57,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAntiforgery(opt =>
 {
     opt.HeaderName = "X-XSRF-TOKEN";
+    opt.Cookie.Name = "X-XSRF-TOKEN-Cookie";
+    opt.Cookie.SameSite = SameSiteMode.None;
+    opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    opt.Cookie.Path = "/";
 });
 
 builder.Services.AddSingleton<ISchema, UserShema>(services =>
@@ -116,17 +122,6 @@ app.UseGraphQL<IdentitySchema>("/graphql-login", (config) =>
 
 });
 app.UseGraphQLAltair();
-
-var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
-
-app.MapGet("antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
-{
-    var tokens = forgeryService.GetAndStoreTokens(context);
-    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
-            new CookieOptions { HttpOnly = false });
-
-    return Results.Ok();
-}).RequireAuthorization();
 
 app.Run();
 

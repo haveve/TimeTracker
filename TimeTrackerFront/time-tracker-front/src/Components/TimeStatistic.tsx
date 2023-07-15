@@ -12,41 +12,48 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
-import { TimeStringFromSeconds } from './TimeTracker'
+import TimeTracker, { TimeStringFromSeconds } from './TimeTracker'
 
 
 export default function TimeStatistic() {
 
     const time = useSelector((state: RootState) => state.time.time);
 
-    return <Container>
-        <Row>
-            <Col>
-                <Card>
-                    <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color1 rounded'>
-                        <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Day</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.daySeconds)}</span></div>
-                        <Image height={90} src = {picture}></Image>
-                    </Card.Body>
-                </Card>
-            </Col>
-            <Col>
-                <Card>
-                    <Card.Body className='d-flex flex-row justify-content-between p-0 time-card-color2 rounded'>
-                        <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Week</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.weekSeconds)}</span></div>
-                        <Image height={90} src = {picture}></Image>
-                    </Card.Body>
-                </Card>
-            </Col>
-            <Col>
-                <Card>
-                    <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color3 rounded'>
-                        <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Month</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.monthSeconds)}</span></div>
-                        <Image height={90} src = {picture}></Image>
-                    </Card.Body>
-                </Card>
-            </Col>
-        </Row>
-    </Container>
+    return <Container fluid className='p-0 m-0 h-100'>
+            <Row className='justify-content-between flex flex-row p-0 m-0 h-100'>
+                <Col className='  p-0 m-0 pt-2'>
+                    <Row className='  p-0 m-0'>
+                    <Col>
+                        <Card>
+                            <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color1 rounded'>
+                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Day</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.daySeconds)}</span></div>
+                                <Image height={90} src={picture}></Image>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col>
+                        <Card>
+                            <Card.Body className='d-flex flex-row justify-content-between p-0 time-card-color2 rounded'>
+                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Week</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.weekSeconds)}</span></div>
+                                <Image height={90} src={picture}></Image>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col>
+                        <Card>
+                            <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color3 rounded'>
+                                <div className='p-3 pe-0'><p className='garamond-font time-stat-title-font-size'>Time in Month</p> <span className='garamond-font time-stat-content-font-size'>{TimeForStatisticFromSeconds(time.monthSeconds)}</span></div>
+                                <Image height={90} src={picture}></Image>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    </Row>
+                </Col>
+                <Col className='p-0 m-0 h-100' md={3} lg={3}>
+                    <TimeTracker />
+                </Col>
+            </Row>
+        </Container>
 }
 
 export function TimeForStatisticFromSeconds(seconds: number) {

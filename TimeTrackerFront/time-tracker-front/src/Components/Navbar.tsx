@@ -3,12 +3,15 @@ import { Container, Col, Row, Nav, Navbar, NavDropdown, Button, Offcanvas, Form,
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
 import TimeTracker from './TimeTracker';
+import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
+import { clearErroMassage } from '../Redux/Slices/TimeSlice';
 import { deleteCookie, getCookie } from '../Login/Api/login-logout';
 import { getCurrentUser } from '../Redux/epics';
 import { RootState } from '../Redux/store';
 import '../Custom.css';
 
 function AppNavbar() {
+  const error = useSelector((state: RootState) => state.time.error ? state.time.error : "");
   const dispatch = useDispatch();
   useEffect(() => {
     var id = getCookie("user_id");
@@ -17,7 +20,7 @@ function AppNavbar() {
   let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
-    <Container fluid className='p-0 h-100'>
+    <Container fluid className='p-0 m-0 h-100'>
       <Navbar expand={false} className="bg-black height-header">
         <Container fluid className='justify-content-start'>
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-false`} />
@@ -69,7 +72,12 @@ function AppNavbar() {
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
+      <Row className='justify-content-end p-0 m-0 height-main'>
+        <Col className='p-0 m-0 h-100'>
           <Outlet />
+        </Col>
+      </Row >
+      <NotificationModalWindow isShowed={error !== ""} dropMassege={() => dispatch(clearErroMassage())} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
     </Container>
   );
 }

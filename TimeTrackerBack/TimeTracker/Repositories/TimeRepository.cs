@@ -14,7 +14,7 @@ namespace TimeTracker.Repositories
         }
         public Time GetTime(int userId)
         {
-            string query = $"SELECT * FROM Time WHERE UserId = {userId}";
+            string query = $"SELECT ToDayDate, DaySeconds, WeekSeconds, MonthSeconds, StartTimeTrackDate, EndTimeTrackDate  FROM Users WHERE Id = {userId}";
             using var connection = _dapperContext.CreateConnection();
 
             var time = connection.QuerySingle<Time>(query);
@@ -22,7 +22,7 @@ namespace TimeTracker.Repositories
         }
         public void AddTimeInSeconds(int seconds,int userId)
         {
-            string query = $"UPDATE Time SET DaySeconds = DaySeconds+{seconds}, WeekSeconds = WeekSeconds+{seconds}, MonthSeconds = MonthSeconds+{seconds} WHERE UserId = {userId}";
+            string query = $"UPDATE Users SET DaySeconds = DaySeconds+{seconds}, WeekSeconds = WeekSeconds+{seconds}, MonthSeconds = MonthSeconds+{seconds} WHERE Id = {userId}";
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query);
         }
@@ -30,7 +30,7 @@ namespace TimeTracker.Repositories
         public void UpdateTime(Time time, int userId)
         {
             string query =
-                @$"UPDATE Time SET TodayDate = @TodayDate, DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, StartTimeTrackDate = @StartTimeTrackDate, EndTimeTrackDate = @EndTimeTrackDate WHERE Id = {userId}";
+                @$"UPDATE Users SET TodayDate = @TodayDate, DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, StartTimeTrackDate = @StartTimeTrackDate, EndTimeTrackDate = @EndTimeTrackDate WHERE Id = {userId}";
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query, time);
         }
@@ -40,12 +40,12 @@ namespace TimeTracker.Repositories
             string query = "";
             switch (startOrEnd)
             {
-                case StartOrEnd.Start: query = $"UPDATE Time SET StartTimeTrackDate = '{date}' WHERE UserId = {userId}"; break;
-                case StartOrEnd.End: query = $"UPDATE Time SET EndTimeTrackDate = '{date}' WHERE UserId = {userId}"; break;
+                case StartOrEnd.Start: query = $"UPDATE Users SET StartTimeTrackDate = @date WHERE Id = {userId}"; break;
+                case StartOrEnd.End: query = $"UPDATE Users SET EndTimeTrackDate = @date WHERE Id = {userId}"; break;
             }
 
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query);
+            connection.Execute(query,new{date});
         }
     }
 }

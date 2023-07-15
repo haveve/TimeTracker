@@ -75,7 +75,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             if (time.EndTimeTrackDate == null)
                 return;
 
-            var addSecond = (time.EndTimeTrackDate - time.StartTimeTrackDate).Value.Seconds;
+            var addSecond = Convert.ToInt32((time.EndTimeTrackDate - time.StartTimeTrackDate).Value.TotalSeconds);
 
             time.DaySeconds+= addSecond;
             time.MonthSeconds += addSecond;

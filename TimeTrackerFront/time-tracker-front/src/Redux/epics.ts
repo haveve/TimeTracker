@@ -1,5 +1,5 @@
 import {Epic, ofType} from "redux-observable";
-import {map, mergeMap, Observable, of} from "rxjs";
+import {catchError, map, mergeMap, Observable, of} from "rxjs";
 import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestUpdateUser, RequestUser, RequestPagedUsers } from "./Requests/UserRequests";
 import { User } from "./Types/User";
 import { Permissions } from "./Types/Permissions";
@@ -8,9 +8,10 @@ import { getUsersPage, getUsersList } from "./Slices/UserSlice";
 import { getTheCurrentUser } from "./Slices/CurrentUserSlice";
 import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time } from "./Types/Time";
-import {setTime} from "./Slices/TimeSlice"
+import {setTime,setErrorStatusAndError} from "./Slices/TimeSlice"
 import { Page } from "./Types/Page";
 import { UsersPage } from "./Types/UsersPage";
+export const ErrorMassagePattern =  "There is occured error from server. For details check console and turn to administrator ";
 
 export const getUsers = () => ({ type: "getUsers"});
 export const getUsersEpic: Epic = action$ => action$.pipe(
@@ -63,6 +64,7 @@ export const setTimeEpic: Epic = action$ =>{
     return action$.pipe(
     ofType("setTime"),
     mergeMap(() => RequestGetTime().pipe(
-        map((res:Time)=>setTime(res))
-    ))
+        map((res:Time)=>setTime(res)),
+        catchError(()=>of(setErrorStatusAndError(ErrorMassagePattern)))
+    )),
 )};
