@@ -22,11 +22,13 @@ using Microsoft.AspNetCore.Antiforgery;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Azure.Core;
+using TimeTracker.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
+builder.Services.AddSingleton<IEmailSender,EmailSender>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<ITimeRepository, TimeRepository>();
 

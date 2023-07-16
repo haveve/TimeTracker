@@ -2,6 +2,7 @@ import '../Custom.css';
 import React, { useEffect, useState } from 'react';
 import Login from '../Login/Features/Login';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import ResetPassword from './ResetPassword';
 import Userslist from './UsersList';
 import AppNavbar from './Navbar';
 import UserDetails from './UserDetails';
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
     path: "/Login",
     element: <Login />,
     loader: async () => getTokenOrNavigate(true),
+  },
+  {
+    path: "/ResetPassword",
+    element: <ResetPassword/>
   }
 ])
 

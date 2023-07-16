@@ -3,6 +3,7 @@ using GraphQL.Types;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
+using TimeTracker.Services;
 using TimeTracker.ViewModels;
 
 namespace TimeTracker.GraphQL.Types.UserTypes
@@ -11,7 +12,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
     {
         private readonly IUserRepository repo;
 
-        public UserQueryGraphQLType(IUserRepository Repo)
+        public UserQueryGraphQLType(IUserRepository Repo, IEmailSender emailSender)
         {
             repo = Repo;
             Field<ListGraphType<UserType>>("users")
@@ -53,6 +54,24 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 {
                     int id = context.GetArgument<int>("id");
                     return repo.GetUser(id);
+                });
+
+            Field<StringGraphType>("resetPassword")
+                .Argument<StringGraphType>("LoginOrEmail")
+                .ResolveAsync(async context =>
+                {
+                    string LoginOrEmail = context.GetArgument<string>("LoginOrEmail");
+                    User? user = repo.GetUserByEmailOrLogin(LoginOrEmail);
+                    if (user == null)
+                        return "User was not found!";
+                    
+                    //string code = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                    string code = Guid.NewGuid().ToString();
+                    repo.UpdateUserResetCodeById(user.Id, code);
+
+                    emailSender.SendResetPassEmail(code, user.Email);
+
+                    return "Email has sent!";
                 });
         }
     }

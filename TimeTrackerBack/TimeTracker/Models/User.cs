@@ -9,6 +9,8 @@ namespace TimeTracker.Models
         public string Login { get; set; }
         public string Password { get; set; }
         public string FullName{ get; set; }
+        public string Email { get; set; }
+        public string ResetCode { get; set; }
         public bool CRUDUsers { get; set; } = false;
         public bool EditPermiters { get; set; } = false;
         public bool ViewUsers { get; set; } = false;

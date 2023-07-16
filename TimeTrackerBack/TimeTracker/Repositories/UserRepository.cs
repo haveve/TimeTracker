@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.Models;
 
 namespace TimeTracker.Repositories
@@ -45,6 +46,13 @@ namespace TimeTracker.Repositories
                 return db.Query<User>($"SELECT * FROM Users WHERE Login = '{login}' AND Password = '{password}'").FirstOrDefault();
             }
         }
+        public User? GetUserByEmailOrLogin(string LoginOrEmail)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<User>($"SELECT * FROM Users WHERE Email = '{LoginOrEmail}' OR Login = '{LoginOrEmail}'").FirstOrDefault();
+            }
+        }
         public void CreateUser(User user)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
@@ -60,6 +68,12 @@ namespace TimeTracker.Repositories
             {
                 var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName WHERE Id = @Id";
                 db.Execute(sqlQuery, user);
+            }
+        }
+        public void UpdateUserResetCodeById(int id,string code) {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                db.Query("UPDATE Users SET ResetCode = @code WHERE Id = @id", new { id,code });
             }
         }
         public void UpdateUserPassword(int Id, string Password)
