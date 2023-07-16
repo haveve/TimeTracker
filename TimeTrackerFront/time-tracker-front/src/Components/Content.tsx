@@ -11,6 +11,7 @@ import UserPermissions from './UserPermissions';
 import UserProfile from './UserProfile';
 import { getTokenOrNavigate } from '../Login/Api/login-logout';
 import TimeStatistic from "./TimeStatistic"
+import RequestResetPassword from "./RequestResetPassword";
 
 const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
   {
     path: "/ResetPassword",
     element: <ResetPassword/>
+  },
+  {
+    path: "/RequestResetPassword",
+    element: <RequestResetPassword/>
   }
 ])
 

@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using System.Data;
-using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.Models;
 
 namespace TimeTracker.Repositories
@@ -24,7 +23,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                if(orderfield != null)
+                if (orderfield != null)
                 {
                     return db.Query<User>($"SELECT * FROM Users WHERE Login LIKE '%{search}%' OR FullName LIKE '%{search}%' ORDER BY {orderfield} {order}").ToList();
                 }
@@ -70,10 +69,11 @@ namespace TimeTracker.Repositories
                 db.Execute(sqlQuery, user);
             }
         }
-        public void UpdateUserResetCodeById(int id,string code) {
+        public void UpdateUserResetCodeById(int id, string code)
+        {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                db.Query("UPDATE Users SET ResetCode = @code WHERE Id = @id", new { id,code });
+                db.Query("UPDATE Users SET ResetCode = @code WHERE Id = @id", new { id, code });
             }
         }
         public void UpdateUserPassword(int Id, string Password)
@@ -81,8 +81,32 @@ namespace TimeTracker.Repositories
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var sqlQuery = "UPDATE Users SET Password = @Password WHERE Id = @Id";
-                db.Execute(sqlQuery, new { Id, Password});
+                db.Execute(sqlQuery, new { Id, Password });
             }
+        }
+        public void UpdateUserPasswordAndCode(int id, string code, string password)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                string sqlQuery;
+                if (code == null)
+                {
+                    sqlQuery = $"UPDATE Users SET ResetCode = NULL, Password = '{password}' WHERE Id = {id}";
+                    db.Execute(sqlQuery, new { id, password });
+
+                }
+
+                else
+                {
+                    sqlQuery = $"UPDATE Users SET ResetCode = @code, Password = @password WHERE Id = @id";
+                    db.Execute(sqlQuery, new { id, code, password });
+
+                }
+
+
+            }
+
+
         }
 
         public void UpdateUserPermissions(Permissions permissions)

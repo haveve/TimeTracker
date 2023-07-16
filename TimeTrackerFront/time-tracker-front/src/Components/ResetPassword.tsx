@@ -1,7 +1,10 @@
 import "../Custom.css";
+import {Error} from "./Error";
 import {useSearchParams} from "react-router-dom";
-import {Button, Card, Form, InputGroup} from "react-bootstrap";
-import React, {ChangeEvent, FormEvent, useState} from "react";
+import {Button, Card, Form, FormText, InputGroup} from "react-bootstrap";
+import React, {ChangeEvent, ChangeEventHandler, FormEvent, useState} from "react";
+import {ErrorMassagePattern} from "../Redux/epics";
+import {RequestUpdatePasswordByCode} from "../Redux/Requests/UserRequests";
 
 
 function ResetPassword() {
@@ -10,43 +13,67 @@ function ResetPassword() {
     const [firstPass, setFirstPass] = useState("");
     const [secondPass, setSecondPass] = useState("");
     const [showPassError, setShowPassError] = useState(false);
-    const onFirstPassChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setFirstPass(event.target.value);
+    const [ErrorText, setErrorText] = useState("")
 
+    const [InfoText, setInfoText] = useState("");
+    console.log(InfoText);
+    const onFirstPassChange = (e:  React.ChangeEvent<any>) => {
+        setShowPassError(false);
+        setFirstPass(e.target.value);
     }
-    const onSecondPassChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setFirstPass(event.target.value);
+
+    const onSecondPassChange = (e: React.ChangeEvent<any>) => {
+        setShowPassError(false);
+        setSecondPass(e.target.value);
     }
-    const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+
+    const onSubmitHandler = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        console.log(event);
+        if(firstPass!==secondPass){
+            setErrorText("Both passwords should match!");
+            setShowPassError(true);
+        }
+        else if (firstPass.length < 8 && firstPass.length > 20){
+            setErrorText("Path length must be between 8 and 50!");
+            setShowPassError(true);
+        }
+        else{
+            // submit changes
+            let temp = searchParams.get("code");
+            const code : string = temp !== null ? temp : "";
 
+            temp = searchParams.get("email");
+            let email : string = temp !== null ? temp : "";
 
+            RequestUpdatePasswordByCode(firstPass, code,email).subscribe((x)=>{
+                //console.log("x = "+ x);
+                setInfoText(x);
+            })
+        }
     }
+
     return (
         <>
             <div className="d-flex align-items-center flex-column m-1 ">
                 <h5>Reset password</h5>
-
-                <p>{searchParams.get("code")}</p>
-                <p>{searchParams.get("email")}</p>
                 <Card style={{width: '18rem'}} className='d-flex align-items-center flex-column'>
                     <Card.Body className='p-3 w-100'>
                         <Form className="d-flex align-items-start flex-column"
-                              onSubmit={(event) => onSubmit(event)}>
+                              onSubmit={(event) => onSubmitHandler(event)}>
                             <p className='m-0'>New password</p>
                             <Form.Control
                                 type="password"
                                 className="w-100 mb-3"
-                                onChange={() => onFirstPassChange}
+                                onChange={onFirstPassChange}
                             />
                             <p className='m-0'>Repeat new password</p>
                             <Form.Control
                                 type="password"
                                 className="w-100 mb-3"
-                                onChange={() => onSecondPassChange}
+                                onChange={onSecondPassChange}
 
                             />
+                            <Error ErrorText={ErrorText} Show={showPassError} SetShow={() => setShowPassError(false)}/>
                             <Button
                                 type="submit"
                                 className="btn-success w-100"
@@ -54,6 +81,7 @@ function ResetPassword() {
                                 Reset password
                             </Button>
                         </Form>
+                        {InfoText!==""?<FormText>{InfoText}</FormText>:<></>}
                     </Card.Body>
                 </Card>
             </div>

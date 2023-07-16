@@ -56,7 +56,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     return repo.GetUser(id);
                 });
 
-            Field<StringGraphType>("resetPassword")
+            Field<StringGraphType>("sentResetPasswordEmail")
                 .Argument<StringGraphType>("LoginOrEmail")
                 .ResolveAsync(async context =>
                 {

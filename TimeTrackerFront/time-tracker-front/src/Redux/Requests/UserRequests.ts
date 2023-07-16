@@ -197,6 +197,42 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
     );
 }
 
+interface GraphqlRequestPasswordReset {
+    data: {
+        user: {
+            RequestPasswordReset: string
+        }
+    }
+}
+
+export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
+    return ajax<GraphqlRequestPasswordReset>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            query: `
+                query sentResetPasswordEmail($LoginOrEmail: String!){
+                    user{
+                        sentResetPasswordEmail(loginOrEmail: $LoginOrEmail)
+                    }
+                  }
+            `,
+            variables: {
+                "LoginOrEmail": LoginOrEmail
+            }
+        })
+    }).pipe(
+        map(res => {
+            {
+                return res.response.data.user.RequestPasswordReset;
+            }
+        })
+    );
+}
+
 interface GraphqlUpdateUser {
     data: {
         user:{
@@ -236,6 +272,39 @@ export function RequestUpdateUser(user: User): Observable<string> {
 }
 
 
+interface GraphqlUpdatePasswordByCode {
+    data: {
+        user:{
+            RequestUpdatePasswordByCode: string
+        }
+    }
+}
+
+export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, Email: string): Observable<string> {
+    return ajax<GraphqlUpdatePasswordByCode>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            query: `
+                mutation resetUserPasswordByCode($Code : String!, $NewPassword: String!, $Email: String!){
+                    user{
+                        resetUserPasswordByCode(code : $Code, password: $NewPassword, email: $Email)
+                    }
+                  }
+            `,
+            variables: {
+                "Code": Code,
+                "NewPassword": NewPassword,
+                "Email": Email,
+            }
+        })
+    }).pipe(
+        map(res => { return res.response.data.user.RequestUpdatePasswordByCode })
+    );
+}
 interface GraphqlUpdatePassword {
     data: {
         user:{
@@ -243,7 +312,6 @@ interface GraphqlUpdatePassword {
         }
     }
 }
-
 export function RequestUpdatePassword(id: Number, NewPassword: string, Password: string): Observable<string> {
     return ajax<GraphqlUpdatePassword>({
         url,

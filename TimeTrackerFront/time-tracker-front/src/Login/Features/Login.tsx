@@ -66,6 +66,8 @@ export default function Login() {
               </Form >
             )}
             </Formik>
+            <a href="/RequestResetPassword">Reset via login or email</a>
+
           </Card.Body>
         </Card>
       </div>
