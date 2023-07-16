@@ -72,9 +72,7 @@ namespace TimeTracker.GraphQL.Queries
                 var forgeryService = context.RequestServices!.GetService<IAntiforgery>()!;
 
                 var tokens = forgeryService.GetAndStoreTokens(httpContext);
-                httpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
-                        new CookieOptions { HttpOnly = false });
-                return "Successfully";
+                return tokens.RequestToken!;
             }).AuthorizeWithPolicy("Authorized");
         }
     }

@@ -99,8 +99,8 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
 var app = builder.Build();
 
 app.UseCors(builder => builder.WithOrigins("http://localhost:3000")
-                 .AllowAnyMethod()
                  .AllowAnyHeader()
+                 .WithMethods("POST")
                  .AllowCredentials());
 
 app.UseHttpsRedirection();
