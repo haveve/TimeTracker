@@ -15,6 +15,7 @@ import NotificationModalWindow from './NotificationModalWindow';
 import { MasssgeType } from './NotificationModalWindow';
 import CheckModalWindow from './CheckModalWindow';
 import { updateTimeE } from '../Redux/epics';
+import { User } from '../Redux/Types/User';
 
 export const maxForDay = 8 * 60 * 60;
 export const maxForWeek = 8 * 60 * 60 * 5;
@@ -32,7 +33,7 @@ export const lessThanZeroError = `Changes that you do does user time negative. I
 
 export const higherThanMaxError = `Changes that you do does user time over than max value (for day = ${maxForDay / (60 * 60)} h for week = ${maxForWeek / (60 * 60)} h for month = ${maxForMonth / (60 * 60)}  ). In this way you must choose less value of changing or change time by hand`
 
-export default function TimeManage(props: { isShowed: boolean, setShowed: (smth: boolean) => void, userId: number }) {
+export default function TimeManage(props: { isShowed: boolean, setShowed: (smth: boolean) => void, User: User }) {
 
   const [selected, setSelected] = useState(0);
   const [error, setError] = useState("");
@@ -43,19 +44,17 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
 
   const dispatch = useDispatch();
 
-  const User = useSelector((state: RootState) => state.users.Users.filter(u => u.id == props.userId))
-
   const timeUser: Time = {
-    daySeconds: User[0].daySeconds!,
-    weekSeconds: User[0].weekSeconds!,
-    monthSeconds: User[0].monthSeconds!
+    daySeconds: props.User.daySeconds!,
+    weekSeconds: props.User.weekSeconds!,
+    monthSeconds: props.User.monthSeconds!
   }
 
   const [changedTime, setChangedTime] = useImmer({ ...timeUser })
   const [anyInputTimeString, setAnyInputTimeString] = useState("")
 
   const handleSaveChange = (time: Time) => {
-    dispatch(updateTimeE(props.userId, time));
+    dispatch(updateTimeE(props.User.id!, time));
   }
 
   const handleChangeAdd = (seconds: number) => {

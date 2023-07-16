@@ -74,7 +74,6 @@ function UserProfile() {
         if (newPassword != newPasswordRepeat) { setShowError(true); setErrorMessage("Type in same passwords"); return; }
         if (newPassword.length < 8) { setShowError(true); setErrorMessage("Password should be at least 8 characters"); return; }
         RequestUpdatePassword(id, newPassword, password).subscribe((x) => {
-            console.log(x);
             if (x === "Password updated successfully") {
                 setShowPassword(false);
                 dispatch(getUsers());

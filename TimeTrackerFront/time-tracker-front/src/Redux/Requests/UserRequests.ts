@@ -131,6 +131,9 @@ export function RequestUser(Id: Number): Observable<User> {
                         id
                         login
                         fullName
+                        daySeconds
+                        weekSeconds
+                        monthSeconds
                       }
                     }
                   }

@@ -8,27 +8,30 @@ import { deleteUser } from '../Redux/epics';
 import { getUsers } from '../Redux/epics';
 import TimeManage from './TimeManage';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import { RequestUser } from '../Redux/Requests/UserRequests';
+import { User } from '../Redux/Types/User';
 
 function UserDetails() {
   const { userId = "" } = useParams();
   const [showDelete, setShowDelete] = useState(false);
   const [showTimeManage, setShowTimeManage] = useState(false);
+  const [user, setUser] = useState({} as User);
 
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(getUsers());
+    RequestUser(parseInt(userId)).subscribe((x) => {
+      setUser(x);
+    })
   }, []);
-
-  let user = useSelector((state: RootState) => state.users.Users).find(u => u.id == parseInt(userId))!;
 
   const handleCloseDelete = () => setShowDelete(false);
   const handleShowDelete = () => setShowDelete(true);
 
   const handleShowPermissions = () => {
-    navigate("/UserPermissions/" + user.id);
+    navigate("/UserPermissions/" + userId);
   }
 
   const handleUserDelete = () => {
@@ -43,14 +46,14 @@ function UserDetails() {
           <path fillRule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4z" />
         </svg>
       </Button>
-      {user! ? (
+      {user ? (
         <>
           <Card style={{ width: '18rem' }} className='w-75 '>
             <Card.Body className='d-flex flex-column'>
               <Row className='mb-3'>
                 <Col>
-                    <p className='m-0 fs-5'>{user.fullName}</p>
-                    <p className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</p>
+                  <p className='m-0 fs-5'>{user.fullName}</p>
+                  <p className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</p>
                 </Col>
                 <Col>
                   <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100'>
@@ -67,7 +70,7 @@ function UserDetails() {
                 </Col>
               </Row>
               <div className='ms-auto'>
-                <Button variant='outline-success me-2' onClick={()=>setShowTimeManage(n=>!n)}>TimeManage</Button>
+                <Button variant='outline-success me-2' onClick={() => setShowTimeManage(n => !n)}>TimeManage</Button>
                 <Button variant='outline-secondary me-2' onClick={handleShowPermissions}>Permissions</Button>
                 <Button variant='outline-danger' onClick={handleShowDelete}>Delete</Button>
               </div>
@@ -92,7 +95,7 @@ function UserDetails() {
               <Button variant="danger" onClick={handleUserDelete}>Delete</Button>
             </Modal.Footer>
           </Modal>
-          <TimeManage isShowed = {showTimeManage} setShowed={setShowTimeManage} userId = {parseInt(userId)}/>
+          <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} />
         </>
       )
         : (
