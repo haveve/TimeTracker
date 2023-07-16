@@ -6,7 +6,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
-import { setloadingStatus, setIdleStatus, statusType} from '../Redux/Slices/TimeSlice';
 import { RequestSetStartDate, RequestSetEndDate } from '../Redux/Requests/TimeRequests';
 import { Time } from '../Redux/Types/Time';
 import { useImmer } from 'use-immer';
@@ -15,6 +14,9 @@ import NotificationModalWindow from './NotificationModalWindow';
 import { MasssgeType } from './NotificationModalWindow';
 import CheckModalWindow from './CheckModalWindow';
 import { updateTimeE } from '../Redux/epics';
+import { setloadingStatus } from '../Redux/Slices/UserSlice';
+import { IsSuccessOrIdle } from './TimeTracker';
+
 
 export const maxForDay = 8 * 60 * 60;
 export const maxForWeek = 8 * 60 * 60 * 5;
@@ -40,6 +42,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
   const [checkWarning, setCheckWarning] = useState("");
 
   const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
+  const userListState = useSelector((state: RootState) => state.users.status); 
 
   const dispatch = useDispatch();
 
@@ -56,6 +59,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
 
   const handleSaveChange = (time: Time) => {
     dispatch(updateTimeE(props.userId, time));
+    dispatch(setloadingStatus());
   }
 
   const handleChangeAdd = (seconds: number) => {
@@ -219,9 +223,9 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
         </Row>
       </Modal.Footer>
     </Modal>
-    <NotificationModalWindow isShowed={errorUserList === ""&&error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
-    <NotificationModalWindow isShowed={errorUserList === ""&&success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
-    <CheckModalWindow isShowed={errorUserList === ""&&checkWarning !== ""} dropMassege={setCheckWarning} messegeType={MasssgeType.Warning} agree={() => {
+    <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
+    <NotificationModalWindow isShowed={errorUserList === ""&&IsSuccessOrIdle(userListState)&&success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
+    <CheckModalWindow isShowed={errorUserList === ""&&checkWarning !== ""&&IsSuccessOrIdle(userListState)} dropMassege={setCheckWarning} messegeType={MasssgeType.Warning} agree={() => {
 
       let time = {
         daySeconds: 0,
