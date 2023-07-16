@@ -21,7 +21,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 {
                     var userId = GetUserIdFromClaims(context.User!);
                     var time = _timeRepository.GetTime(userId);
-                    return new TimeWithFlagViewModel(){Time = new TimeViewModel(CheckExpires(time, userId, _timeRepository)), isStarted = time.StartTimeTrackDate != null};
+                    return new TimeWithFlagViewModel(){Time = new TimeViewModel(CheckExpires(time, userId, _timeRepository)), IsStarted = time.StartTimeTrackDate != null};
                 });
         }
 
