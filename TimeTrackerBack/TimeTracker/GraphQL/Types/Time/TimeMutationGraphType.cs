@@ -1,4 +1,5 @@
-﻿using GraphQL.Types;
+﻿using GraphQL;
+using GraphQL.Types;
 using TimeTracker.GraphQL.Types.Time.ManageTime;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Repositories;
@@ -30,7 +31,7 @@ namespace TimeTracker.GraphQL.Types.Time
                         TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
                      return "Successfully";
                  });
-            Field<ManageTimeMutationGraphType>("manageTime")
+            Field<ManageTimeMutationGraphType>("manageTime").AuthorizeWithPolicy("EditWorkHours")
                 .Resolve(context => new { });
         }
     }

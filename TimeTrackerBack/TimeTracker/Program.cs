@@ -66,7 +66,8 @@ builder.Services.AddAntiforgery(opt =>
 builder.Services.AddSingleton<ISchema, UserShema>(services =>
 {
     var scheme = new UserShema(new SelfActivatingServiceProvider(services));
-    //scheme.AuthorizeWithPolicy("Authorized").AuthorizeWithPolicy("CRUDUsers");
+    scheme.AuthorizeWithPolicy("Authorized");
+    scheme.Mutation!.Fields.First(f=>f.Name=="user").AuthorizeWithPolicy("CRUDUsers");
     return scheme;
 });
 
@@ -86,6 +87,7 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                       setting.AddPolicy("EditPermiters", p => p.RequireClaim("EditPermiters", "True"));
                                       setting.AddPolicy("ImportExcel", p => p.RequireClaim("ImportExcel", "True"));
                                       setting.AddPolicy("ControlPresence", p => p.RequireClaim("ControlPresence", "True"));
+                                      setting.AddPolicy("EditWorkHours", p => p.RequireClaim("EditWorkHours", "True"));
                                       setting.AddPolicy("ControlDayOffs", p => p.RequireClaim("ControlDayOffs", "True"));
                                       setting.AddPolicy("Authorized", p => p.RequireAuthenticatedUser());
                                   })
@@ -97,8 +99,8 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
 var app = builder.Build();
 
 app.UseCors(builder => builder.WithOrigins("http://localhost:3000")
-                 .AllowAnyMethod()
                  .AllowAnyHeader()
+                 .WithMethods("POST")
                  .AllowCredentials());
 
 app.UseHttpsRedirection();

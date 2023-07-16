@@ -43,7 +43,8 @@ namespace TimeTracker.GraphQL.Queries
             new Claim("EditPermiters",user.EditPermiters.ToString()),
             new Claim("ImportExcel",user.ImportExcel.ToString()),
             new Claim("ControlPresence",user.ControlPresence.ToString()),
-            new Claim("ControlDayOffs",user.ControlDayOffs.ToString())
+            new Claim("ControlDayOffs",user.ControlDayOffs.ToString()),
+            new Claim("EditWorkHours",user.EditWorkHours.ToString())
                 },
                 expires: DateTime.UtcNow.Add(TimeSpan.FromDays(365)),
                 signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
@@ -71,9 +72,7 @@ namespace TimeTracker.GraphQL.Queries
                 var forgeryService = context.RequestServices!.GetService<IAntiforgery>()!;
 
                 var tokens = forgeryService.GetAndStoreTokens(httpContext);
-                httpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
-                        new CookieOptions { HttpOnly = false });
-                return "Successfully";
+                return tokens.RequestToken!;
             }).AuthorizeWithPolicy("Authorized");
         }
     }

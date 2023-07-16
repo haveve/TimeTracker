@@ -1,7 +1,7 @@
 import { ajax } from "rxjs/internal/ajax/ajax";
 import { map, Observable } from "rxjs";
 import { User } from "../Types/User";
-import { getCookie } from "../../Login/Api/login-logout";
+import { getCookie} from "../../Login/Api/login-logout";
 import { Time, TimeResponse,TimeRequest } from "../Types/Time";
 import { response } from "../Types/ResponseType";
 import { Alert } from "react-bootstrap";
@@ -11,11 +11,17 @@ interface GraphqlTime {
         getTime: TimeResponse
     }
 }
+
+interface GraphqlToken {
+    getToken:string
+}
+
 const url = "https://localhost:7226/graphql";
 
 
 
 export function GetAjaxObservable<T>(query: string, variables: {}, token: string = "",withCredentials = false) {
+
     return ajax<response<T>>({
         url,
         method: "POST",
@@ -33,7 +39,7 @@ export function GetAjaxObservable<T>(query: string, variables: {}, token: string
 }
 
 export function RequestGetToken(): Observable<string> {
-    return ajax<response<string>>({
+    return ajax<response<GraphqlToken>>({
         url: url + "-login",
         method: "POST",
         headers: {
@@ -53,7 +59,7 @@ export function RequestGetToken(): Observable<string> {
                 throw "error"
             }
 
-            var token = getCookie('XSRF-TOKEN');
+            var token = res.response.data.getToken;
 
             if (token === null) {
                 console.error("Antiforgery token was received with value 'null'")
