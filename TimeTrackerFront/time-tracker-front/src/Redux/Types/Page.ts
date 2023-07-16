@@ -3,5 +3,8 @@ export interface Page {
     after: number,
     search?: string,
     orderfield?: string,
-    order?: string 
+    order?: string,
+    filterfield?: string,
+    minhours?: number,
+    maxhours?: number,
 }

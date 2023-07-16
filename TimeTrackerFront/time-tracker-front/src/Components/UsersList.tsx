@@ -15,6 +15,9 @@ function Userslist() {
     const [after, setAfter] = useState(0);
     const [search, setSearch] = useState('');
     const [orderfield, setOrderfield] = useState('');
+    const [filterfield, setFilterfield] = useState('DaySeconds');
+    const [minHours, setMinHours] = useState(Number.NaN);
+    const [maxHours, setMaxHours] = useState(Number.NaN);
     const [order, setOrder] = useState("ASC");
     const page = useSelector((state: RootState) => state.users.UsersPage);
     const dispatch = useDispatch();
@@ -25,7 +28,10 @@ function Userslist() {
             after: after,
             search: search,
             orderfield: orderfield,
-            order: order
+            order: order,
+            filterfield: filterfield,
+            minhours: minHours,
+            maxhours: maxHours
         }
         dispatch(getPagedUsers(page));
     }, [after, orderfield, order]);
@@ -42,8 +48,12 @@ function Userslist() {
             after: 0,
             search: search,
             orderfield: orderfield,
-            order: order
+            order: order,
+            filterfield: filterfield,
+            minhours: minHours,
+            maxhours: maxHours
         }
+        setShow(false);
         dispatch(getPagedUsers(page));
     }
     return (
@@ -92,11 +102,26 @@ function Userslist() {
                                 </svg>
                             </Button>
                             <Overlay target={target.current} show={show} placement="bottom">
-                                {(props) => (
-                                    <div {...props} className='bg-black p-2 rounded-2'>
-                                        <p>Work hours</p>
-                                    </div>
-                                )}
+                                <div className='bg-black p-2 rounded-2' data-bs-theme="dark">
+                                    <Form onSubmit={(e) => {e.preventDefault(); HandleSearch()}}>
+                                        <InputGroup className='mb-2'>
+                                            <Form.Select onChange={e => setFilterfield(e.target.value)} defaultValue={filterfield}>
+                                                <option value="DaySeconds">Day hours</option>
+                                                <option value="WeekSeconds">Week hours</option>
+                                                <option value="MonthSeconds">Month hours</option>
+                                            </Form.Select>
+                                        </InputGroup>
+                                        <InputGroup className='mb-2'>
+                                            <InputGroup.Text className='w-25'>From</InputGroup.Text>
+                                            <Form.Control type='number' defaultValue={minHours} min={0} onChange={e => setMinHours((Number)(e.target.value))} />
+                                        </InputGroup>
+                                        <InputGroup className='mb-2'>
+                                            <InputGroup.Text className='w-25'>To</InputGroup.Text>
+                                            <Form.Control type='number' defaultValue={maxHours} min={0} onChange={e => setMaxHours((Number)(e.target.value))} />
+                                        </InputGroup>
+                                        <Button className='w-100' variant='dark' type='submit'>Submit</Button>
+                                    </Form>
+                                </div>
                             </Overlay>
                         </InputGroup>
                     </Col>

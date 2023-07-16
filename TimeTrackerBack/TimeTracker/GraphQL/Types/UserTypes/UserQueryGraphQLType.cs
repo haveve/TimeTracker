@@ -23,6 +23,9 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 .Argument<StringGraphType>("search")
                 .Argument<StringGraphType>("orderfield")
                 .Argument<StringGraphType>("order")
+                .Argument<StringGraphType>("filderfield")
+                .Argument<IntGraphType>("minHours")
+                .Argument<IntGraphType>("maxHours")
                 .ResolveAsync(async context =>
                 {
                     int first = context.GetArgument<int>("first");
@@ -30,11 +33,16 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     string search = context.GetArgument<string>("search");
                     string orderfield = context.GetArgument<string>("orderfield");
                     string order = context.GetArgument<string>("order");
-                    if(orderfield == "") orderfield = null;
-                    List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order);
+                    string filterfield = context.GetArgument<string>("filderfield");
+                    int minHours = context.GetArgument<int>("minHours");
+                    int maxHours = context.GetArgument<int>("maxHours");
+                    if (orderfield == "") orderfield = null;
+                    minHours = minHours == null ?  0 : minHours * 3600;
+                    maxHours = ( maxHours == null || maxHours == 0) ?  int.MaxValue : maxHours * 3600;
+                    List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order, filterfield, minHours, maxHours);
                     return new UserPageViewModel()
                     {
-                        UserList = repo.GetSearchedSortedfUsers(search, orderfield, order).Skip(after).Take(first).ToList(),
+                        UserList = list.Skip(after).Take(first).ToList(),
                         TotalCount = (list.Count() + first - 1) / first,
                         PageIndex = (after + first - 1) / first
                     };

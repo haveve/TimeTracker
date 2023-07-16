@@ -6,6 +6,7 @@ import { User } from '../Redux/Types/User';
 import { RequestUpdateUser, RequestUpdatePassword } from '../Redux/Requests/UserRequests';
 import { RootState } from '../Redux/store';
 import { getUsers } from '../Redux/epics';
+import { Error } from './Error';
 import '../Custom.css';
 
 
@@ -13,17 +14,19 @@ function UserProfile() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);
-    const [showError, setShowError] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [showPasswordsError, setShowPasswordsError] = useState(false);
 
-    const handleCloseEdit = () => setShowEdit(false);
+
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const handleCloseEdit = () => { setShowEdit(false); setShowError(false); };
     const handleShowEdit = () => setShowEdit(true);
 
-    const handleClosePassword = () => setShowPassword(false);
+    const handleClosePassword = () => { setShowPassword(false); setShowError(false); };
     const handleShowPassword = () => setShowPassword(true);
 
-    let user  = useSelector((state: RootState) => state.currentUser.User);
+    let user = useSelector((state: RootState) => state.currentUser.User);
 
 
     const [id, setId] = useState(0);
@@ -60,32 +63,31 @@ function UserProfile() {
                 localStorage.setItem("User", JSON.stringify(User));
             }
             else {
-                setShowError(true)
+                setErrorMessage("Wrong password");
+                setShowError(true);
             }
         });
     }
 
     const handlePasswordUpdate = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (newPassword === newPasswordRepeat) {
-            RequestUpdatePassword(id, newPassword, password).subscribe((x) => {
-                console.log(x);
-                if (x === "Password updated successfully") {
-                    setShowPassword(false);
-                    dispatch(getUsers());
-                }
-                else {
-                    setShowError(true)
-                }
-            });
-        }
-        else{
-            setShowPasswordsError(true)
-        }
+        if (newPassword != newPasswordRepeat) { setShowError(true); setErrorMessage("Type in same passwords"); return; }
+        if (newPassword.length < 8) { setShowError(true); setErrorMessage("Password should be at least 8 characters"); return; }
+        RequestUpdatePassword(id, newPassword, password).subscribe((x) => {
+            console.log(x);
+            if (x === "Password updated successfully") {
+                setShowPassword(false);
+                dispatch(getUsers());
+            }
+            else {
+                setErrorMessage("Wrong password");
+                setShowError(true);
+            }
+        });
     }
 
     return (
-        
+
         <div className='UserDetails d-flex align-items-center flex-column m-1'>
             <Button variant='dark' className='ms-2 me-auto' onClick={() => navigate(-1)}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
@@ -132,12 +134,7 @@ function UserProfile() {
                                     <Form.Label>Password</Form.Label>
                                     <Form.Control type="password" onChange={e => setPassword(e.target.value)} />
                                     <Form.Text muted>Type in your password to confirm changes</Form.Text>
-                                    {showError ?
-                                        <div>
-                                            <Form.Text className='text-danger' onClick={() => setShowError(false)}>Wrong password</Form.Text>
-                                        </div>
-                                        : <></>
-                                    }
+                                    <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
                                 </Form.Group>
                             </Modal.Body>
                             <Modal.Footer>
@@ -166,23 +163,12 @@ function UserProfile() {
                                 <Form.Group className="mb-3">
                                     <Form.Label>Repeat new password</Form.Label>
                                     <Form.Control type="password" onChange={e => setNewPasswordRepeat(e.target.value)} />
-                                    {showPasswordsError ?
-                                        <div>
-                                            <Form.Text className='text-danger' onClick={() => setShowPasswordsError(false)}>Type in same passwords</Form.Text>
-                                        </div>
-                                        : <></>
-                                    }
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Password</Form.Label>
                                     <Form.Control type="password" onChange={e => setPassword(e.target.value)} />
                                     <Form.Text muted>Type in your password to confirm changes</Form.Text>
-                                    {showError ?
-                                        <div>
-                                            <Form.Text className='text-danger' onClick={() => setShowError(false)}>Wrong password</Form.Text>
-                                        </div>
-                                        : <></>
-                                    }
+                                    <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
                                 </Form.Group>
                             </Modal.Body>
                             <Modal.Footer>

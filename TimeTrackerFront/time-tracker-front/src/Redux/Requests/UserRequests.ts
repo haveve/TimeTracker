@@ -71,9 +71,9 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
         },
         body: JSON.stringify({
             query: `
-                query GetUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String){
+                query GetUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $filderfield: String, $minHours: Int, $maxHours: Int){
                     user{
-                        pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order){
+                        pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order, filderfield: $filderfield, minHours: $minHours, maxHours: $maxHours){
                             userList{
                                 id
                                 login
@@ -93,7 +93,10 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
                 "after": page.after,
                 "search": page.search,
                 "orderfield": page.orderfield,
-                "order": page.order
+                "order": page.order,
+                "filderfield": page.filterfield,
+                "minHours": page.minhours,
+                "maxHours": page.maxhours,
             }
 
         })

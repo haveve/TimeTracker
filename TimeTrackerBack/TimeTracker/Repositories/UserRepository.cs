@@ -19,7 +19,7 @@ namespace TimeTracker.Repositories
                 return db.Query<User>("SELECT * FROM Users").ToList();
             }
         }
-        public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order)
+        public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string filterfield, int minhours, int maxhours)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
@@ -27,7 +27,8 @@ namespace TimeTracker.Repositories
                 {
                     return db.Query<User>($"SELECT * FROM Users WHERE Login LIKE '%{search}%' OR FullName LIKE '%{search}%' ORDER BY {orderfield} {order}").ToList();
                 }
-                return db.Query<User>($"SELECT * FROM Users WHERE Login LIKE '%{search}%' OR FullName LIKE '%{search}%' ORDER BY Id {order}").ToList();
+                return db.Query<User>($"SELECT * FROM Users WHERE (Login LIKE '%{search}%' OR FullName LIKE '%{search}%') " +
+                    $"AND ({filterfield} >= {minhours} AND {filterfield} <= {maxhours}) ORDER BY Id {order}").ToList();
             }
         }
         public User GetUser(int id)
