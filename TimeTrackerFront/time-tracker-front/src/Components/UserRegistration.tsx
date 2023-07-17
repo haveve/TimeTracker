@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Card, InputGroup } from "react-bootstrap";
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import '../Custom.css';
@@ -9,6 +9,7 @@ import { RequestCreateUser, RequestRegisterUserByCode } from '../Redux/Requests/
 
 function UserRegistration() {
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [id, setId] = useState(0);
     const [login, setLogin] = useState('');
     const [fullName, setFullName] = useState('');
@@ -24,6 +25,7 @@ function UserRegistration() {
             let email: string = temp !== null ? temp : "";
         if(Password !== PasswordRepeat) return;
         RequestRegisterUserByCode(Password, login, fullName, code, email).subscribe(x => console.log(x));
+        navigate("/Login");
     }
 
     return (

@@ -19,7 +19,7 @@ function CreateUser() {
 
     const HandleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const user : User = {
+        const user: User = {
             login: "login",
             password: "password",
             fullName: "fullname",
@@ -33,6 +33,14 @@ function CreateUser() {
             controlDayOffs: controlDayOffs
         }
         RequestCreateUser(user).subscribe()
+        setEmail("")
+        setCRUDUsers(false)
+        setEditPermiters(false)
+        setViewUsers(false)
+        setEditWorkHours(false)
+        setImportExcel(false)
+        setControlPresence(false)
+        setControlDayOffs(false)
     }
 
     return (

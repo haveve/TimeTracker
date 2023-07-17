@@ -80,7 +80,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, Password = @Password, ResetCode = NULL WHERE Id = @Id";
+                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, Password = @Password, ResetCode = NULL, Enabled = 1 WHERE Id = @Id";
                 db.Execute(sqlQuery, user);
             }
         }
