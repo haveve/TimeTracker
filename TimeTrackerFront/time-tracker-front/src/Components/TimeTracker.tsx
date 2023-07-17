@@ -13,9 +13,9 @@ import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
 import { setloadingStatus, setIdleStatus, statusType, setErrorStatusAndError } from '../Redux/Slices/TimeSlice';
-import { RequestSetStartDate, RequestSetEndDate, RequestGetToken } from '../Redux/Requests/TimeRequests';
+import { RequestSetStartDate, RequestSetEndDate } from '../Redux/Requests/TimeRequests';
 import { ErrorMassagePattern } from '../Redux/epics';
-import { changeTimerState  } from '../Redux/Slices/TimeSlice';
+import { changeTimerState } from '../Redux/Slices/TimeSlice';
 
 export default function TimeTracker() {
     const [buttonMassage, setButtonMassage] = useState("Start");
@@ -32,22 +32,22 @@ export default function TimeTracker() {
         return state.time.time.isStarted;
     });
 
-    useEffect(()=>{        
+    useEffect(() => {
         dispatch(setloadingStatus());
         dispatch(setTimeE());
 
-    },[])
+    }, [])
     useEffect(() => {
         if (isStarted) {
             const subscriber = timer(0, 1000).subscribe(n => {
-                setLocalTimeInSeconds(n=>n+1);
+                setLocalTimeInSeconds(n => n + 1);
             });
             setUnsubTimer(subscriber);
             unsubTimer.unsubscribe();
         }
-        setButtonMassage(isStarted ? "End":"Start")
+        setButtonMassage(isStarted ? "End" : "Start")
 
-    },[isStarted])
+    }, [isStarted])
 
     const isSuccessOrIdle = IsSuccessOrIdle(status);
     const clockTime = TimeStringFromSeconds(localTimeInSeconds);
@@ -60,30 +60,21 @@ export default function TimeTracker() {
         <Button variant={isSuccessOrIdle ? "success" : "dark"} disabled={isSuccessOrIdle ? false : true} className='m-5 my-0 ' onClick={() => {
 
             if (!isStarted) {
-                RequestGetToken().subscribe({
-                    next: (token) => {
-                        RequestSetStartDate(token).subscribe({
-                            next: () => { dispatch(setIdleStatus()); },
-                            error: () => { unsubTimer.unsubscribe(); dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
-                        });
-                    },
+                RequestSetStartDate().subscribe({
+                    next: () => { dispatch(setIdleStatus()); },
                     error: () => { unsubTimer.unsubscribe(); dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
-
-                })
+                });
             }
             else {
-                RequestGetToken().subscribe({
-                    next: (token) => {
-                        RequestSetEndDate(token).subscribe({
-                            next: () => { dispatch(setIdleStatus()) },
-                            error: () => { dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
-                        });
-                    },
-                    error: () => {dispatch(setErrorStatusAndError(ErrorMassagePattern))}
+
+                RequestSetEndDate().subscribe({
+                    next: () => { dispatch(setIdleStatus()) },
+                    error: () => { dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
                 });
+
                 unsubTimer.unsubscribe();
             }
-            
+
             dispatch(changeTimerState());
         }}>{buttonMassage}</Button>
         <Image src={picture}></Image>

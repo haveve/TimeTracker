@@ -16,11 +16,11 @@ interface GraphqlToken {
     getToken:string
 }
 
-const url = "https://localhost:7226/graphql";
+const url = "https://time-tracker3.azurewebsites.net/graphql";
 
 
 
-export function GetAjaxObservable<T>(query: string, variables: {}, token: string = "",withCredentials = false) {
+export function GetAjaxObservable<T>(query: string, variables: {},withCredentials = false) {
 
     return ajax<response<T>>({
         url,
@@ -28,7 +28,6 @@ export function GetAjaxObservable<T>(query: string, variables: {}, token: string
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + getCookie("access_token"),
-            'X-XSRF-TOKEN': token
         },
         body: JSON.stringify({
             query,
@@ -36,39 +35,6 @@ export function GetAjaxObservable<T>(query: string, variables: {}, token: string
         }),
         withCredentials: withCredentials
     })
-}
-
-export function RequestGetToken(): Observable<string> {
-    return ajax<response<GraphqlToken>>({
-        url: url + "-login",
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token"),
-        },
-        body: JSON.stringify({
-            query: `query{
-        getToken
-      }
-    `}),
-        withCredentials: true
-    }).pipe(
-        map(res => {
-            if (res.response.errors) {
-                console.error(JSON.stringify(res.response.errors))
-                throw "error"
-            }
-
-            var token = res.response.data.getToken;
-
-            if (token === null) {
-                console.error("Antiforgery token was received with value 'null'")
-                throw "error"
-            }
-
-            return token;
-        })
-    );
 }
 
 export function RequestGetTime(): Observable<TimeResponse> {
@@ -99,14 +65,14 @@ export function RequestGetTime(): Observable<TimeResponse> {
 }
 
 
-export function RequestSetStartDate(token: string): Observable<string> {
+export function RequestSetStartDate(): Observable<string> {
     return GetAjaxObservable<string>(`
     mutation{
         time{
           setStartDate
         }
       }
-    `, {}, token,true).pipe(
+    `, {},true).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
@@ -117,14 +83,14 @@ export function RequestSetStartDate(token: string): Observable<string> {
     );
 }
 
-export function RequestSetEndDate(token: string): Observable<string> {
+export function RequestSetEndDate(): Observable<string> {
     return GetAjaxObservable<string>(`
     mutation{
         time{
           setEndDate
         }
       }
-    `, {}, token,true).pipe(
+    `, {},true).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
@@ -135,7 +101,7 @@ export function RequestSetEndDate(token: string): Observable<string> {
     );
 }
 
-export function RequestUpdateDate(time:TimeRequest,token:string): Observable<TimeRequest> {
+export function RequestUpdateDate(time:TimeRequest): Observable<TimeRequest> {
     return GetAjaxObservable<string>(`
     mutation($id:Int!,$time:ManageTimeInputGrpahqType!){
         time{
@@ -144,7 +110,7 @@ export function RequestUpdateDate(time:TimeRequest,token:string): Observable<Tim
             }
         }
       }
-    `,time,token,true).pipe(
+    `,time,true).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))

@@ -11,26 +11,15 @@ namespace TimeTracker.GraphQL.Queries
     public class UserMutation : ObjectGraphType
     {
         private readonly IUserRepository repo;
-        private readonly IAntiforgery antiforgery;
 
-        public UserMutation(IUserRepository Repo, IAntiforgery Antiforgery)
+        public UserMutation(IUserRepository Repo)
         {
             repo = Repo;
-            antiforgery = Antiforgery;
 
             Field<UserMutationGraphQLType>("user")
             .Resolve(context => new { });
             Field<TimeMutationGraphType>("time")
-            .ResolveAsync(async context => {
-                var httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
-
-                var isValid = await antiforgery.IsRequestValidAsync(httpContext);
-                if (!isValid)
-                {
-                    throw new ApplicationException("Invalid AntiForgeryToken");
-                }
-                return new { };
-            });
+            .Resolve(context => new { });
         }
     }
 }
