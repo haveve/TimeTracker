@@ -28,13 +28,6 @@ export const userSlice = createSlice({
             action: PayloadAction<UsersPage>) => {
             state.UsersPage = action.payload
         },
-        updateUserTime:(state,action:PayloadAction<TimeRequest>)=>{
-            const u = state.Users.filter(u=>u.id == action.payload.id)[0];
-                u.daySeconds = action.payload.time.daySeconds;
-                u.weekSeconds = action.payload.time.weekSeconds;
-                u.monthSeconds = action.payload.time.monthSeconds;
-                state.status = "success"
-        },
         setloadingStatus: (state) => {
             state.status = "loading";
         },
@@ -55,7 +48,6 @@ export const userSlice = createSlice({
 export const {
     getUsersList,
     getUsersPage,
-    updateUserTime,
     setloadingStatus,
     setErrorStatusAndError,
     setIdleStatus,

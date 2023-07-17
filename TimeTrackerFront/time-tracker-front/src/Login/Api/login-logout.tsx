@@ -32,7 +32,7 @@ export function ajaxForLoginLogout(variables: {}) {
       let fullResponse = value.response as { data:{login:{access_token: string, user_id: string}} }
       let response = fullResponse.data.login;
       if ((200 > value.status && value.status > 300) || !response || !response.access_token)
-        throw "statuse error";
+        throw "status error";
 
       setCookie({ name: "access_token", value: response.access_token, expires_second: 365 * 24 * 60 * 60, path: "/" });
       setCookie({ name: "user_id", value: response.user_id, expires_second: 365 * 24 * 60 * 60, path: "/" });
@@ -50,7 +50,7 @@ export const getQueryObserver = (setError: (value: string) => void, commitNaviga
     next: () => {
       commitNavigate(path);
     },
-    error: (value) => { setError("User does not exist"); console.log(JSON.stringify(value)); },
+    error: (value) => { setError("uncorrect data"); console.log(JSON.stringify(value)); },
     complete: () => { }
   }
 }
@@ -58,9 +58,9 @@ export const getQueryObserver = (setError: (value: string) => void, commitNaviga
 
 export function getCookie(name: string) {
   name = name + "=";
-  var ca = document.cookie.split(';');
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
+  let ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
     while (c.charAt(0) == ' ') {
       c = c.substring(1);
     }
@@ -72,9 +72,9 @@ export function getCookie(name: string) {
 }
 
 export function setCookie(cookieParams: setCookieParamas) {
-  var s = cookieParams.name + '=' + encodeURIComponent(cookieParams.value) + ';';
+  let s = cookieParams.name + '=' + encodeURIComponent(cookieParams.value) + ';';
   if (cookieParams.expires_second) {
-    var d = new Date();
+    let d = new Date();
     d.setTime(d.getTime() + cookieParams.expires_second * 1000);
     s += ' expires=' + d.toUTCString() + ';';
   }
@@ -89,7 +89,7 @@ export function deleteCookie(name: string) {
 }
 
 export function getTokenOrNavigate(isLoginRedirect: boolean = false) {
-  var token = getCookie("access_token");
+  const token = getCookie("access_token");
   if (!token && !isLoginRedirect) {
     return redirect("/Login");
   }

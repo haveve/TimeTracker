@@ -4,7 +4,7 @@ import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestU
 import { User } from "./Types/User";
 import { Permissions } from "./Types/Permissions";
 import { PayloadAction } from "@reduxjs/toolkit";
-import { getUsersPage, getUsersList, updateUserTime } from "./Slices/UserSlice";
+import { getUsersPage, getUsersList} from "./Slices/UserSlice";
 import { getTheCurrentUser } from "./Slices/CurrentUserSlice";
 import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time, TimeResponse, TimeRequest } from "./Types/Time";
@@ -69,25 +69,5 @@ export const setTimeEpic: Epic = action$ => {
             map((res: TimeResponse) => setTime(res)),
             catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
         )),
-    )
-};
-
-export const updateTimeE = (id: number, time: Time) => ({
-    type: "updateUserTime", payload: {
-        id,
-        time
-    }
-})
-export const updateTimeEpic: Epic = (action$: Observable<PayloadAction<TimeRequest>>) => {
-    return action$.pipe(
-        ofType("updateUserTime"),
-        map(action => action.payload),
-        mergeMap(userTime => RequestGetToken().pipe(
-            map(token => ({ token, userTime })),
-            )),
-        mergeMap((userTime) => RequestUpdateDate(userTime.userTime, userTime.token).pipe(
-            map((res) =>{return updateUserTime(res)}),
-        )),
-        catchError(() => of(setErrorStatusAndErrorUserList(ErrorMassagePattern)))
     )
 };

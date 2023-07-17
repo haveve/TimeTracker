@@ -13,10 +13,14 @@ import { TimeStringFromSeconds } from './TimeTracker';
 import NotificationModalWindow from './NotificationModalWindow';
 import { MasssgeType } from './NotificationModalWindow';
 import CheckModalWindow from './CheckModalWindow';
-import { updateTimeE } from '../Redux/epics';
 import { User } from '../Redux/Types/User';
 import { setloadingStatus } from '../Redux/Slices/UserSlice';
 import { IsSuccessOrIdle } from './TimeTracker';
+import { RequestUpdateDate } from '../Redux/Requests/TimeRequests';
+import { RequestGetToken } from '../Redux/Requests/TimeRequests';
+import { setIdleStatus } from '../Redux/Slices/UserSlice';
+import { setErrorStatusAndError } from '../Redux/Slices/UserSlice';
+import { ErrorMassagePattern } from '../Redux/epics';
 
 export const maxForDay = 8 * 60 * 60;
 export const maxForWeek = 8 * 60 * 60 * 5;
@@ -34,7 +38,7 @@ export const lessThanZeroError = `Changes that you do does user time negative. I
 
 export const higherThanMaxError = `Changes that you do does user time over than max value (for day = ${maxForDay / (60 * 60)} h for week = ${maxForWeek / (60 * 60)} h for month = ${maxForMonth / (60 * 60)}  ). In this way you must choose less value of changing or change time by hand`
 
-export default function TimeManage(props: { isShowed: boolean, setShowed: (smth: boolean) => void, User: User }) {
+export default function TimeManage(props: { isShowed: boolean, setShowed: (smth: boolean) => void, User: User, setUser: (user: User) => void }) {
 
   const [selected, setSelected] = useState(0);
   const [error, setError] = useState("");
@@ -42,7 +46,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
   const [checkWarning, setCheckWarning] = useState("");
 
   const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
-  const userListState = useSelector((state: RootState) => state.users.status); 
+  const userListState = useSelector((state: RootState) => state.users.status);
 
   const dispatch = useDispatch();
 
@@ -55,8 +59,17 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
   const [changedTime, setChangedTime] = useImmer({ ...timeUser })
   const [anyInputTimeString, setAnyInputTimeString] = useState("")
 
+
   const handleSaveChange = (time: Time) => {
-    dispatch(updateTimeE(props.User.id!, time));
+    RequestGetToken().subscribe({
+      next: (token) => {
+        RequestUpdateDate({time,id:Number.parseInt(props.User.id!.toString())},token).subscribe({
+          next: () => { dispatch(setIdleStatus()); props.setUser({...props.User, ...time}) },
+          error: () => { dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
+        });
+      },
+      error: () => dispatch(setErrorStatusAndError(ErrorMassagePattern))
+    })
     dispatch(setloadingStatus());
   }
 
@@ -88,27 +101,27 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
     }
   }
 
-  const canDoChangeAssign = (time:Time,seconds: number) => {
+  const canDoChangeAssign = (time: Time, seconds: number) => {
     switch (selected) {
       case 0:
         if (seconds >= 0 && seconds <= maxForDay) {
-            time.monthSeconds += seconds - time.daySeconds
-            time.weekSeconds += seconds - time.daySeconds
-            time.daySeconds = seconds
+          time.monthSeconds += seconds - time.daySeconds
+          time.weekSeconds += seconds - time.daySeconds
+          time.daySeconds = seconds
           return true;
         }
         return false;
 
       case 1:
         if (seconds >= 0 && seconds <= maxForWeek) {
-            time.monthSeconds += seconds - time.weekSeconds
-            time.weekSeconds = seconds
+          time.monthSeconds += seconds - time.weekSeconds
+          time.weekSeconds = seconds
           return true;
         }
         return false;
       case 2:
         if (seconds >= 0 && seconds <= maxForMonth) {
-            time.monthSeconds = seconds
+          time.monthSeconds = seconds
           return true;
         }
         return false;
@@ -192,18 +205,18 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
             }}>Cancel</Button>
             <Button variant="success" onClick={() => {
 
-              let timeC = {...changedTime};
+              let timeC = { ...changedTime };
 
               if (anyInputTimeString != "") {
-                const seconds =  GetTimeFromString(anyInputTimeString,setError);
+                const seconds = GetTimeFromString(anyInputTimeString, setError);
 
-                if(seconds === -1.5)
-                return;
+                if (seconds === -1.5)
+                  return;
 
                 if (!isCorrectUltimateTime(seconds, selected, setError))
                   return;
 
-                if (!canDoChangeAssign(timeC,seconds))
+                if (!canDoChangeAssign(timeC, seconds))
                   return;
 
                 setChangedTime(time => {
@@ -222,8 +235,8 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
       </Modal.Footer>
     </Modal>
     <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
-    <NotificationModalWindow isShowed={errorUserList === ""&&IsSuccessOrIdle(userListState)&&success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
-    <CheckModalWindow isShowed={errorUserList === ""&&checkWarning !== ""&&IsSuccessOrIdle(userListState)} dropMassege={setCheckWarning} messegeType={MasssgeType.Warning} agree={() => {
+    <NotificationModalWindow isShowed={errorUserList === "" && IsSuccessOrIdle(userListState) && success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
+    <CheckModalWindow isShowed={errorUserList === "" && checkWarning !== "" && IsSuccessOrIdle(userListState)} dropMassege={setCheckWarning} messegeType={MasssgeType.Warning} agree={() => {
 
       let time = {
         daySeconds: 0,
@@ -337,7 +350,7 @@ export function FullTimeFromSeconds(secods: number) {
   return `${timeArray[0]}h ${timeArray[1]}m ${timeArray[2]}s`
 }
 
-export function GetTimeFromString(str:string,setError:(error:string)=>void){
+export function GetTimeFromString(str: string, setError: (error: string) => void) {
   const timeStr = str.split(':');
   const numberTimeArray = timeStr.map(function (element) {
     return Number.parseInt(element);

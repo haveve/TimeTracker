@@ -95,7 +95,8 @@ function UserDetails() {
               <Button variant="danger" onClick={handleUserDelete}>Delete</Button>
             </Modal.Footer>
           </Modal>
-          <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} />
+          { user.daySeconds != undefined?
+          <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} setUser = {setUser} />:null}
         </>
       )
         : (
