@@ -56,8 +56,8 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "INSERT INTO Users (Id, Login, Password, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs)" +
-                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Login, @Password, @FullName, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs)";
+                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode)" +
+                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Email, (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode)";
                 db.Execute(sqlQuery, user);
             }
         }
@@ -74,6 +74,14 @@ namespace TimeTracker.Repositories
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 db.Query("UPDATE Users SET ResetCode = @code WHERE Id = @id", new { id, code });
+            }
+        }
+        public void UpdateRegisteredUserAndCode(User user)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, Password = @Password, ResetCode = NULL WHERE Id = @Id";
+                db.Execute(sqlQuery, user);
             }
         }
         public void UpdateUserPassword(int Id, string Password)

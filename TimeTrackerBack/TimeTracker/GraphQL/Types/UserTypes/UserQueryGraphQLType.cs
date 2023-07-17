@@ -39,7 +39,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     if (orderfield == "") orderfield = null;
                     minHours = minHours == null ?  0 : minHours * 3600;
                     maxHours = ( maxHours == null || maxHours == 0) ?  int.MaxValue : maxHours * 3600;
-                    List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order, filterfield, minHours, maxHours);
+                    List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order, filterfield, minHours, maxHours).Where(u => u.Enabled == true).ToList();
                     return new UserPageViewModel()
                     {
                         UserList = list.Skip(after).Take(first).ToList(),

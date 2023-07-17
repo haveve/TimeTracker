@@ -11,6 +11,7 @@ namespace TimeTracker.GraphQL.Types
             Field(i => i.Login);
             Field(i => i.Password);
             Field(i => i.FullName);
+            Field(i => i.Email);
             Field(i => i.CRUDUsers, type: typeof(BooleanGraphType));
             Field(i => i.EditPermiters, type: typeof(BooleanGraphType));
             Field(i => i.ViewUsers, type: typeof(BooleanGraphType));

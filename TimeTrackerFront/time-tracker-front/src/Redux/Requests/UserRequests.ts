@@ -233,9 +233,54 @@ export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
     );
 }
 
+interface GraphqlCreateUser {
+    data: {
+        user: {
+            createUser: string
+        }
+    }
+}
+
+export function RequestCreateUser(user: User): Observable<string> {
+    return ajax<GraphqlCreateUser>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                mutation createUser($User: UserInputType!){
+                    user{
+                        createUser(user: $User)
+                    }
+                  }
+            `,
+            variables: {
+                "User": {
+                    "login": user.login,
+                    "fullName": user.fullName,
+                    "password": user.password,
+                    "email": user.email,
+                    "cRUDUsers": user.cRUDUsers,
+                    "editPermiters": user.editPermiters,
+                    "viewUsers": user.viewUsers,
+                    "editWorkHours": user.editWorkHours,
+                    "importExcel": user.importExcel,
+                    "controlPresence": user.controlPresence,
+                    "controlDayOffs": user.controlDayOffs
+                }
+            }
+        })
+    }).pipe(
+        map(res => { return res.response.data.user.createUser })
+    );
+}
+
 interface GraphqlUpdateUser {
     data: {
-        user:{
+        user: {
             updateUser: string
         }
     }
@@ -271,10 +316,45 @@ export function RequestUpdateUser(user: User): Observable<string> {
     );
 }
 
+interface GraphqlRequestRegisterUserByCode {
+    data: {
+        user: {
+            registerUserByCode: string
+        }
+    }
+}
+
+export function RequestRegisterUserByCode(Password: string, Login: string, FullName: string, Code: string, Email: string): Observable<string> {
+    return ajax<GraphqlRequestRegisterUserByCode>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            query: `
+                mutation registerUserByCode($Code : String!, $Email: String!, $Login : String!, $FullName: String!, $Password: String!){
+                    user{
+                        registerUserByCode(code : $Code, email: $Email, password: $Password, fullName: $FullName, login: $Login)
+                    }
+                  }
+            `,
+            variables: {
+                "Code": Code,
+                "Email": Email,
+                "Password": Password,
+                "Login": Login,
+                "FullName": FullName,
+            }
+        })
+    }).pipe(
+        map(res => { return res.response.data.user.registerUserByCode })
+    );
+}
 
 interface GraphqlUpdatePasswordByCode {
     data: {
-        user:{
+        user: {
             resetUserPasswordByCode: string
         }
     }
@@ -307,7 +387,7 @@ export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, E
 }
 interface GraphqlUpdatePassword {
     data: {
-        user:{
+        user: {
             updateUserPassword: string
         }
     }

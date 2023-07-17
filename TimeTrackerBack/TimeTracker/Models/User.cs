@@ -10,7 +10,7 @@ namespace TimeTracker.Models
         public string Password { get; set; }
         public string FullName{ get; set; }
         public string Email { get; set; }
-        public string ResetCode { get; set; }
+        public string ResetCode { get; set; } = null;
         public bool CRUDUsers { get; set; } = false;
         public bool EditPermiters { get; set; } = false;
         public bool ViewUsers { get; set; } = false;
@@ -18,8 +18,9 @@ namespace TimeTracker.Models
         public bool ImportExcel { get; set; } = false;
         public bool ControlPresence { get; set; } = false;
         public bool ControlDayOffs { get; set; } = false;
-        public int DaySeconds { get; set; }
-        public int WeekSeconds { get; set; }
-        public int MonthSeconds { get; set; }
+        public int DaySeconds { get; set; } = 0;
+        public int WeekSeconds { get; set; } = 0;
+        public int MonthSeconds { get; set; } = 0;
+        public bool Enabled { get; set; } = false;
     }
 }

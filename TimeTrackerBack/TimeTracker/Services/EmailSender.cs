@@ -29,5 +29,23 @@ namespace TimeTracker.Services
             
             client.Send(mail);
         }
+        public void SendRegistrationEmail(string code, string email)
+        {
+            var client = new SmtpClient(_serverUrl, _port)
+            {
+                EnableSsl = true,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(_emailFrom, _emailPassword)
+            };
+            string resetUrl = "http://localhost:3000/UserRegistration";
+
+            string url = $"{resetUrl}?code={code}&email={email}";
+
+            var mail = new MailMessage(_emailFrom, email);
+            mail.Subject = "TimeTracker Registration";
+            mail.Body = $"To register, follow the link = {url}";
+
+            client.Send(mail);
+        }
     }
 }
