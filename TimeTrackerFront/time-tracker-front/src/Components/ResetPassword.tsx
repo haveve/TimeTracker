@@ -1,14 +1,14 @@
 import "../Custom.css";
-import {Error} from "./Error";
-import {useSearchParams} from "react-router-dom";
-import {Button, Card, Form, FormText, InputGroup} from "react-bootstrap";
-import React, {ChangeEvent, ChangeEventHandler, FormEvent, useState} from "react";
-import {ErrorMassagePattern} from "../Redux/epics";
-import {RequestUpdatePasswordByCode} from "../Redux/Requests/UserRequests";
+import { Error } from "./Error";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Button, Card, Form, FormText, InputGroup } from "react-bootstrap";
+import React, { ChangeEvent, ChangeEventHandler, FormEvent, useState } from "react";
+import { ErrorMassagePattern } from "../Redux/epics";
+import { RequestUpdatePasswordByCode } from "../Redux/Requests/UserRequests";
 
 
 function ResetPassword() {
-
+    const [formSent, setFormSent] = useState(false);
     const [searchParams] = useSearchParams();
     const [firstPass, setFirstPass] = useState("");
     const [secondPass, setSecondPass] = useState("");
@@ -16,8 +16,10 @@ function ResetPassword() {
     const [ErrorText, setErrorText] = useState("")
 
     const [InfoText, setInfoText] = useState("");
-    console.log(InfoText);
-    const onFirstPassChange = (e:  React.ChangeEvent<any>) => {
+
+    const navigate = useNavigate();
+
+    const onFirstPassChange = (e: React.ChangeEvent<any>) => {
         setShowPassError(false);
         setFirstPass(e.target.value);
     }
@@ -29,25 +31,26 @@ function ResetPassword() {
 
     const onSubmitHandler = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if(firstPass!==secondPass){
+        if (firstPass !== secondPass) {
             setErrorText("Both passwords should match!");
             setShowPassError(true);
         }
-        else if (firstPass.length < 8 && firstPass.length > 20){
+        else if (firstPass.length < 8 && firstPass.length > 20) {
             setErrorText("Path length must be between 8 and 50!");
             setShowPassError(true);
         }
-        else{
+        else {
             // submit changes
             let temp = searchParams.get("code");
-            const code : string = temp !== null ? temp : "";
+            const code: string = temp !== null ? temp : "";
 
             temp = searchParams.get("email");
-            let email : string = temp !== null ? temp : "";
+            let email: string = temp !== null ? temp : "";
 
-            RequestUpdatePasswordByCode(firstPass, code,email).subscribe((x)=>{
+            RequestUpdatePasswordByCode(firstPass, code, email).subscribe((x) => {
                 //console.log("x = "+ x);
                 setInfoText(x);
+                setFormSent(true);
             })
         }
     }
@@ -56,32 +59,44 @@ function ResetPassword() {
         <>
             <div className="d-flex align-items-center flex-column m-1 ">
                 <h5>Reset password</h5>
-                <Card style={{width: '18rem'}} className='d-flex align-items-center flex-column'>
+                <Card style={{ width: '18rem' }} className='d-flex align-items-center flex-column'>
                     <Card.Body className='p-3 w-100'>
                         <Form className="d-flex align-items-start flex-column"
-                              onSubmit={(event) => onSubmitHandler(event)}>
-                            <p className='m-0'>New password</p>
-                            <Form.Control
-                                type="password"
-                                className="w-100 mb-3"
-                                onChange={onFirstPassChange}
-                            />
-                            <p className='m-0'>Repeat new password</p>
-                            <Form.Control
-                                type="password"
-                                className="w-100 mb-3"
-                                onChange={onSecondPassChange}
+                            onSubmit={(event) => onSubmitHandler(event)}>
 
-                            />
-                            <Error ErrorText={ErrorText} Show={showPassError} SetShow={() => setShowPassError(false)}/>
-                            <Button
-                                type="submit"
-                                className="btn-success w-100"
-                            >
-                                Reset password
-                            </Button>
+                            {!formSent ?
+                                <>
+                                    <p className='m-0'>New password</p>
+                                    <Form.Control
+                                        type="password"
+                                        className="w-100 mb-3"
+                                        onChange={onFirstPassChange}
+                                    />
+                                    <p className='m-0'>Repeat new password</p>
+                                    <Form.Control
+                                        type="password"
+                                        className="w-100 mb-3"
+                                        onChange={onSecondPassChange}
+
+                                    />
+                                    <Error ErrorText={ErrorText} Show={showPassError} SetShow={() => setShowPassError(false)} />
+                                    <Button
+                                        type="submit"
+                                        className="btn-success w-100"
+                                    >
+                                        Reset password
+                                    </Button>
+                                </>
+                                :
+                                <Button
+                                    onClick={() => navigate("/Login")}
+                                    className="btn-success w-100"
+                                >
+                                    Login
+                                </Button>
+                            }
+                            {InfoText !== "" ? <Form.Text>{InfoText}</Form.Text> : <></>}
                         </Form>
-                        {InfoText!==""?<FormText>{InfoText}</FormText>:<></>}
                     </Card.Body>
                 </Card>
             </div>
