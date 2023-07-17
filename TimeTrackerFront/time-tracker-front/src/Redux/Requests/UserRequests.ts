@@ -275,7 +275,7 @@ export function RequestUpdateUser(user: User): Observable<string> {
 interface GraphqlUpdatePasswordByCode {
     data: {
         user:{
-            RequestUpdatePasswordByCode: string
+            resetUserPasswordByCode: string
         }
     }
 }
@@ -302,7 +302,7 @@ export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, E
             }
         })
     }).pipe(
-        map(res => { return res.response.data.user.RequestUpdatePasswordByCode })
+        map(res => { return res.response.data.user.resetUserPasswordByCode })
     );
 }
 interface GraphqlUpdatePassword {

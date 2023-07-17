@@ -156,12 +156,6 @@ function UserProfile() {
                             </Modal.Header>
                             <Modal.Body>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Old password</Form.Label>
-                                    <Form.Control type="password" onChange={e => setPassword(e.target.value)} />
-                                    <Form.Text muted>Type in your password to confirm changes</Form.Text>
-                                    <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
-                                </Form.Group>
-                                <Form.Group className="mb-3">
                                     <Form.Label>New password</Form.Label>
                                     <Form.Control type="password" onChange={e => setNewPassword(e.target.value)} />
                                 </Form.Group>
@@ -169,7 +163,12 @@ function UserProfile() {
                                     <Form.Label>Repeat new password</Form.Label>
                                     <Form.Control type="password" onChange={e => setNewPasswordRepeat(e.target.value)} />
                                 </Form.Group>
-
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Old password</Form.Label>
+                                    <Form.Control type="password" onChange={e => setPassword(e.target.value)} />
+                                    <Form.Text muted>Type in your password to confirm changes</Form.Text>
+                                    <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
+                                </Form.Group>
                             </Modal.Body>
                             <Modal.Footer>
                                 <Button variant="secondary" onClick={handleClosePassword}>Cancel</Button>
