@@ -57,48 +57,50 @@ function ResetPassword() {
 
     return (
         <>
-            <div className="d-flex align-items-center flex-column m-1 ">
-                <h5>Reset password</h5>
-                <Card style={{ width: '18rem' }} className='d-flex align-items-center flex-column'>
-                    <Card.Body className='p-3 w-100'>
-                        <Form className="d-flex align-items-start flex-column"
-                            onSubmit={(event) => onSubmitHandler(event)}>
+            <div className="div-login-form container-fluid p-0 h-100 d-flex  justify-content-center">
+                <div className='d-flex flex-column mt-5'>
+                    <h5 className='text-center'>Reset password</h5>
+                    <Card style={{ width: '18rem' }} className='d-flex align-items-center flex-column'>
+                        <Card.Body className='p-3 w-100'>
+                            <Form className="d-flex align-items-start flex-column"
+                                onSubmit={(event) => onSubmitHandler(event)}>
 
-                            {!formSent ?
-                                <>
-                                    <p className='m-0'>New password</p>
-                                    <Form.Control
-                                        type="password"
-                                        className="w-100 mb-3"
-                                        onChange={onFirstPassChange}
-                                    />
-                                    <p className='m-0'>Repeat new password</p>
-                                    <Form.Control
-                                        type="password"
-                                        className="w-100 mb-3"
-                                        onChange={onSecondPassChange}
+                                {!formSent ?
+                                    <>
+                                        <p className='m-0'>New password</p>
+                                        <Form.Control
+                                            type="password"
+                                            className="w-100 mb-3"
+                                            onChange={onFirstPassChange}
+                                        />
+                                        <p className='m-0'>Repeat new password</p>
+                                        <Form.Control
+                                            type="password"
+                                            className="w-100 mb-3"
+                                            onChange={onSecondPassChange}
 
-                                    />
-                                    <Error ErrorText={ErrorText} Show={showPassError} SetShow={() => setShowPassError(false)} />
+                                        />
+                                        <Error ErrorText={ErrorText} Show={showPassError} SetShow={() => setShowPassError(false)} />
+                                        <Button
+                                            type="submit"
+                                            className="btn-success w-100"
+                                        >
+                                            Reset password
+                                        </Button>
+                                    </>
+                                    :
                                     <Button
-                                        type="submit"
+                                        onClick={() => navigate("/Login")}
                                         className="btn-success w-100"
                                     >
-                                        Reset password
+                                        Login
                                     </Button>
-                                </>
-                                :
-                                <Button
-                                    onClick={() => navigate("/Login")}
-                                    className="btn-success w-100"
-                                >
-                                    Login
-                                </Button>
-                            }
-                            {InfoText !== "" ? <Form.Text>{InfoText}</Form.Text> : <></>}
-                        </Form>
-                    </Card.Body>
-                </Card>
+                                }
+                                {InfoText !== "" ? <Form.Text>{InfoText}</Form.Text> : <></>}
+                            </Form>
+                        </Card.Body>
+                    </Card>
+                </div>
             </div>
         </>
     )
