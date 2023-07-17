@@ -65,15 +65,6 @@ namespace TimeTracker.GraphQL.Queries
 
                 return response;
             });
-            Field<StringGraphType>("getToken")
-                .Resolve(context =>
-            {
-                var httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
-                var forgeryService = context.RequestServices!.GetService<IAntiforgery>()!;
-
-                var tokens = forgeryService.GetAndStoreTokens(httpContext);
-                return tokens.RequestToken!;
-            }).AuthorizeWithPolicy("Authorized");
         }
     }
 }

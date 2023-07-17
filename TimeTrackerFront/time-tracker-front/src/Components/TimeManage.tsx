@@ -17,7 +17,6 @@ import { User } from '../Redux/Types/User';
 import { setloadingStatus } from '../Redux/Slices/UserSlice';
 import { IsSuccessOrIdle } from './TimeTracker';
 import { RequestUpdateDate } from '../Redux/Requests/TimeRequests';
-import { RequestGetToken } from '../Redux/Requests/TimeRequests';
 import { setIdleStatus } from '../Redux/Slices/UserSlice';
 import { setErrorStatusAndError } from '../Redux/Slices/UserSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
@@ -61,15 +60,12 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
 
 
   const handleSaveChange = (time: Time) => {
-    RequestGetToken().subscribe({
-      next: (token) => {
-        RequestUpdateDate({time,id:Number.parseInt(props.User.id!.toString())},token).subscribe({
+
+        RequestUpdateDate({time,id:Number.parseInt(props.User.id!.toString())}).subscribe({
           next: () => { dispatch(setIdleStatus()); props.setUser({...props.User, ...time}) },
           error: () => { dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
         });
-      },
-      error: () => dispatch(setErrorStatusAndError(ErrorMassagePattern))
-    })
+        
     dispatch(setloadingStatus());
   }
 

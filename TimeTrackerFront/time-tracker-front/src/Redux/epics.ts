@@ -12,7 +12,7 @@ import { setTime, setErrorStatusAndError as setErrorStatusAndErrorTime } from ".
 import { setErrorStatusAndError as setErrorStatusAndErrorUserList } from "./Slices/UserSlice";
 import { Page } from "./Types/Page";
 import { UsersPage } from "./Types/UsersPage";
-import { RequestUpdateDate, RequestGetToken } from "./Requests/TimeRequests";
+import { RequestUpdateDate} from "./Requests/TimeRequests";
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
 export const getUsers = () => ({ type: "getUsers" });
@@ -43,7 +43,7 @@ export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<numbe
 
 export const updateUserPermissions = (permissions: Permissions) => ({ type: "updateUserPermissions", payload: permissions });
 export const updateUserPermissionsEpic: Epic = (action$: Observable<PayloadAction<Permissions>>) => action$.pipe(
-    ofType("updateUserPermissions"),
+    ofType("updateUserPerzmissions"),
     map(action => action.payload),
     mergeMap((permissions) => RequestUpdateUserPermissions(permissions).pipe(
         map(() => getUsers())
