@@ -6,7 +6,7 @@ import {
 } from "react-router-dom";
 import { User } from '../../Redux/Types/User';
 
-const url = "https://time-tracker3.azurewebsites.net/graphql-login";
+const url = "https://localhost:7226/graphql-login";
 
 export function ajaxForLoginLogout(variables: {}) {
   return ajax({

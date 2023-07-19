@@ -16,7 +16,7 @@ interface GraphqlToken {
     getToken:string
 }
 
-const url = "https://time-tracker3.azurewebsites.net/graphql";
+const url = "https://localhost:7226/graphql";
 
 
 

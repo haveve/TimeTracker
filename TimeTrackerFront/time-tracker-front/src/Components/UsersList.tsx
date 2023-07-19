@@ -96,7 +96,7 @@ function Userslist() {
                                     </svg>
                                 }
                             </Button>
-                            <Button variant="outline-secondary" ref={target} onClick={() => setShow(!show)}>
+                            {/* <Button variant="outline-secondary" ref={target} onClick={() => setShow(!show)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-funnel mb-1" viewBox="0 0 16 16">
                                     <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z" />
                                 </svg>
@@ -122,7 +122,7 @@ function Userslist() {
                                         <Button className='w-100' variant='dark' type='submit'>Submit</Button>
                                     </Form>
                                 </div>
-                            </Overlay>
+                            </Overlay> */}
                         </InputGroup>
                     </Col>
                 </Row>
@@ -159,26 +159,7 @@ function Userslist() {
                 <Pagination className='mt-auto'>
                     <Pagination.First onClick={() => setAfter(0)} />
                     <Pagination.Prev onClick={() => { if (page.pageIndex != 0) setAfter(after - first) }} />
-                    {page.pageIndex < 3 ? <></> : (
-                        <Pagination.Item onClick={() => setAfter(after - first * 3)}>{page.pageIndex - 2}</Pagination.Item>
-                    )
-                    }
-                    <Pagination.Ellipsis />
-                    {page.pageIndex === 0 ? <></> : (
-                        <Pagination.Item onClick={() => setAfter(after - first)}>{page.pageIndex}</Pagination.Item>
-                    )
-                    }
                     <Pagination.Item active>{page.pageIndex + 1}</Pagination.Item>
-                    {page.pageIndex === page.totalCount - 1 ? <></> : (
-                        <Pagination.Item onClick={() => setAfter(after + first)}>{page.pageIndex + 2}</Pagination.Item>
-                    )
-                    }
-                    <Pagination.Ellipsis />
-                    {page.totalCount - 1 - page.pageIndex < 3 ? <></> : (
-                        <Pagination.Item onClick={() => setAfter(after + first * 3)}>{page.pageIndex + 4}</Pagination.Item>
-                    )
-                    }
-                    <Pagination.Item disabled>{page.totalCount}</Pagination.Item>
                     <Pagination.Next onClick={() => { if (page.pageIndex != page.totalCount - 1) setAfter(after + first) }} />
                     <Pagination.Last onClick={() => setAfter((page.totalCount - 1) * first)} />
                 </Pagination>

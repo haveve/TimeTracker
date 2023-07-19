@@ -15,7 +15,7 @@ interface GraphqlUsers {
         }
     }
 }
-const url = "https://time-tracker3.azurewebsites.net/graphql";
+const url = "https://localhost:7226/graphql";
 
 export function RequestUsers(): Observable<User[]> {
     return ajax<GraphqlUsers>({
@@ -324,7 +324,7 @@ interface GraphqlRequestRegisterUserByCode {
     }
 }
 
-export function RequestRegisterUserByCode(Password: string, Login: string, FullName: string, Code: string, Email: string): Observable<string> {
+export function RequestRegisterUserByCode(Password: string, Login: string, Code: string, Email: string): Observable<string> {
     return ajax<GraphqlRequestRegisterUserByCode>({
         url,
         method: "POST",
@@ -333,9 +333,9 @@ export function RequestRegisterUserByCode(Password: string, Login: string, FullN
         },
         body: JSON.stringify({
             query: `
-                mutation registerUserByCode($Code : String!, $Email: String!, $Login : String!, $FullName: String!, $Password: String!){
+                mutation registerUserByCode($Code : String!, $Email: String!, $Login : String!, $Password: String!){
                     user{
-                        registerUserByCode(code : $Code, email: $Email, password: $Password, fullName: $FullName, login: $Login)
+                        registerUserByCode(code : $Code, email: $Email, password: $Password, login: $Login)
                     }
                   }
             `,
@@ -343,8 +343,7 @@ export function RequestRegisterUserByCode(Password: string, Login: string, FullN
                 "Code": Code,
                 "Email": Email,
                 "Password": Password,
-                "Login": Login,
-                "FullName": FullName,
+                "Login": Login
             }
         })
     }).pipe(

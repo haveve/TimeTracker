@@ -6,8 +6,13 @@ import type { RootState } from "../Redux/store";
 import '../Custom.css';
 import { User } from '../Redux/Types/User';
 import { RequestCreateUser } from '../Redux/Requests/UserRequests';
+import { Error } from './Error';
 
 function CreateUser() {
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const [fullName, setFullName] = useState("")
     const [email, setEmail] = useState("")
     const [cRUDUsers, setCRUDUsers] = useState(false)
     const [editPermiters, setEditPermiters] = useState(false)
@@ -19,10 +24,11 @@ function CreateUser() {
 
     const HandleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (email === "" || fullName === "") {setShowError(true); setErrorMessage("Fill all fields"); return;}
         const user: User = {
             login: "login",
             password: "password",
-            fullName: "fullname",
+            fullName: fullName,
             email: email,
             cRUDUsers: cRUDUsers,
             editPermiters: editPermiters,
@@ -33,6 +39,7 @@ function CreateUser() {
             controlDayOffs: controlDayOffs
         }
         RequestCreateUser(user).subscribe()
+        setFullName("")
         setEmail("")
         setCRUDUsers(false)
         setEditPermiters(false)
@@ -48,12 +55,20 @@ function CreateUser() {
             <h5 className=''>Create user</h5>
             <Card style={{ width: '18rem' }} className='d-flex align-items-center flex-column'>
                 <Card.Body className='p-3 w-100'>
-                    <Form className="d-flex align-items-start flex-column" onSubmit={e => HandleSubmit(e)}>
+                    <Form className="d-flex align-items-start flex-column" onSubmit={e => HandleSubmit(e)} id="createform">
+                        <p className='m-0'>User full name</p>
+                        <Form.Control
+                            type="text"
+                            className="w-100 mb-3"
+                            onChange={(e) => setFullName(e.target.value)}
+                            value={fullName}
+                        />
                         <p className='m-0'>User email adress</p>
                         <Form.Control
                             type="email"
                             className="w-100 mb-3"
                             onChange={(e) => setEmail(e.target.value)}
+                            value={email}
                         />
                         {/* <p className='m-0'>Work hours</p>
                         <InputGroup className="mb-3 w-50">
@@ -115,6 +130,7 @@ function CreateUser() {
                         <Button type="submit" className="btn-success w-100">
                             Send email
                         </Button>
+                        <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
                     </Form >
                 </Card.Body>
             </Card>
