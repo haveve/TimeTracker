@@ -12,11 +12,7 @@ interface GraphqlTime {
     }
 }
 
-interface GraphqlToken {
-    getToken:string
-}
-
-const url = "https://time-tracker3.azurewebsites.net/graphql";
+const url = "https://localhost:7226/graphql";
 
 
 
@@ -103,10 +99,10 @@ export function RequestSetEndDate(): Observable<string> {
 
 export function RequestUpdateDate(time:TimeRequest): Observable<TimeRequest> {
     return GetAjaxObservable<string>(`
-    mutation($id:Int!,$time:ManageTimeInputGrpahqType!){
+    mutation($time:ManageTimeInputGrpahqType!){
         time{
           manageTime{
-            updateTime(userId:$id,userTime:$time)
+            updateTime(userTime:$time)
             }
         }
       }

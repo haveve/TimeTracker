@@ -4,9 +4,6 @@ import { Container, Nav, Image, Alert, FloatingLabel, Modal, Accordion, Navbar, 
 import '../Custom.css';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
-import { setTimeE } from '../Redux/epics';
-import { useEffect } from 'react';
-import { RequestSetStartDate, RequestSetEndDate } from '../Redux/Requests/TimeRequests';
 import { Time } from '../Redux/Types/Time';
 import { useImmer } from 'use-immer';
 import { TimeStringFromSeconds } from './TimeTracker';
@@ -61,7 +58,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
 
   const handleSaveChange = (time: Time) => {
 
-        RequestUpdateDate({time,id:Number.parseInt(props.User.id!.toString())}).subscribe({
+        RequestUpdateDate({time}).subscribe({
           next: () => { dispatch(setIdleStatus()); props.setUser({...props.User, ...time}) },
           error: () => { dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
         });

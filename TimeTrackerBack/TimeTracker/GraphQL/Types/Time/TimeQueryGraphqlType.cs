@@ -48,14 +48,8 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
                 time.ToDayDate = DateTime.Now;
                 time.DaySeconds = 0;
-
-                time.StartTimeTrackDate = null;
-                time.EndTimeTrackDate = null;
             }
-            else
-            {
                 TimeTrackManage(time, repo,userId);
-            }
 
             repo.UpdateTime(time, userId,UpdateTimeE.FullTime);
             return time;

@@ -14,7 +14,6 @@ import { User } from '../Redux/Types/User';
 function UserDetails() {
   const { userId = "" } = useParams();
   const [showDelete, setShowDelete] = useState(false);
-  const [showTimeManage, setShowTimeManage] = useState(false);
   const [user, setUser] = useState({} as User);
 
 
@@ -70,7 +69,6 @@ function UserDetails() {
                 </Col>
               </Row>
               <div className='ms-auto'>
-                <Button variant='outline-success me-2' onClick={() => setShowTimeManage(n => !n)}>TimeManage</Button>
                 <Button variant='outline-secondary me-2' onClick={handleShowPermissions}>Permissions</Button>
                 <Button variant='outline-danger' onClick={handleShowDelete}>Delete</Button>
               </div>
@@ -95,8 +93,6 @@ function UserDetails() {
               <Button variant="danger" onClick={handleUserDelete}>Delete</Button>
             </Modal.Footer>
           </Modal>
-          { user.daySeconds != undefined?
-          <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} setUser = {setUser} />:null}
         </>
       )
         : (

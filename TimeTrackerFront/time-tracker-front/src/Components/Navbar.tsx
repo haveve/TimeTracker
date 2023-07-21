@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
 import TimeTracker from './TimeTracker';
 import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
-import { clearErroMassage as clearErroMassageTime} from '../Redux/Slices/TimeSlice';
+import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSlice';
 import { deleteCookie, getCookie } from '../Login/Api/login-logout';
 import { getCurrentUser } from '../Redux/epics';
 import { RootState } from '../Redux/store';
@@ -23,7 +23,7 @@ function AppNavbar() {
   let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
-    <Container fluid className='p-0 m-0 h-100'>
+      <Container fluid className='p-0 m-0 h-100'>
       <Navbar expand={false} className="bg-black height-header">
         <Container fluid className='justify-content-start'>
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-false`} />
@@ -56,6 +56,14 @@ function AppNavbar() {
                     </svg>
                     Create user
                   </Nav.Link></ListGroup.Item>
+                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'>
+                  <Nav.Link as={Link} to={"/Calendar"} className='m-0'>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-calendar me-1 mb-1" viewBox="0 0 16 16">
+                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                  </svg>
+                  Calendar
+                  </Nav.Link>
+                  </ListGroup.Item>
                 </ListGroup>
               </Nav>
             </Offcanvas.Body>
@@ -75,8 +83,8 @@ function AppNavbar() {
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
-      <Row className='justify-content-end p-0 m-0 height-main'>
-        <Col className='p-0 m-0 h-100'>
+      <Row className='justify-content-end p-0 m-0 height-main h-100 '>
+        <Col className='p-0 m-0 h-100 '>
           <Outlet />
         </Col>
       </Row >

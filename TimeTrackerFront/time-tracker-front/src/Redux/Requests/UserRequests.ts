@@ -15,7 +15,7 @@ interface GraphqlUsers {
         }
     }
 }
-const url = "https://time-tracker3.azurewebsites.net/graphql";
+const url = "https://localhost:7226/graphql";
 
 export function RequestUsers(): Observable<User[]> {
     return ajax<GraphqlUsers>({
