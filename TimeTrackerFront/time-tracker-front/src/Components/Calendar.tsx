@@ -172,7 +172,7 @@ export default function Calendar() {
             newRange.start = date.start;
         }
 
-        if (startDate >= endDate) {
+        if (newRange.start.getTime() >= newRange.end.getTime()) {
             setError(uncorrectTimeError)
             return;
         }
@@ -229,7 +229,7 @@ export default function Calendar() {
             end: EndDay
         }
 
-        var newArray = [...calendarDays]
+        var newArray:CalendarDay[] = [];
         for (let i = 0; newRange.start.getTime() <= newRange.end.getTime(); i++) {
 
             const newDay = {
@@ -246,6 +246,7 @@ export default function Calendar() {
 
         addEventRange(newArray).subscribe({
             next: () => {
+                newArray = [...calendarDays,...newArray]
                 setCalendarDays(newArray)
                 setSuccess(successfullyCreated);
             },
@@ -270,12 +271,14 @@ export default function Calendar() {
 
     const handleBackToMonthClick = () => {
         const calendarApi = calendarRef.current!.getApi();
+        setNavigateDate(calendarApi.getDate())
         setMOrW(MonthOrWeek.Month);
         calendarApi.changeView('dayGridMonth');
     };
 
     const handleBackToWeekClick = () => {
         const calendarApi = calendarRef.current!.getApi();
+        setNavigateDate(calendarApi.getDate())
         setMOrW(MonthOrWeek.Week);
         calendarApi.changeView('timeGridWeek');
     };
