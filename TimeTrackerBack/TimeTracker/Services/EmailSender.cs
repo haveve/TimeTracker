@@ -19,7 +19,7 @@ namespace TimeTracker.Services
                 UseDefaultCredentials = false,
                 Credentials = new NetworkCredential(_emailFrom, _emailPassword)
             };
-            string resetUrl = "https://time-tracker3f.azurewebsites.net/ResetPassword";
+            string resetUrl = "http://localhost:3000/ResetPassword";
 
             string url = $"{resetUrl}?code={code}&email={email}";
 
@@ -37,7 +37,7 @@ namespace TimeTracker.Services
                 UseDefaultCredentials = false,
                 Credentials = new NetworkCredential(_emailFrom, _emailPassword)
             };
-            string resetUrl = "https://time-tracker3f.azurewebsites.net/UserRegistration";
+            string resetUrl = "http://localhost:3000/UserRegistration";
 
             string url = $"{resetUrl}?code={code}&email={email}";
 
