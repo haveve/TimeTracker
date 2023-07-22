@@ -20,12 +20,6 @@ namespace TimeTracker.Repositories
             var time = connection.QuerySingle<Time>(query);
             return time;
         }
-        public void AddTimeInSeconds(int seconds, int userId)
-        {
-            string query = $"UPDATE Users SET DaySeconds = DaySeconds+{seconds}, WeekSeconds = WeekSeconds+{seconds}, MonthSeconds = MonthSeconds+{seconds} WHERE Id = {userId}";
-            using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query);
-        }
 
         public void UpdateTime(Time time, int userId, UpdateTimeE updateTime)
         {
@@ -35,11 +29,18 @@ namespace TimeTracker.Repositories
             {
                 case UpdateTimeE.FullTime:
                     query =
-                       @$"UPDATE Users SET TodayDate = @TodayDate, DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, StartTimeTrackDate = @StartTimeTrackDate, EndTimeTrackDate = @EndTimeTrackDate WHERE Id = {userId}";
+                       @$"UPDATE Users SET TodayDate = @TodayDate, DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, StartTimeTrackDate = @StartTimeTrackDate, EndTimeTrackDate = @EndTimeTrackDate";
+                    if(time.EndTimeTrackDate != null)
+                    {
+                        query += ", TimeManagedBy = 1";
+                        time.StartTimeTrackDate = null;
+                        time.EndTimeTrackDate = null;
+                    }
+                    query += $" WHERE Id = {userId}";
                     break;
                 case UpdateTimeE.OnlySeconds:
                     query =
-                        @$"UPDATE Users SET DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds WHERE Id = {userId}";
+                        @$"UPDATE Users SET DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, TimeManagedBy = 2 WHERE Id = {userId}";
                     break;
             }
             using var connection = _dapperContext.CreateConnection();
@@ -58,5 +59,11 @@ namespace TimeTracker.Repositories
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query, new { date });
         }
+    }
+    public enum LasUpdatedBy
+    {
+        None,
+        Auto,
+        Hand
     }
 }

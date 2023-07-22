@@ -103,7 +103,7 @@ function Userslist() {
                             </Button>
                             <Overlay target={target.current} show={show} placement="bottom">
                                 <div className='bg-black p-2 rounded-2' data-bs-theme="dark">
-                                    <Form onSubmit={(e) => {e.preventDefault(); HandleSearch()}}>
+                                    <Form onSubmit={(e) => { e.preventDefault(); HandleSearch() }}>
                                         <InputGroup className='mb-2'>
                                             <Form.Select onChange={e => setFilterfield(e.target.value)} defaultValue={filterfield}>
                                                 <option value="DaySeconds">Day hours</option>
@@ -149,7 +149,10 @@ function Userslist() {
                                 <p className='m-0'>Month</p>
                                 {TimeForStatisticFromSeconds(user.monthSeconds!)}
                             </div>
-                            <p className='m-0'>Worker</p>
+                            <div className='text-center'>
+                                <p className='m-0'>Manage Time</p>
+                                {user.timeManagedBy}
+                            </div>
                         </ListGroup.Item>
 
                     )

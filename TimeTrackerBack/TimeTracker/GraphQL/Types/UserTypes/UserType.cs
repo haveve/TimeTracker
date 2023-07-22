@@ -1,5 +1,6 @@
 ﻿using GraphQL.Types;
 using TimeTracker.Models;
+using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Types.UserTypes
 {
@@ -23,6 +24,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field(t => t.DaySeconds, nullable: false);
             Field(t => t.WeekSeconds, nullable: false);
             Field(t => t.MonthSeconds, nullable: false);
+            Field(t => t.TimeManagedBy, nullable: false);
         }
     }
 }

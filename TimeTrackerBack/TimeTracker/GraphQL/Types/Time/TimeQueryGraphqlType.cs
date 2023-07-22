@@ -74,10 +74,6 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             time.DaySeconds+= addSecond;
             time.MonthSeconds += addSecond;
             time.WeekSeconds += addSecond;
-
-            time.StartTimeTrackDate = null;
-            time.EndTimeTrackDate = null;
-
         }
 
     }

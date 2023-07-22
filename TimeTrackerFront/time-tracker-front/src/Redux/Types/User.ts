@@ -14,4 +14,12 @@ export interface User {
     daySeconds?:number,
     weekSeconds?:number,
     monthSeconds?:number
+    timeManagedBy?:LasUpdatedBy
+}
+
+export enum LasUpdatedBy
+{
+    None,
+    Auto,
+    Hand
 }
