@@ -22,7 +22,9 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     var user = context.GetArgument<User>("User");
                     string code = Guid.NewGuid().ToString();
                     user.ResetCode = code;
+                    user.Password = code;
                     repo.CreateUser(user);
+                    Console.Write(user.Email);
                     emailSender.SendRegistrationEmail(code, user.Email);
                     return "User created successfully";
                 });
@@ -43,7 +45,6 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field<StringGraphType>("registerUserByCode")
                 .Argument<NonNullGraphType<StringGraphType>>("Code")
                 .Argument<NonNullGraphType<StringGraphType>>("Login")
-                .Argument<NonNullGraphType<StringGraphType>>("FullName")
                 .Argument<NonNullGraphType<StringGraphType>>("Password")
                 .Argument<NonNullGraphType<StringGraphType>>("Email")
                 .ResolveAsync(async context =>
@@ -51,7 +52,6 @@ namespace TimeTracker.GraphQL.Types.UserTypes
 
                     string code = context.GetArgument<string>("Code");
                     string login = context.GetArgument<string>("Login");
-                    string fullName = context.GetArgument<string>("FullName");
                     string password = context.GetArgument<string>("Password");
                     string email = context.GetArgument<string>("Email");
                     User? user = repo.GetUserByEmailOrLogin(email);
@@ -59,7 +59,6 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     if (user.ResetCode == null) return "User was not created for registration";
                     if (user.ResetCode != code) return "Reset code not match";
                     user.Login = login;
-                    user.FullName = fullName;
                     user.Password = password;
                     repo.UpdateRegisteredUserAndCode(user);
                     return "Registered successfully";

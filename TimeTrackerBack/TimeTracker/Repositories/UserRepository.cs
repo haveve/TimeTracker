@@ -68,8 +68,8 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode)" +
-                    $" VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Email, (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode)";
+                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode, Enabled, WorkHours)" +
+                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode, 1, @WorkHours)";
                 db.Execute(sqlQuery, user);
             }
         }
@@ -96,7 +96,7 @@ namespace TimeTracker.Repositories
             user.Password = PasswordHasher.ComputeHash(user.Password, salt, papper, iteration);
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = $"UPDATE Users SET Login = @Login, FullName = @FullName, Password = @Password, ResetCode = NULL, Enabled = 1, Salt = '{salt}' WHERE Id = @Id";
+                var sqlQuery = $"UPDATE Users SET Login = @Login, Password = @Password, ResetCode = NULL, Enabled = 1, Salt = '{salt}' WHERE Id = @Id";
                 db.Execute(sqlQuery, user);
             }
         }

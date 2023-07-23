@@ -23,6 +23,7 @@ namespace TimeTracker.Models
         public int WeekSeconds { get; set; } = 0;
         public int MonthSeconds { get; set; } = 0;
         public bool Enabled { get; set; } = false;
-        public LasUpdatedBy TimeManagedBy { get; set; }  
+        public int WorkHours {  get; set; }
+        public LasUpdatedBy TimeManagedBy { get; set; }
     }
 }

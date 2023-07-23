@@ -60,6 +60,31 @@ export function RequestGetTime(): Observable<TimeResponse> {
     );
 }
 
+interface GraphqlTotalTime {
+    time: {
+        getTotalWorkTime: number
+    }
+}
+
+export function RequestGetTotalWorkTime(id: number): Observable<number> {
+    return GetAjaxObservable<GraphqlTotalTime>(`
+    query($id: Int!){
+        time{
+            getTotalWorkTime(id: $id)
+          }
+        }
+    `, {id}).pipe(
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+
+            let time = res.response.data.time.getTotalWorkTime;
+            return time;
+        })
+    );
+}
 
 export function RequestSetStartDate(): Observable<string> {
     return GetAjaxObservable<string>(`
