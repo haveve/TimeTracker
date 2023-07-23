@@ -56,8 +56,8 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode, Enabled)" +
-                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode, 1)";
+                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode, Enabled, WorkHours)" +
+                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode, 1, @WorkHours)";
                 db.Execute(sqlQuery, user);
             }
         }
