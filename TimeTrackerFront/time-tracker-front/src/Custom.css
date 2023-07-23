@@ -12078,4 +12078,15 @@ body {
 .time-card-color3 {
   background-color: #b56576 !important;
   color: rgb(201, 199, 199) !important;
+}
+.fc-col-header-cell-cushion{
+  color: #edf6f9;
+  text-decoration: none;
+}
+.fc-daygrid-day-number{
+  text-decoration: none;
+}
+.calendar-head-color{
+  background: #005f73 !important;
 }/*# sourceMappingURL=Custom.css.map */
+

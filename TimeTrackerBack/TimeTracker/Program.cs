@@ -29,8 +29,9 @@ var builder = WebApplication.CreateBuilder(args);
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddSingleton<IEmailSender,EmailSender>();
-builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddTransient<ITimeRepository, TimeRepository>();
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<ITimeRepository, TimeRepository>();
+builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
 
 //Token
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -55,15 +56,6 @@ builder.Services.AddControllers();
 builder.Services.AddCors();
 
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddAntiforgery(opt =>
-{
-    opt.HeaderName = "X-XSRF-TOKEN";
-    opt.Cookie.Name = "X-XSRF-TOKEN-Cookie";
-    opt.Cookie.SameSite = SameSiteMode.None;
-    opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    opt.Cookie.Path = "/";
-});
 
 builder.Services.AddSingleton<ISchema, UserShema>(services =>
 {

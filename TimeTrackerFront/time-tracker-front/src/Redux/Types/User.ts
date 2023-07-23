@@ -15,4 +15,12 @@ export interface User {
     weekSeconds?: number,
     monthSeconds?: number,
     workHours?: number
+    timeManagedBy?:LasUpdatedBy
+}
+
+export enum LasUpdatedBy
+{
+    None,
+    Auto,
+    Hand
 }

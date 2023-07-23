@@ -81,6 +81,7 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
                                 daySeconds
                                 weekSeconds
                                 monthSeconds
+                                timeManagedBy
                               }
                               totalCount
                               pageIndex

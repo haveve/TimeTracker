@@ -56,14 +56,8 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
                 time.ToDayDate = DateTime.Now;
                 time.DaySeconds = 0;
-
-                time.StartTimeTrackDate = null;
-                time.EndTimeTrackDate = null;
             }
-            else
-            {
                 TimeTrackManage(time, repo,userId);
-            }
 
             repo.UpdateTime(time, userId,UpdateTimeE.FullTime);
             return time;
@@ -88,10 +82,6 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             time.DaySeconds+= addSecond;
             time.MonthSeconds += addSecond;
             time.WeekSeconds += addSecond;
-
-            time.StartTimeTrackDate = null;
-            time.EndTimeTrackDate = null;
-
         }
 
         public int GetMonthWorkTime(int id, IUserRepository userRepository)
