@@ -22,7 +22,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"SELECT * FROM Users join Approvers " +
+                string query = $"SELECT (Users.Id,) FROM Users join Approvers " +
                     $"on Users.Id = Approvers.UserIdApprover " +
                     $"where Approvers.UserIdRequester = {UserRequestId}";
                 return db.Query<User>(query).ToList();
@@ -142,6 +142,8 @@ namespace TimeTracker.Repositories
             using (IDbConnection db = new SqlConnection(conectionString))
             {
                 if (GetApproverNodes(userApproverId, userRequestId).Count != 0)
+                    return;
+                if (userApproverId == userRequestId)
                     return;
 
                 string query = $"INSERT INTO Approvers (UserIdApprover, UserIdRequester) " +

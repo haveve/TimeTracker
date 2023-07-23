@@ -12,13 +12,13 @@ export const vacationSlice = createSlice({
     name: "vacation",
     initialState,
     reducers: {
-        getApprovers: (state,action: PayloadAction<User[]>)=>{
+        getApproversList: (state,action: PayloadAction<User[]>)=>{
             state.approvers = action.payload
         }
     }
 });
 export const{
-    getApprovers
+    getApproversList
 } = vacationSlice.actions;
 
 export default vacationSlice.reducer;

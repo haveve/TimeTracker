@@ -21,7 +21,8 @@ namespace TimeTracker.GraphQL.Queries
                 .Resolve(context =>
                 {
                     int requesterUserId = context.GetArgument<int>("requesterId");
-                    return vacRepo.GetApproversByRequesterId(requesterUserId);
+                    var tempList = vacRepo.GetApproversByRequesterId(requesterUserId);
+                    return tempList;
                 });
             Field<ListGraphType<UserType>>("requesters")
                 .Argument<NonNullGraphType<IntGraphType>>("approverId")

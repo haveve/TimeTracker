@@ -54,7 +54,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     int id = context.GetArgument<int>("id");
                     return repo.GetUser(id);
                 });
-            Field<ListGraphType<UserType>>("usersByName")
+            Field<ListGraphType<UserType>>("usersBySearch")
                 .Argument<NonNullGraphType<StringGraphType>>("name")
                 .Resolve(context =>
                 {

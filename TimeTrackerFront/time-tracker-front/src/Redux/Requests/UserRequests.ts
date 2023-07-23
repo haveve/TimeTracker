@@ -44,6 +44,7 @@ export function RequestUsers(): Observable<User[]> {
     }).pipe(
         map(res => {
             let users: User[] = res.response.data.user.users;
+
             return users;
         })
     );
@@ -69,10 +70,10 @@ export function RequestUsersBySearch(search: String): Observable<User[]> {
             query: `
                 query GetUsersBySearch($search: String!){
                     user{
-                        usersByName(name:$search){
-                            id
-                            login
-                            fullName
+                        usersBySearch(name:$search){
+                            id,
+                            login,
+                            fullName,
                             email
                           }
                     }
@@ -85,6 +86,7 @@ export function RequestUsersBySearch(search: String): Observable<User[]> {
     }).pipe(
         map(res => {
             let users: User[] = res.response.data.user.usersBySearch;
+
             return users;
         })
     );
@@ -145,6 +147,7 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
     }).pipe(
         map(res => {
             let page: UsersPage = res.response.data.user.pagedUsers;
+
             return page;
         })
     );
