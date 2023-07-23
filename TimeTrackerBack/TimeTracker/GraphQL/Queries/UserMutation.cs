@@ -1,9 +1,6 @@
-using GraphQL;
 using GraphQL.Types;
-using Microsoft.AspNetCore.Antiforgery;
 using TimeTracker.GraphQL.Types.Time;
 using TimeTracker.GraphQL.Types.UserTypes;
-using TimeTracker.Models;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Queries
@@ -19,6 +16,8 @@ namespace TimeTracker.GraphQL.Queries
             Field<UserMutationGraphQLType>("user")
             .Resolve(context => new { });
             Field<TimeMutationGraphType>("time")
+            .Resolve(context => new { });
+            Field<VacationMutation>("vacation")
             .Resolve(context => new { });
         }
     }

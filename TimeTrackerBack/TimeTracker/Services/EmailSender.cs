@@ -1,5 +1,5 @@
-﻿using System.Net.Mail;
-using System.Net;
+﻿using System.Net;
+using System.Net.Mail;
 
 namespace TimeTracker.Services
 {
@@ -26,7 +26,7 @@ namespace TimeTracker.Services
             var mail = new MailMessage(_emailFrom, email);
             mail.Subject = "Password recovery TimeTracker";
             mail.Body = $"To reset your password, follow the following link = {url}";
-            
+
             client.Send(mail);
         }
         public void SendRegistrationEmail(string code, string email)
@@ -44,6 +44,23 @@ namespace TimeTracker.Services
             var mail = new MailMessage(_emailFrom, email);
             mail.Subject = "TimeTracker Registration";
             mail.Body = $"To register, follow the link = {url}";
+
+            client.Send(mail);
+        }
+        public void SendResponseOfVacationRequest(bool reaction, string date, string email)
+        {
+            var client = new SmtpClient(_serverUrl, _port)
+            {
+                EnableSsl = true,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(_emailFrom, _emailPassword)
+            };
+
+            var mail = new MailMessage(_emailFrom, email);
+            mail.Subject = "TimeTracker informing";
+
+            mail.Body = reaction ? $"Congratulations, your vacation request {date} has been approved" :
+                $"Unfortunately, your vacation request {date} was rejected";
 
             client.Send(mail);
         }

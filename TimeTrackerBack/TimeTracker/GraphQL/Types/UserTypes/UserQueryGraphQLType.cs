@@ -1,6 +1,5 @@
 ﻿using GraphQL;
 using GraphQL.Types;
-using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
@@ -16,7 +15,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
         {
             repo = Repo;
             Field<ListGraphType<UserType>>("users")
-                .ResolveAsync(async context => repo.GetUsers()).AuthorizeWithPolicy("ViewUsers");          
+                .ResolveAsync(async context => repo.GetUsers()).AuthorizeWithPolicy("ViewUsers");
             Field<UserPageType>("pagedUsers")
                 .Argument<NonNullGraphType<IntGraphType>>("first")
                 .Argument<NonNullGraphType<IntGraphType>>("after")
@@ -37,8 +36,8 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     int minHours = context.GetArgument<int>("minHours");
                     int maxHours = context.GetArgument<int>("maxHours");
                     if (orderfield == "") orderfield = null;
-                    minHours = minHours == null ?  0 : minHours * 3600;
-                    maxHours = ( maxHours == null || maxHours == 0) ?  int.MaxValue : maxHours * 3600;
+                    minHours = minHours == null ? 0 : minHours * 3600;
+                    maxHours = (maxHours == null || maxHours == 0) ? int.MaxValue : maxHours * 3600;
                     List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order, filterfield, minHours, maxHours).Where(u => u.Enabled == true).ToList();
                     return new UserPageViewModel()
                     {
@@ -55,6 +54,13 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     int id = context.GetArgument<int>("id");
                     return repo.GetUser(id);
                 });
+            Field<ListGraphType<UserType>>("usersByName")
+                .Argument<NonNullGraphType<StringGraphType>>("name")
+                .Resolve(context =>
+                {
+                    string name = context.GetArgument<string>("name");
+                    return repo.GetUsersByFullName(name);
+                });
 
             Field<StringGraphType>("sentResetPasswordEmail")
                 .Argument<StringGraphType>("LoginOrEmail")
@@ -64,7 +70,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     User? user = repo.GetUserByEmailOrLogin(LoginOrEmail);
                     if (user == null)
                         return "User was not found!";
-                    
+
                     //string code = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
                     string code = Guid.NewGuid().ToString();
                     repo.UpdateUserResetCodeById(user.Id, code);

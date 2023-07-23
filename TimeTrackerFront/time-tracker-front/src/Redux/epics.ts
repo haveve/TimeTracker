@@ -1,10 +1,18 @@
 import { Epic, ofType } from "redux-observable";
 import { catchError, map, mergeMap, Observable, of } from "rxjs";
-import { RequestDeleteUser, RequestUsers, RequestUpdateUserPermissions, RequestUpdateUser, RequestUser, RequestPagedUsers } from "./Requests/UserRequests";
+import {
+    RequestDeleteUser,
+    RequestUsers,
+    RequestUpdateUserPermissions,
+    RequestUpdateUser,
+    RequestUser,
+    RequestPagedUsers,
+    RequestUsersBySearch
+} from "./Requests/UserRequests";
 import { User } from "./Types/User";
 import { Permissions } from "./Types/Permissions";
 import { PayloadAction } from "@reduxjs/toolkit";
-import { getUsersPage, getUsersList} from "./Slices/UserSlice";
+import {getUsersPage, getUsersList, getUsersListByName} from "./Slices/UserSlice";
 import { getTheCurrentUser } from "./Slices/CurrentUserSlice";
 import { RequestGetTime } from "./Requests/TimeRequests";
 import { Time, TimeResponse, TimeRequest } from "./Types/Time";
@@ -22,6 +30,15 @@ export const getUsersEpic: Epic = action$ => action$.pipe(
         map((res: User[]) => getUsersList(res))
     ))
 );
+
+export const getUsersBySearch = (search: String) => ({type: "getUsersBySearch", payload: search});
+export const getUsersBySearchEpic: Epic = (action$: Observable<PayloadAction<String>>) => action$.pipe(
+    ofType("getUsersBySearch"),
+    map(action => action.payload),
+    mergeMap((search)=>RequestUsersBySearch(search).pipe(
+        map((res:User[])=>getUsersListByName(res))
+    ))
+)
 
 export const getPagedUsers = (page: Page) => ({ type: "getPagedUsers", payload: page });
 export const getPagedUsersEpic: Epic = (action$: Observable<PayloadAction<Page>>) => action$.pipe(

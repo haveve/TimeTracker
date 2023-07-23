@@ -49,6 +49,48 @@ export function RequestUsers(): Observable<User[]> {
     );
 }
 
+interface GraphqlUsersBySearch {
+    data: {
+        user: {
+            usersBySearch: User[]
+        }
+    }
+}
+
+export function RequestUsersBySearch(search: String): Observable<User[]> {
+    return ajax<GraphqlUsersBySearch>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetUsersBySearch($search: String!){
+                    user{
+                        usersByName(name:$search){
+                            id
+                            login
+                            fullName
+                            email
+                          }
+                    }
+                  }
+            `,
+            variables: {
+                "search": search
+            }
+        })
+    }).pipe(
+        map(res => {
+            let users: User[] = res.response.data.user.usersBySearch;
+            return users;
+        })
+    );
+}
+
+
 interface GraphqlPagedUsers {
     data: {
         user: {

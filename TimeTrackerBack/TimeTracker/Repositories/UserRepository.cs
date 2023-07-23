@@ -31,6 +31,13 @@ namespace TimeTracker.Repositories
                     $"AND ({filterfield} >= {minhours} AND {filterfield} <= {maxhours}) ORDER BY Id {order}").ToList();
             }
         }
+        public List<User> GetUsersByFullName(string FullName)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<User>($"SELECT * FROM Users WHERE FullName LIKE '%{FullName}%' ORDER BY FullName ASC").ToList();
+            }
+        }
         public User GetUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
