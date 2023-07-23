@@ -61,6 +61,7 @@ export default function Calendar() {
     const [navigateDate, setNavigateDate] = useState(new Date())
 
     useEffect(() => {
+        setCalendarDays([])
         GetEvents(navigateDate, mOrW).subscribe({
             next: (events) => setCalendarDays(events),
             error: () => setError(ErrorMassagePattern)
