@@ -17,7 +17,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from "@fullcalendar/interaction";
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import allLocales from '@fullcalendar/core/locales-all';
-import { Subscriber, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import moment from 'moment';
 
 export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
@@ -358,7 +358,7 @@ export default function Calendar() {
 
     return <> <FullCalendar
         dayHeaderClassNames={['calendar-head-color']}
-        height={540}
+        height={"100%"}
         ref={calendarRef}
         dayCellContent={(info) => {
             if (info.date.getDay() == 0 || info.date.getDay() == 6)
