@@ -1,6 +1,7 @@
 import {User} from "../Types/User";
 import {map, Observable} from "rxjs";
 import {ajax} from "rxjs/ajax";
+import {ApproverNode} from "../Types/ApproverNode";
 
 const url = "https://localhost:7226/graphql";
 
@@ -36,8 +37,80 @@ export function RequestApprovers(requesterId:Number): Observable<User[]> {
         })
     }).pipe(
         map(res=>{
-            console.log(res.response.data.vacation);
+
             return res.response.data.vacation.approvers;
+        })
+    );
+}
+interface GraphQlAddApprover{
+    data: {
+        vacation: {
+            addApproverForUser: string;
+        }
+
+    }
+}
+export function RequestAddApprover(approverNode:ApproverNode): Observable<string> {
+    return ajax<GraphQlAddApprover>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                mutation addApproverForUser($approverId:Int!,$requesterId:Int!){
+                    vacation{
+                        addApproverForUser(approverUserId: $approverId, requesterUserId: $requesterId)
+                    }
+                }
+            `,
+            variables: {
+                "approverId": Number(approverNode.approverId),
+                "requesterId": Number(approverNode.requesterId)
+            }
+
+        })
+    }).pipe(
+        map(res=>{
+
+            return res.response.data.vacation.addApproverForUser;
+        })
+    );
+}
+interface GraphQlDeleteApprover{
+    data: {
+        vacation: {
+            deleteApprover: string;
+        }
+
+    }
+}
+export function RequestDeleteApprover(approverNode:ApproverNode): Observable<string> {
+    return ajax<GraphQlDeleteApprover>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                mutation deleteApprover($approverId:Int!,$requesterId:Int!){
+                    vacation{
+                        deleteApprover(approverUserId: $approverId, requesterUserId: $requesterId)
+                    }
+                }
+            `,
+            variables: {
+                "approverId": Number(approverNode.approverId),
+                "requesterId": Number(approverNode.requesterId)
+            }
+
+        })
+    }).pipe(
+        map(res=>{
+
+            return res.response.data.vacation.deleteApprover;
         })
     );
 }

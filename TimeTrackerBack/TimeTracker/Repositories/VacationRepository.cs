@@ -22,7 +22,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"SELECT (Users.Id,) FROM Users join Approvers " +
+                string query = $"SELECT Users.Id, Users.Login, Users.FullName, Users.Email FROM Users join Approvers " +
                     $"on Users.Id = Approvers.UserIdApprover " +
                     $"where Approvers.UserIdRequester = {UserRequestId}";
                 return db.Query<User>(query).ToList();
@@ -174,7 +174,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"Update Approvers Set RequestId = NULL, IsRequestApproved = NULL " +
+                string query = $"Update Approvers Set RequestId = NULL, IsRequestApproved = NULL, ReactionMessage = NULL " +
                     $"Where RequestId = {requestId}";
                 db.Execute(query);
             }

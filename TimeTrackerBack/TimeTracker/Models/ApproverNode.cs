@@ -7,5 +7,6 @@
         public int UserIdRequester { get; set; }
         public int? RequestId { get; set; }
         public bool? IsRequestApproved { get; set; }
+        public string? ReactionMessage { get; set; }
     }
 }

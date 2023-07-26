@@ -21,8 +21,9 @@ import {setErrorStatusAndError as setErrorStatusAndErrorUserList} from "./Slices
 import {Page} from "./Types/Page";
 import {UsersPage} from "./Types/UsersPage";
 import {RequestUpdateDate} from "./Requests/TimeRequests";
-import {RequestApprovers} from "./Requests/VacationRequests";
+import {RequestAddApprover, RequestApprovers, RequestDeleteApprover} from "./Requests/VacationRequests";
 import {getApproversList} from "./Slices/VacationSlice";
+import {ApproverNode} from "./Types/ApproverNode";
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
@@ -98,7 +99,7 @@ export const setTimeEpic: Epic = action$ => {
 // VacationSlice
 
 export const getApprovers = (requesterId: number) =>
-    ({type: "getApprovers", payload: requesterId})
+    ({type: "getApprovers", payload: requesterId});
 export const getApproversEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
     ofType("getApprovers"),
     map(action => action.payload),
@@ -106,3 +107,23 @@ export const getApproversEpic: Epic = (action$: Observable<PayloadAction<number>
         map((res: User[]) => getApproversList(res))
     ))
 )
+
+export const addApprover = (approverNode: ApproverNode)=>
+    ({type: "addApprover", payload: approverNode});
+export const addApproverEpic: Epic = (action$: Observable<PayloadAction<ApproverNode>>) => action$.pipe(
+    ofType("addApprover"),
+    map(action => action.payload),
+    mergeMap((approverNode) => RequestAddApprover(approverNode).pipe(
+        map(() => getUsers())
+    ))
+);
+
+export const deleteApprover = (approverNode: ApproverNode)=>
+    ({type: "deleteApprover", payload: approverNode});
+export const deleteApproverEpic: Epic = (action$: Observable<PayloadAction<ApproverNode>>) => action$.pipe(
+    ofType("deleteApprover"),
+    map(action => action.payload),
+    mergeMap((approverNode) => RequestDeleteApprover(approverNode).pipe(
+        map(() => getUsers())
+    ))
+);

@@ -4,20 +4,28 @@ import {Link} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {RootState} from "../Redux/store";
 import {useDispatch, useSelector} from "react-redux";
-import {getApprovers, getUsers, getUsersBySearch} from "../Redux/epics";
+import {addApprover, deleteApprover, getApprovers, getUsers, getUsersBySearch} from "../Redux/epics";
 import {User} from "../Redux/Types/User";
+import {Console} from "inspector";
+import {ApproverNode} from "../Redux/Types/ApproverNode";
+import {RequestAddApprover, RequestDeleteApprover} from "../Redux/Requests/VacationRequests";
+import app from "../App";
 
 
 export default function ApproversSetup() {
 
+    const [rerender, setRerender] = useState(0);
     const [showFirstList, setShowFirstList] = useState(true);
 
     const [search, setSearch] = useState("");
-    const userList = useSelector((state: RootState) => state.users.UsersBySearch);
+    let userList = useSelector((state: RootState) => state.users.UsersBySearch);
     const initUser = {} as User;
     const [requester, setRequester] = useState<User>(initUser);
 
+
     const approversList = useSelector((state: RootState) => state.vacation.approvers);
+
+
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -26,14 +34,24 @@ export default function ApproversSetup() {
             dispatch(getApprovers(requester.id));
         }
 
-    }, [search, requester]);
+    }, [search, requester, rerender]);
     const PickClickHandler = (event: React.MouseEvent, user: User) => {
         setRequester(user);
         setSearch("");
         setShowFirstList(false);
     }
+    const AddApproverClickHandler = (event: React.MouseEvent, user: User) => {
+        RequestAddApprover({requesterId: Number(requester.id), approverId:Number(user.id)}).subscribe();
+    }
     const UnPickClickHandler = (event: React.MouseEvent) => {
         setShowFirstList(true);
+    }
+    const RemoveClickHandler = (event: React.MouseEvent, user: User) => {
+        //setDeletionApprover(user);
+        const approverNode = {approverId: user.id, requesterId: requester.id} as ApproverNode;
+
+        RequestDeleteApprover(approverNode).subscribe();
+        setRerender(rerender + 1);
     }
     const handleKeyDown = (event: React.KeyboardEvent) => {
         if (event.key === 'Enter') {
@@ -123,7 +141,7 @@ export default function ApproversSetup() {
                                     </div>
                                     <Button
                                         variant="outline-primary"
-                                        onClick={(event) => PickClickHandler(event, user)}>
+                                        onClick={(event) => RemoveClickHandler(event, user)}>
                                         Remove from approvers
                                     </Button>
                                 </ListGroupItem>
@@ -161,20 +179,25 @@ export default function ApproversSetup() {
                         </Row>
                     </div>
                     <ListGroup className="w-50 d-flex">
-                        {userList.map((user) =>
-
-                            <ListGroupItem key={user.id}
-                                           className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
-                                <div className='w-75'>
-                                    <p className='m-0 fs-5'>{user.fullName}</p>
-                                </div>
-                                <Button
-                                    variant="outline-primary"
-                                    onClick={(event) => PickClickHandler(event, user)}>
-                                    Pick
-                                </Button>
-                            </ListGroupItem>
-                        )}
+                        {userList.map((user) => {
+                             {
+                                 console.log(user)
+                                 console.log(approversList[0])
+                                if(user=== approversList[0])
+                                    console.log(true);
+                                return (<ListGroupItem key={user.id}
+                                                       className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
+                                    <div className='w-75'>
+                                        <p className='m-0 fs-5'>{user.fullName}</p>
+                                    </div>
+                                    <Button
+                                        variant="outline-primary"
+                                        onClick={(event) => PickClickHandler(event, user)}>
+                                        Add
+                                    </Button>
+                                </ListGroupItem>)
+                            }
+                        })}
                     </ListGroup>
                 </>
             }

@@ -12,6 +12,7 @@ namespace TimeTracker.GraphQL.Types.Vacation
             Field(i => i.UserIdRequester, type: typeof(IntGraphType));
             Field(i => i.RequestId, type: typeof(IntGraphType));
             Field(i => i.IsRequestApproved, type: typeof(BooleanGraphType));
+            Field(i => i.ReactionMessage, type: typeof(StringGraphType));
         }
     }
 }

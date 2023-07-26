@@ -15,6 +15,7 @@ export const vacationSlice = createSlice({
         getApproversList: (state,action: PayloadAction<User[]>)=>{
             state.approvers = action.payload
         }
+
     }
 });
 export const{
