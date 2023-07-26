@@ -6,7 +6,7 @@ import {
     setTimeEpic,
     getCurrentUserEpic,
     getPagedUsersEpic,
-    getUsersBySearchEpic, getApproversEpic
+    getUsersBySearchEpic, getApproversEpic, addApproverEpic, deleteApproverEpic
 } from "./epics";
 import { catchError } from "rxjs";
 
@@ -21,7 +21,9 @@ export const rootEpic: Epic = (action$, store$, dependencies) =>
         //Time
         setTimeEpic,
         // Vacation
-        getApproversEpic
+        getApproversEpic,
+        addApproverEpic,
+        deleteApproverEpic
     )(action$, store$, dependencies).pipe(
         catchError((error, source) => {
             return source;

@@ -2,6 +2,9 @@ import {User} from "../Types/User";
 import {map, Observable} from "rxjs";
 import {ajax} from "rxjs/ajax";
 import {ApproverNode} from "../Types/ApproverNode";
+import {GetAjaxObservable} from "./TimeRequests";
+import {TimeRequest} from "../Types/Time";
+import App from "../../App";
 
 const url = "https://localhost:7226/graphql";
 
@@ -75,6 +78,24 @@ export function RequestAddApprover(approverNode:ApproverNode): Observable<string
         map(res=>{
 
             return res.response.data.vacation.addApproverForUser;
+        })
+    );
+}
+
+export function RequestAddApprover1(approverNode:ApproverNode): Observable<ApproverNode> {
+    return GetAjaxObservable<string>(`
+                mutation addApproverForUser($approverId:Int!,$requesterId:Int!){
+                    vacation{
+                        addApproverForUser(approverUserId: $approverId, requesterUserId: $requesterId)
+                    }
+                }
+            `,approverNode,true).pipe(
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+            return approverNode
         })
     );
 }

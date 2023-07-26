@@ -114,7 +114,7 @@ export const addApproverEpic: Epic = (action$: Observable<PayloadAction<Approver
     ofType("addApprover"),
     map(action => action.payload),
     mergeMap((approverNode) => RequestAddApprover(approverNode).pipe(
-        map(() => getUsers())
+        map(() => getApprovers(approverNode.requesterId))
     ))
 );
 
@@ -124,6 +124,6 @@ export const deleteApproverEpic: Epic = (action$: Observable<PayloadAction<Appro
     ofType("deleteApprover"),
     map(action => action.payload),
     mergeMap((approverNode) => RequestDeleteApprover(approverNode).pipe(
-        map(() => getUsers())
+        map(() => getApprovers(approverNode.requesterId))
     ))
 );

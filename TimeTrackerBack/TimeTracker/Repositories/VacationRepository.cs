@@ -80,7 +80,7 @@ namespace TimeTracker.Repositories
             using (IDbConnection db = new SqlConnection(conectionString))
             {
                 string query = $"Select * from Approvers " +
-                    $"Where UserUserIdApprover = {UserApproverId} " +
+                    $"Where UserIdApprover = {UserApproverId} " +
                     $"and UserIdRequester = {UserRequestId}";
                 return db.Query<ApproverNode>(query).ToList();
             }
