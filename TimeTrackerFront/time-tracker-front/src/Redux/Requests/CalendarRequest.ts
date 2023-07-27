@@ -5,7 +5,7 @@ import { CalendarDayRequest } from "../Types/Calendar";
 import { MonthOrWeek } from "../../Components/Calendar";
 import { ajax } from "rxjs/ajax";
 import { locationOffset } from "../../Components/Calendar";
-import exp from "constants";
+import { GlobalEventsViewModel } from "../Types/Calendar";
 
 interface GraphqlCalendar {
   calendar: {
@@ -163,6 +163,12 @@ export interface GetCalendarGraphType {
   }
 }
 
+export interface GlobalEventsResponse{
+  calendar:{
+    getGlobalEvents:GlobalEventsViewModel[]
+  }
+}
+
 export interface CalendarUserPage{
     count:number,
     calendarUsers:CalendarUser[]
@@ -193,5 +199,24 @@ export function GetCalendarUsers(pageNumber:number,itemsInPage:number,search:str
         throw "error"
       }
       return res.response.data.calendar.getCalendarUser
+    }))
+}
+
+export function GetGlobalCalendar(date: Date, weekOrMonth: MonthOrWeek){
+  return GetAjaxObservable<GlobalEventsResponse>(`query($date:DateTime!,$weekOrMonth:MonthOrWeek!){
+    calendar{
+      getGlobalEvents(date:$date,weekOrMonth:$weekOrMonth){
+        typeOfGlobalEvent,
+        name,
+        date
+      }
+    }
+  }`,{date,weekOrMonth}).pipe(
+    map(res => {
+      if (res.response.errors) {
+        console.error(JSON.stringify(res.response.errors))
+        throw "error"
+      }
+      return res.response.data.calendar.getGlobalEvents
     }))
 }

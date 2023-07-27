@@ -10,6 +10,9 @@ import { GetEvents, addEventRange, addEvent, UpdateEvent, DeleteEvent, GetLocati
 import { DateTime } from 'luxon';
 import CheckModalWindow from "./CheckModalWindow"
 import CalendarUserslist from './CalendarUsers';
+import { GlobalEventsViewModel } from '../Redux/Types/Calendar';
+import { GetGlobalCalendar } from '../Redux/Requests/CalendarRequest';
+import { TypeOfGlobalEvent } from '../Redux/Types/Calendar';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid' // a plugin!
@@ -19,6 +22,7 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import allLocales from '@fullcalendar/core/locales-all';
 import { Subscription } from 'rxjs';
 import moment from 'moment';
+import { DayCellContainer } from '@fullcalendar/core/internal';
 
 export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
 export const uncorrectTimeError = `start end end dates must be correct. Theirs' values of hours must be <= 24 and >=0, minutes <=60 and >=0 and startDate must be less than endDate `
@@ -74,17 +78,36 @@ export default function Calendar() {
 
     const [prevRequest, setPrevRequest] = useState(new Subscription())
 
-    const [userId, setUserId] = useState<number|null>(null)
-    const [isShowedUserList,setShowedUserList] = useState(false)
+    const [userId, setUserId] = useState<number | null>(null)
+    const [isShowedUserList, setShowedUserList] = useState(false)
+
+    const [globalCalendar, setGlobalCalendar] = useState<GlobalEventsViewModel[]>([])
+    const [globalRequest, setGlobalRequest] = useState(new Subscription())
+
     useEffect(() => {
         //If user accept track her location, finding gap between his location and
         //local time(location that estimate browser) in other way, finding gap
         //between location of company office and local time(location that estimate browser)
         //When we send data, cast it to local time(location that estimate browser) by hand
         prevRequest.unsubscribe();
+        globalRequest.unsubscribe();
         setCalendarDays([])
+        setGlobalCalendar([])
+
+
+        setGlobalRequest(GetGlobalCalendar(navigateDate, mOrW).subscribe({
+            next: (gEvents) => {
+                setGlobalCalendar(gEvents.map(cg => {
+                    cg.date = new Date(cg.date)
+                    return cg
+                }))
+            },
+            error: () => setError(ErrorMassagePattern)
+        }))
+
+        if(!userId||userId>0){
         setPrevRequest(
-            GetEvents(navigateDate, mOrW,userId).subscribe({
+            GetEvents(navigateDate, mOrW, userId).subscribe({
                 next: (events) => {
                     events.forEach(value => {
                         value.end = new Date(moment(value.end).toDate().getTime() + geoOffset * 60000)
@@ -94,8 +117,8 @@ export default function Calendar() {
                 },
                 error: () => setError(ErrorMassagePattern)
             }))
-
-    }, [mOrW, navigateDate, geoOffset,userId])
+        }
+    }, [mOrW, navigateDate, geoOffset, userId])
 
     const createSubmitHandle = () => {
         const startDate = IsCorrectTime(startDateString, setError);
@@ -356,13 +379,45 @@ export default function Calendar() {
         calendarApi.today()
     }
 
+    const holidayAfterCelebrateList = useRef<GlobalEventsViewModel[]>([])
+    let setNextHoliday = false;
     return <> <FullCalendar
         dayHeaderClassNames={['calendar-head-color']}
         height={"100%"}
         ref={calendarRef}
-        dayCellContent={(info) => {
-            if (info.date.getDay() == 0 || info.date.getDay() == 6)
+        dayCellContent={ function(info){
+
+            const celebrate = globalCalendar.filter(cg => {
+                return DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
+            })
+
+            if (celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate && !info.isOther) {
+                
+                if(celebrate[0].date.getDay() === 0 ||celebrate[0].date.getDay() === 6){
+                    setNextHoliday = true;
+                }
+
+                return <div className='container-fluid p-0 m-0 '><div className='text-decoration-none text-center text-warning'>{info.dayNumberText}</div>
+                    <div className='text-decoration-none text-secondary'>{celebrate[0].name}</div>
+                </div>
+            }
+
+            if (info.date.getDay() == 0 || info.date.getDay() == 6||(celebrate[0]&&celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Holiday&& !info.isOther))
                 return <div className='text-decoration-none text-danger'>{info.dayNumberText}</div>
+
+            if(setNextHoliday){
+                setNextHoliday = false;
+                holidayAfterCelebrateList.current = [...holidayAfterCelebrateList.current,{
+                    date : info.date,
+                    name : "holiday",
+                    typeOfGlobalEvent : TypeOfGlobalEvent.Holiday
+                }]
+                return <div className='text-decoration-none text-danger'>{info.dayNumberText}</div>
+            }
+
+            if (globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day - 1 === DateTime.fromJSDate(info.date).day)||(celebrate[0]&&celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.ShortDay&& !info.isOther)) {
+                return <div className='text-decoration-none text-success'>{info.dayNumberText}</div>
+            }
 
             return <div className='text-decoration-none text-primary'>{info.dayNumberText}</div>
         }}
@@ -386,7 +441,14 @@ export default function Calendar() {
             end: '2023-12-31'
         }}
         dateClick={(info) => {
-            if (info.date.getDay() != 0 && info.date.getDay() != 6&&!userId) {
+            if (info.date.getDay() != 0 
+            && info.date.getDay() != 6 
+            && userId == null
+            && info.date.getMonth() === navigateDate.getMonth()
+            && !globalCalendar.some(cg=>DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
+                                 && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month)
+            &&!holidayAfterCelebrateList.current.some(cg=>DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
+                                                     && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month)) {
                 setIsVisible(n => !n)
                 setChangedDay(info.date)
             }
@@ -426,19 +488,19 @@ export default function Calendar() {
             yourLocation: {
                 text: (function () {
                     const list = listOfTimeZones.filter(l => l.value === geoOffset)
-                    return list[1]?list[1].name:list[0].name
+                    return list[1] ? list[1].name : list[0].name
                 })(),
-                click: ()=>{
+                click: () => {
                     const list = listOfTimeZones.filter(l => l.value === geoOffset)
-                    const name = list[1]?list[1].name:list[0].name
+                    const name = list[1] ? list[1].name : list[0].name
                     const obj = listOfTimeZones.filter(l => l.name !== name)[0]
-                    if(obj)
-                    setGeoOffset(obj.value)
+                    if (obj)
+                        setGeoOffset(obj.value)
                 }
             },
             othersButton: {
                 text: 'others',
-                click: ()=>setShowedUserList(n=>!n)
+                click: () => setShowedUserList(n => !n)
             }
         }}
         headerToolbar={{
@@ -630,7 +692,7 @@ export default function Calendar() {
         }} reject={() => {
 
         }}>{canUserApi}</CheckModalWindow>
-        <CalendarUserslist isShowed = {isShowedUserList} setShowed={setShowedUserList} setUserIndex={setUserId}></CalendarUserslist>
+        <CalendarUserslist isShowed={isShowedUserList} setShowed={setShowedUserList} setUserIndex={setUserId}></CalendarUserslist>
         <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
         <NotificationModalWindow isShowed={success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
     </>

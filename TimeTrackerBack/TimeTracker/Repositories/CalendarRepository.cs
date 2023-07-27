@@ -37,6 +37,34 @@ namespace TimeTracker.Repositories
             return events?? new();
         }
 
+        public List<GlobalEventsViewModel> GetAllGlobalEvents()
+        {
+            string query = $"SELECT * FROM GlobalCalendar";
+            using var dapperConnection = _dapperContext.CreateConnection();
+            var events = dapperConnection.Query<GlobalEventsViewModel>(query).ToList();
+            return events ?? new();
+        }
+        public void RemoveGlobalEvent(DateTime date)
+        {
+            string query = "DELETE FROM GlobalCalendar WHERE UserId = @userId AND Date = @date";
+            date = TimeQueryGraphqlType.ToUtcDateTime(date);
+            using var dapperConnection = _dapperContext.CreateConnection();
+            dapperConnection.Execute(query, new { date });
+        }
+
+        public void UpdateGlobalEvent(DateTime date, GlobalEventsViewModel updatedData)
+        {
+            string query = $"UPDATE GlobalCalendar SET Date = @Date, Name = @Name, TypeOfGlobalEvent = @TypeOfGlobalEvent WHERE Date = @date";
+            using var dapperConnection = _dapperContext.CreateConnection();
+            dapperConnection.Execute(query, new { date, updatedData.Date, updatedData.Name, updatedData.TypeOfGlobalEvent });
+        }
+        public void AddGlobalEvent(GlobalEventsViewModel addEvent)
+        {
+            string query = $"INSERT INTO GlobalCalendar (Name, Date, TypeOfGlobalEvent) VALUES(@Name, @Date, @TypeOfGlobalEvent)";
+            using var dapperConnection = _dapperContext.CreateConnection();
+            dapperConnection.Execute(query, addEvent);
+        }
+
         public void RemoveEvent(int userId, DateTime startDate)
         {
             string query = "DELETE FROM CalendarEvents WHERE UserId = @userId AND StartDate = @startDate";
