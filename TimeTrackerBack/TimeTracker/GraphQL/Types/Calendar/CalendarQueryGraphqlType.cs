@@ -14,18 +14,18 @@ namespace TimeTracker.GraphQL.Types.Calendar
 
         public static readonly List<GlobalEventsViewModel> ukraineGovernmentCelebrations = new List<GlobalEventsViewModel>
         {
-            new GlobalEventsViewModel("Новий рік", new DateOnly(DateTime.Now.Year, 1, 1),TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateOnly(DateTime.Now.Year, 1, 7), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Соборності України", new DateOnly(DateTime.Now.Year, 1, 22), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Міжнародний жіночий день", new DateOnly(DateTime.Now.Year, 3, 8), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Міжнародний день праці", new DateOnly(DateTime.Now.Year, 5, 1), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Конституції України", new DateOnly(DateTime.Now.Year, 6, 28), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Української Державності", new DateOnly(DateTime.Now.Year, 7, 28), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Державного Прапора України", new DateOnly(DateTime.Now.Year, 8, 23), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День незалежності України", new DateOnly(DateTime.Now.Year, 8, 24), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День захисників і захисниць України", new DateOnly(DateTime.Now.Year, 10, 14), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Збройних Сил України", new DateOnly(DateTime.Now.Year, 12, 6), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Різдво Христове", new DateOnly(DateTime.Now.Year, 12, 25), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("Новий рік", new DateTime(DateTime.Now.Year, 1, 1),TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateTime(DateTime.Now.Year, 1, 7), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("День Соборності України", new DateTime(DateTime.Now.Year, 1, 22), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("Міжнародний жіночий день", new DateTime(DateTime.Now.Year, 3, 8), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("Міжнародний день праці", new DateTime(DateTime.Now.Year, 5, 1), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("День Конституції України", new DateTime(DateTime.Now.Year, 6, 28), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("День Української Державності", new DateTime(DateTime.Now.Year, 7, 28), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("День Державного Прапора України", new DateTime(DateTime.Now.Year, 8, 23), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("День незалежності України", new DateTime(DateTime.Now.Year, 8, 24), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("День захисників і захисниць України", new DateTime(DateTime.Now.Year, 10, 14), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("День Збройних Сил України", new DateTime(DateTime.Now.Year, 12, 6), TypeOfGlobalEvent.Celebrate),
+            new GlobalEventsViewModel("Різдво Христове", new DateTime(DateTime.Now.Year, 12, 25), TypeOfGlobalEvent.Celebrate),
         };
 
         public CalendarQueryGraphqlType(ICalendarRepository calendarRepository)
@@ -93,7 +93,6 @@ namespace TimeTracker.GraphQL.Types.Calendar
         var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
 
         var globalCalendar = _calendarRepository.GetAllGlobalEvents();
-        globalCalendar.AddRange(ukraineGovernmentCelebrations);
 
         switch (weekOrMonth)
         {

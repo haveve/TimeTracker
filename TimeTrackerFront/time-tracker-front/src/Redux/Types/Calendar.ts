@@ -13,8 +13,8 @@ export type CalendarDayRequest = {
 export enum TypeOfGlobalEvent
 {
     Celebrate = "CELEBRATE",
-    ShortDay = "SHORTDAY",
-    Holiday = "HOLIDAY"
+    Holiday = "HOLIDAY",
+    ShortDay = "SHORT_DAY"
 }
 
 export interface GlobalEventsViewModel

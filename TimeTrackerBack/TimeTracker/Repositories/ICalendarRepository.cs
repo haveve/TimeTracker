@@ -14,5 +14,6 @@ namespace TimeTracker.Repositories
         public void RemoveGlobalEvent(DateTime date);
         public void AddGlobalEvent(GlobalEventsViewModel addEvent);
         public void UpdateGlobalEvent(DateTime date, GlobalEventsViewModel updatedData);
+        public void AddEvenGlobaltRange(List<GlobalEventsViewModel> addEventRange);
     }
 }

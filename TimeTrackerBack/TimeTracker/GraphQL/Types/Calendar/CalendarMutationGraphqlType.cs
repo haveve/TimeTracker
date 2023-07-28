@@ -3,12 +3,14 @@ using GraphQL;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Repositories;
 using TimeTracker.ViewModels;
+using TimeTracker.GraphQL.Types.Calendar.GlobalCalendar;
 
 namespace TimeTracker.GraphQL.Types.Calendar
 {
     public class CalendarMutationGraphqlType : ObjectGraphType
     {
         private readonly ICalendarRepository _calendarRepository;
+
         public CalendarMutationGraphqlType(ICalendarRepository calendarRepository)
         {
             _calendarRepository = calendarRepository;
@@ -41,7 +43,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
                      var userId = TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
                      var eventStartDate = context.GetArgument<DateTime>("eventStartDate");
                      var calendarEvent = context.GetArgument<CalendarEventViewModel>("event");
-                     _calendarRepository.UpdateEvent(userId, eventStartDate,calendarEvent);
+                     _calendarRepository.UpdateEvent(userId, eventStartDate, calendarEvent);
                      return "successfully";
                  });
 
@@ -54,6 +56,8 @@ namespace TimeTracker.GraphQL.Types.Calendar
                      _calendarRepository.AddEventRange(userId, calendarEvent);
                      return "successfully";
                  });
+            Field<GlobalCalendarMutationGraphType>("globalCalendar")
+    .Resolve((context) => new { });
         }
     }
 }

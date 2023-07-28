@@ -5,7 +5,7 @@ namespace TimeTracker.ViewModels
     public class GlobalEventsViewModel
     {
         public string Name { get; set; }
-        public DateOnly Date { get; set; }
+        public DateTime Date { get; set; }
         public TypeOfGlobalEvent TypeOfGlobalEvent { get; set; }
 
         public GlobalEventsViewModel()
@@ -13,7 +13,7 @@ namespace TimeTracker.ViewModels
         
         }
 
-        public GlobalEventsViewModel(string name, DateOnly date, TypeOfGlobalEvent globalEvent)
+        public GlobalEventsViewModel(string name, DateTime date, TypeOfGlobalEvent globalEvent)
         {
             Name = name;
             Date = date;
