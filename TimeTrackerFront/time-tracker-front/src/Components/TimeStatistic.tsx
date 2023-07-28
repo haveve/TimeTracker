@@ -1,6 +1,6 @@
 /// <reference types="react-scripts" />
 import React, { useState } from 'react';
-import { Container, Nav, Image, Accordion, Navbar, NavDropdown, Button, Offcanvas, Form, ListGroup, ListGroupItem, Card, Col, Row } from "react-bootstrap";
+import { Container, Nav, Image, Accordion, Navbar, NavDropdown, Button, Offcanvas, Form, ListGroup, ProgressBar, Card, Col, Row } from "react-bootstrap";
 import '../Custom.css';
 import '../TimeTrack.css'
 import picture from '../Pictures/clock-picture-very-awsome.png'
@@ -13,16 +13,25 @@ import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
 import TimeTracker, { TimeStringFromSeconds } from './TimeTracker'
+import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
+import { getCookie } from '../Login/Api/login-logout';
 
 
 export default function TimeStatistic() {
+    const [totalWorkTime, setTotalWorkTime] = useState(0);
+
+    useEffect(() => {
+        RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
+            setTotalWorkTime(x);
+        })
+    }, []);
 
     const time = useSelector((state: RootState) => state.time.time);
 
     return <Container fluid className='p-0 m-0 h-100'>
-            <Row className='justify-content-between flex flex-row p-0 m-0 h-100'>
-                <Col className='  p-0 m-0 pt-2'>
-                    <Row className='  p-0 m-0'>
+        <Row className='justify-content-between flex flex-row p-0 m-0 h-100'>
+            <Col className='  p-0 m-0 pt-2'>
+                <Row className='p-0 m-0 mb-3'>
                     <Col>
                         <Card>
                             <Card.Body className='d-flex flex-row p-0 justify-content-between time-card-color1 rounded'>
@@ -47,13 +56,27 @@ export default function TimeStatistic() {
                             </Card.Body>
                         </Card>
                     </Col>
-                    </Row>
-                </Col>
-                <Col className='p-0 m-0 h-100' md={3} lg={3}>
-                    <TimeTracker />
-                </Col>
-            </Row>
-        </Container>
+                </Row>
+                <Row className='p-0 m-0'>
+                    <Col>
+                        <Card>
+                            <Card.Body className='d-flex p-0'>
+                                <div className='d-flex flex-row w-100 justify-content-between p-3'>
+                                    <ProgressBar now={(time.time.monthSeconds / totalWorkTime) * 100} animated className='w-75 h-100' variant='success'/>
+                                    <div className='w-25 text-center'>
+                                    {TimeForStatisticFromSeconds(time.time.monthSeconds)} / {TimeForStatisticFromSeconds(totalWorkTime)}
+                                    </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Col>
+            <Col className='p-0 m-0 h-100' md={3} lg={3}>
+                <TimeTracker />
+            </Col>
+        </Row>
+    </Container>
 }
 
 export function TimeForStatisticFromSeconds(seconds: number) {

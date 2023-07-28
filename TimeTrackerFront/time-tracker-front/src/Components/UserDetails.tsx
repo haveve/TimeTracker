@@ -74,7 +74,7 @@ function UserDetails() {
                       {TimeForStatisticFromSeconds(user.monthSeconds!)}
                     </div>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'/>
+                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success'/>
                       {TimeForStatisticFromSeconds(totalWorkTime)}
                     </div>
                   </span>

@@ -308,7 +308,8 @@ export function RequestUpdateUser(user: User): Observable<string> {
                 "User": {
                     "login": user.login,
                     "fullName": user.fullName,
-                    "password": user.password
+                    "password": user.password,
+                    "email": "email"
                 },
                 "Id": Number(user.id)
             }

@@ -7,6 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { ajaxForLoginLogout, getQueryObserver } from "../Api/login-logout";
+import { Error } from '../../Components/Error';
 
 export default function Login() {
 
@@ -14,60 +15,39 @@ export default function Login() {
   const initialValues: Login = { password: "", loginOrEmail: "" };
   const [WrongMessage, setWrongMessage] = useState("");
 
+  const [loginOrEmail, setLoginOrEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmit = () => {
+    if (!loginOrEmail || !password) { setShowError(true); setErrorMessage("Fill all fields"); return; }
+    ajaxForLoginLogout({ "login": { loginOrEmail, password } }).subscribe(getQueryObserver(setErrorMessage, setShowError, navigate, "/"))
+  }
   return (
     <div className="div-login-form container-fluid p-0 h-100 d-flex  justify-content-center">
       <div className='d-flex flex-column mt-5'>
         <h5 className='text-center'>Sign in to TimeTracker</h5>
         <Card style={{ width: '18rem' }} className='d-flex align-items-center flex-column justify-content-center'>
           <Card.Body className='p-3 w-100'>
-            <Formik
-              validationSchema={Yup.object({
-                password: Yup.string()
-                  .required('Required')
-                  .min(8, "Password must have min 8 symbols")
-                  .max(20, "Password must have max 20 symbols"),
-                loginOrEmail: Yup.string().required('Required')
-              })}
-              initialValues={initialValues}
-              onSubmit={(value: Login, action) => {
-                ajaxForLoginLogout({ "login": value }).subscribe(getQueryObserver(setWrongMessage, navigate, "/"))
-                action.setSubmitting(false);
-              }
-              }
-            >{formik => (
-              <Form className="d-flex align-items-start flex-column" onSubmit={(e) => {
-                e.preventDefault();
-                formik.handleSubmit(e);
-              }}>
-                <p className='m-0'>Username or email adress</p>
-                <Form.Control
-                  type="text"
-                  className="w-100 mb-3"
-                  {...formik.getFieldProps('loginOrEmail')}
-                />
-                {formik.touched.loginOrEmail && formik.errors.loginOrEmail ? (
-                  <p className='error'>{formik.errors.loginOrEmail}</p>
-                ) : null}
-                <p className='m-0'>Password</p>
-                <Form.Control
-                  type="password"
-                  className="w-100 mb-3"
-                  {...formik.getFieldProps('password')}
-                />
-                {formik.touched.password && formik.errors.password ? (
-                  <p className='error'>{formik.errors.password}</p>
-                ) : null}
-                <Button type="submit" className="btn-success w-100">
-                  Sign in
-                </Button>
-                {WrongMessage != "" ? (
-                  <p className='error'>{WrongMessage}</p>
-                ) : null}
-              </Form >
-            )}
-            </Formik>
+            <Form className="d-flex align-items-start flex-column" onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}>
+              <Form.Group className="mb-3 w-100">
+                <Form.Label>Username or email adress</Form.Label>
+                <Form.Control type="text" onChange={e => setLoginOrEmail(e.target.value)} />
+              </Form.Group>
+              <Form.Group className="mb-3 w-100">
+                <Form.Label>Password</Form.Label>
+                <Form.Control type="password" onChange={e => setPassword(e.target.value)} />
+                <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
+              </Form.Group>
+              <Button type="submit" className="btn-success w-100">Sign in</Button>
+            </Form >
             <a href="/RequestResetPassword">Reset via login or email</a>
-
           </Card.Body>
         </Card>
       </div>
