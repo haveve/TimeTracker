@@ -14,6 +14,7 @@ import TimeStatistic from "./TimeStatistic"
 import RequestResetPassword from "./RequestResetPassword";
 import UserRegistration from './UserRegistration';
 import Calendar from './Calendar';
+import ApproversSetup from "./ApproversSetup";
 
 const router = createBrowserRouter([
   {
@@ -47,6 +48,10 @@ const router = createBrowserRouter([
       {
         path:"/Calendar",
         element:<Calendar/>
+      },
+      {
+        path: "/ApproversSetup",
+        element: <ApproversSetup/>
       }
     ]
   },

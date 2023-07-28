@@ -44,10 +44,54 @@ export function RequestUsers(): Observable<User[]> {
     }).pipe(
         map(res => {
             let users: User[] = res.response.data.user.users;
+
             return users;
         })
     );
 }
+
+interface GraphqlUsersBySearch {
+    data: {
+        user: {
+            usersBySearch: User[]
+        }
+    }
+}
+
+export function RequestUsersBySearch(search: String): Observable<User[]> {
+    return ajax<GraphqlUsersBySearch>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetUsersBySearch($search: String!){
+                    user{
+                        usersBySearch(name:$search){
+                            id,
+                            login,
+                            fullName,
+                            email
+                          }
+                    }
+                  }
+            `,
+            variables: {
+                "search": search
+            }
+        })
+    }).pipe(
+        map(res => {
+            let users: User[] = res.response.data.user.usersBySearch;
+
+            return users;
+        })
+    );
+}
+
 
 interface GraphqlPagedUsers {
     data: {
@@ -104,6 +148,7 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
     }).pipe(
         map(res => {
             let page: UsersPage = res.response.data.user.pagedUsers;
+
             return page;
         })
     );

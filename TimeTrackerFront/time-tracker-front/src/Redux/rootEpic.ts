@@ -1,5 +1,13 @@
 import { combineEpics, Epic } from "redux-observable";
-import { deleteUserEpic, getUsersEpic, updateUserPermissionsEpic, setTimeEpic, getCurrentUserEpic, getPagedUsersEpic } from "./epics";
+import {
+    deleteUserEpic,
+    getUsersEpic,
+    updateUserPermissionsEpic,
+    setTimeEpic,
+    getCurrentUserEpic,
+    getPagedUsersEpic,
+    getUsersBySearchEpic, getApproversEpic, addApproverEpic, deleteApproverEpic
+} from "./epics";
 import { catchError } from "rxjs";
 
 export const rootEpic: Epic = (action$, store$, dependencies) =>
@@ -7,10 +15,15 @@ export const rootEpic: Epic = (action$, store$, dependencies) =>
         getCurrentUserEpic,
         getUsersEpic,
         getPagedUsersEpic,
+        getUsersBySearchEpic,
         updateUserPermissionsEpic,
         deleteUserEpic,
         //Time
-        setTimeEpic
+        setTimeEpic,
+        // Vacation
+        getApproversEpic,
+        addApproverEpic,
+        deleteApproverEpic
     )(action$, store$, dependencies).pipe(
         catchError((error, source) => {
             return source;
