@@ -35,7 +35,7 @@ function ResetPassword() {
             setErrorText("Both passwords should match!");
             setShowPassError(true);
         }
-        else if (firstPass.length < 8 && firstPass.length > 20) {
+        else if (firstPass.length < 8 || firstPass.length > 20) {
             setErrorText("Path length must be between 8 and 50!");
             setShowPassError(true);
         }

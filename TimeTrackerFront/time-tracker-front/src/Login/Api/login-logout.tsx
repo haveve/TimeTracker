@@ -45,12 +45,12 @@ export function ajaxForLoginLogout(variables: {}) {
 
 type navigateType = ReturnType<typeof useNavigate>;
 
-export const getQueryObserver = (setError: (value: string) => void, commitNavigate: navigateType, path: string): Observer<any> => {
+export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, commitNavigate: navigateType, path: string): Observer<any> => {
   return {
     next: () => {
       commitNavigate(path);
     },
-    error: (value) => { setError("uncorrect data"); console.log(JSON.stringify(value)); },
+    error: (value) => { setError("Wrong login/email or password"); setShowError(true); },
     complete: () => { }
   }
 }
