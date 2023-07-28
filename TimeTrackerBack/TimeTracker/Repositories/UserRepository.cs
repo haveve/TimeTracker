@@ -168,7 +168,7 @@ namespace TimeTracker.Repositories
                 var papper = _configuration.GetSection("Hash:Papper").Value;
                 var iteration = int.Parse(_configuration.GetSection("Hash:Iteration").Value);
                 var hashedPassword = PasswordHasher.ComputeHash(password, salt, papper, iteration);
-                return (hashedPassword == db.Query<User>($"SELECT * FROM Users WHERE  id = {id}").FirstOrDefault().Password);
+                return (hashedPassword == db.Query<User>($"SELECT * FROM Users WHERE  id = {id}").First().Password);
             }
         }
     }

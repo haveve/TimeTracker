@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { User } from '../Redux/Types/User';
 import { RequestUpdateUser, RequestUpdatePassword, RequestUser } from '../Redux/Requests/UserRequests';
 import { RootState } from '../Redux/store';
-import { getUsers } from '../Redux/epics';
+import { getCurrentUser, getUsers } from '../Redux/epics';
 import { Error } from './Error';
 import TimeManage from './TimeManage';
 import '../Custom.css';
@@ -44,13 +44,13 @@ function UserProfile() {
 
     useEffect(() => {
         RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
-          setUser(x);
+            setUser(x);
         })
         RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
-          setTotalWorkTime(x);
+            setTotalWorkTime(x);
         })
-      }, []);
-    
+    }, []);
+
     useEffect(() => {
         if (user) {
             setId(user.id!)
@@ -62,6 +62,7 @@ function UserProfile() {
 
     const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        if (!password || !login || !fullName) { setShowError(true); setErrorMessage("Fill all fields"); return; }
         const User: User = {
             id: id,
             login: login,
@@ -71,12 +72,14 @@ function UserProfile() {
         RequestUpdateUser(User).subscribe((x) => {
             if (x === "User updated successfully") {
                 setShowEdit(false);
-                dispatch(getUsers());
+                RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
+                    setUser(x);
+                })
                 User.password = ""
-                localStorage.setItem("User", JSON.stringify(User));
+                setShowError(false);
             }
             else {
-                setErrorMessage("Wrong password");
+                setErrorMessage(x);
                 setShowError(true);
             }
         });
@@ -89,7 +92,7 @@ function UserProfile() {
         RequestUpdatePassword(id, newPassword, password).subscribe((x) => {
             if (x === "Password updated successfully") {
                 setShowPassword(false);
-                dispatch(getUsers());
+                setShowError(false);
             }
             else {
                 setErrorMessage("Wrong password");
@@ -130,7 +133,7 @@ function UserProfile() {
                                             {TimeForStatisticFromSeconds(user.monthSeconds!)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success'/>
+                                            <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success' />
                                             {TimeForStatisticFromSeconds(totalWorkTime)}
                                         </div>
                                     </span>

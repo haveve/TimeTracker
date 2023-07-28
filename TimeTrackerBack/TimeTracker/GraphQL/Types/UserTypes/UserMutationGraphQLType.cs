@@ -37,6 +37,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     var Id = context.GetArgument<int>("Id");
                     var NewUser = context.GetArgument<User>("User");
                     if (!repo.ComparePasswords(Id, NewUser.Password)) return "Password is incorrect";
+                    if (repo.GetUserByEmailOrLogin(NewUser.Login) != null && repo.GetUser(Id).Login != NewUser.Login) return "Login is already used";
                     NewUser.Id = Id;
                     repo.UpdateUser(NewUser);
                     return "User updated successfully";
@@ -57,6 +58,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     if (user == null) return "User not found";
                     if (user.ResetCode == null) return "User was not created for registration";
                     if (user.ResetCode != code) return "Reset code not match";
+                    if (repo.GetUserByEmailOrLogin(login) != null) return "Login is already used";
                     user.Login = login;
                     user.Password = password;
                     repo.UpdateRegisteredUserAndCode(user);
