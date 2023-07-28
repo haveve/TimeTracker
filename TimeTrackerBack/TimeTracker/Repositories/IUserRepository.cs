@@ -23,5 +23,6 @@ namespace TimeTracker.Repositories
         void UpdateUserResetCodeById(int id, string code);
         void UpdateUserPasswordAndCode(int id, string code, string password);
         public bool ComparePasswords(int id, string password);
+        List<User> GetUsersByFullName(string loginOrFullName);
     }
 }

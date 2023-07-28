@@ -6,13 +6,19 @@ import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow'
 import { TimeStringFromSeconds } from './TimeTracker';
 import { CalendarDay } from '../Redux/Types/Calendar';
 import { ErrorMassagePattern } from '../Redux/epics';
-import { GetEvents, addEventRange, addEvent, UpdateEvent, DeleteEvent } from '../Redux/Requests/CalendarRequest';
+import { GetEvents, addEventRange, addEvent, UpdateEvent, DeleteEvent, GetLocation } from '../Redux/Requests/CalendarRequest';
+import { DateTime } from 'luxon';
+import CheckModalWindow from "./CheckModalWindow"
+import CalendarUserslist from './CalendarUsers';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid' // a plugin!
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from "@fullcalendar/interaction";
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
+import allLocales from '@fullcalendar/core/locales-all';
+import { Subscription } from 'rxjs';
+import moment from 'moment';
 
 export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
 export const uncorrectTimeError = `start end end dates must be correct. Theirs' values of hours must be <= 24 and >=0, minutes <=60 and >=0 and startDate must be less than endDate `
@@ -27,8 +33,10 @@ export enum MonthOrWeek {
     Week = "WEEK"
 }
 
+export const locationOffset = moment().utcOffset();
 
 export default function Calendar() {
+
     const startArray: CalendarDay[] = [];
     const [changedDay, setChangedDay] = useState(new Date())
     const [calendarDays, setCalendarDays] = useState(startArray)
@@ -39,6 +47,10 @@ export default function Calendar() {
     const [title, setTitle] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [canUserApi, setCanUserApi] = useState("Can we use your IP to locate you?")
+    const [geoOffset, setGeoOffset] = useState(officeTimeZone[new Date().getMonth()] * 60);
+
+    const [listOfTimeZones, setListOfTimeZones] = useState([{ name: "Office(Kyiv)", value: officeTimeZone[new Date().getMonth()] * 60 }])
 
     const [toDelete, setToDelete] = useState<Date | null>(null)
 
@@ -60,13 +72,30 @@ export default function Calendar() {
     const [mOrW, setMOrW] = useState(MonthOrWeek.Month);
     const [navigateDate, setNavigateDate] = useState(new Date())
 
+    const [prevRequest, setPrevRequest] = useState(new Subscription())
+
+    const [userId, setUserId] = useState<number|null>(null)
+    const [isShowedUserList,setShowedUserList] = useState(false)
     useEffect(() => {
+        //If user accept track her location, finding gap between his location and
+        //local time(location that estimate browser) in other way, finding gap
+        //between location of company office and local time(location that estimate browser)
+        //When we send data, cast it to local time(location that estimate browser) by hand
+        prevRequest.unsubscribe();
         setCalendarDays([])
-        GetEvents(navigateDate, mOrW).subscribe({
-            next: (events) => setCalendarDays(events),
-            error: () => setError(ErrorMassagePattern)
-        })
-    }, [mOrW, navigateDate])
+        setPrevRequest(
+            GetEvents(navigateDate, mOrW,userId).subscribe({
+                next: (events) => {
+                    events.forEach(value => {
+                        value.end = new Date(moment(value.end).toDate().getTime() + geoOffset * 60000)
+                        value.start = new Date(moment(value.start).toDate().getTime() + geoOffset * 60000)
+                    })
+                    setCalendarDays(events)
+                },
+                error: () => setError(ErrorMassagePattern)
+            }))
+
+    }, [mOrW, navigateDate, geoOffset,userId])
 
     const createSubmitHandle = () => {
         const startDate = IsCorrectTime(startDateString, setError);
@@ -98,7 +127,7 @@ export default function Calendar() {
             return;
         }
 
-        addEvent(newRange).subscribe({
+        addEvent(newRange, geoOffset).subscribe({
             next: () => {
                 setCalendarDays(cd => [...cd, newRange])
                 setSuccess(successfullyCreated);
@@ -114,13 +143,13 @@ export default function Calendar() {
         if (!toDelete)
             return
 
-        DeleteEvent(toDelete).subscribe({
-            next:()=>{
+        DeleteEvent(toDelete, geoOffset).subscribe({
+            next: () => {
                 setToDelete(null)
                 setCalendarDays(cd => [...cd.filter(cd => cd.start.toISOString() !== toDelete.toISOString())])
                 setSuccess(successfullyDeleted);
             },
-            error:()=>{
+            error: () => {
                 setToDelete(null)
                 setError(ErrorMassagePattern)
             }
@@ -181,15 +210,15 @@ export default function Calendar() {
         if (ignoreTitleToUp) {
             newRange.title = date.title;
         }
-        UpdateEvent(toUpdate,newRange).subscribe({
-            next:()=>{
+        UpdateEvent(toUpdate, newRange, geoOffset).subscribe({
+            next: () => {
                 setCalendarDays(cd => {
                     let newArray = cd.filter(cd => cd.start.toISOString() !== date.start.toISOString())
                     return [...newArray, newRange]
                 })
                 setSuccess(successfullyUpdated);
             },
-            error:()=>setError(ErrorMassagePattern)
+            error: () => setError(ErrorMassagePattern)
         })
 
     }
@@ -230,7 +259,7 @@ export default function Calendar() {
             end: EndDay
         }
 
-        var newArray:CalendarDay[] = [];
+        var newArray: CalendarDay[] = [];
         for (let i = 0; newRange.start.getTime() <= newRange.end.getTime(); i++) {
 
             const newDay = {
@@ -245,9 +274,9 @@ export default function Calendar() {
             newRange.start.setDate(newRange.start.getDate() + 1);
         }
 
-        addEventRange(newArray).subscribe({
+        addEventRange(newArray, geoOffset).subscribe({
             next: () => {
-                newArray = [...calendarDays,...newArray]
+                newArray = [...calendarDays, ...newArray]
                 setCalendarDays(newArray)
                 setSuccess(successfullyCreated);
             },
@@ -275,6 +304,7 @@ export default function Calendar() {
         setNavigateDate(calendarApi.getDate())
         setMOrW(MonthOrWeek.Month);
         calendarApi.changeView('dayGridMonth');
+
     };
 
     const handleBackToWeekClick = () => {
@@ -288,8 +318,18 @@ export default function Calendar() {
         const calendarApi = calendarRef.current!.getApi();
         var localNav = new Date();
         switch (mOrW) {
-            case MonthOrWeek.Month: setNavigateDate(d => { localNav = new Date(d.setMonth(d.getMonth() - 1)); return localNav; }); break;
-            case MonthOrWeek.Week: setNavigateDate(d => { localNav = new Date(d.getTime() - 604800000); return localNav; }); break;
+            case MonthOrWeek.Month: setNavigateDate(d => {
+                if (d.getTime() > new Date(2023, 0, 31).getTime()) {
+                    localNav = new Date(d.setMonth(d.getMonth() - 1)); return localNav;
+                }
+                return d;
+            }); break;
+            case MonthOrWeek.Week: setNavigateDate(d => {
+                if (d.getTime() > new Date(2023, 0, 31).getTime()) {
+                    localNav = new Date(d.getTime() - 604800000); return localNav;
+                }
+                return d;
+            }); break;
         }
         calendarApi.prev();
     };
@@ -298,8 +338,14 @@ export default function Calendar() {
         const calendarApi = calendarRef.current!.getApi();
         var localNav = new Date();
         switch (mOrW) {
-            case MonthOrWeek.Month: setNavigateDate(d => { localNav = new Date(d.setMonth(d.getMonth() + 1)); return localNav; }); break;
-            case MonthOrWeek.Week: setNavigateDate(d => { localNav = new Date(d.getTime() + 604800000); return localNav; }); break;
+            case MonthOrWeek.Month: setNavigateDate(d => {
+                if (d.getTime() < new Date(2023, 11, 1).getTime()) {
+                    localNav = new Date(d.setMonth(d.getMonth() + 1));
+                    return localNav;
+                }
+                return d
+            }); break;
+            case MonthOrWeek.Week: setNavigateDate(d => { if (d.getTime() <= new Date(2023, 11, 1).getTime()) { localNav = new Date(d.getTime() + 604800000); return localNav; } return d }); break;
         }
         calendarApi.next();
     };
@@ -312,7 +358,7 @@ export default function Calendar() {
 
     return <> <FullCalendar
         dayHeaderClassNames={['calendar-head-color']}
-        height={540}
+        height={"100%"}
         ref={calendarRef}
         dayCellContent={(info) => {
             if (info.date.getDay() == 0 || info.date.getDay() == 6)
@@ -320,6 +366,11 @@ export default function Calendar() {
 
             return <div className='text-decoration-none text-primary'>{info.dayNumberText}</div>
         }}
+        locales={allLocales}
+        locale={(function () {
+            const locale = Intl.DateTimeFormat().resolvedOptions().locale
+            return locale === "ru" ? "uk" : locale
+        })()}
         initialView="dayGridMonth"
         plugins={[dayGridPlugin, timeGridPlugin, bootstrap5Plugin, interactionPlugin]}
         events={
@@ -335,7 +386,7 @@ export default function Calendar() {
             end: '2023-12-31'
         }}
         dateClick={(info) => {
-            if (info.date.getDay() != 0 && info.date.getDay() != 6) {
+            if (info.date.getDay() != 0 && info.date.getDay() != 6&&!userId) {
                 setIsVisible(n => !n)
                 setChangedDay(info.date)
             }
@@ -343,15 +394,12 @@ export default function Calendar() {
 
         eventTimeFormat={{
             hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
+            minute: '2-digit'
         }}
 
         slotLabelFormat={{
             hour: '2-digit',
-            minute: '2-digit',
-            meridiem: false,
-            hour12: false
+            minute: '2-digit'
         }}
 
         customButtons={{
@@ -374,12 +422,29 @@ export default function Calendar() {
             todayButton: {
                 text: 'today',
                 click: handleBackToday
+            },
+            yourLocation: {
+                text: (function () {
+                    const list = listOfTimeZones.filter(l => l.value === geoOffset)
+                    return list[1]?list[1].name:list[0].name
+                })(),
+                click: ()=>{
+                    const list = listOfTimeZones.filter(l => l.value === geoOffset)
+                    const name = list[1]?list[1].name:list[0].name
+                    const obj = listOfTimeZones.filter(l => l.name !== name)[0]
+                    if(obj)
+                    setGeoOffset(obj.value)
+                }
+            },
+            othersButton: {
+                text: 'others',
+                click: ()=>setShowedUserList(n=>!n)
             }
         }}
         headerToolbar={{
             center: 'title',
-            left: 'prevButton,nextButton,todayButton',
-            right: 'backToMonthButton,backToWeekButton'
+            left: 'prevButton,nextButton,todayButton yourLocation',
+            right: 'othersButton backToMonthButton,backToWeekButton'
         }}
     />
         <Modal
@@ -549,6 +614,23 @@ export default function Calendar() {
                 </Row>
             </Modal.Footer>
         </Modal>
+        <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {
+            GetLocation().subscribe({
+                next: (value) => {
+                    setGeoOffset(value.timezone.gmt_offset * 60)
+                    setListOfTimeZones(list => {
+                        return [...list, {
+                            name: `${value.city} (${value.country_code})`,
+                            value: value.timezone.gmt_offset * 60
+                        }]
+                    })
+                },
+                error: () => setError(ErrorMassagePattern)
+            })
+        }} reject={() => {
+
+        }}>{canUserApi}</CheckModalWindow>
+        <CalendarUserslist isShowed = {isShowedUserList} setShowed={setShowedUserList} setUserIndex={setUserId}></CalendarUserslist>
         <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
         <NotificationModalWindow isShowed={success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
     </>
@@ -640,4 +722,31 @@ export const daysInMonth = [
     31, // October
     30, // November
     31  // December
+];
+
+const officeTimeZone = [
+    // January - Eastern European Time (EET) - UTC+2:00
+    2,
+    // February - Eastern European Time (EET) - UTC+2:00
+    2,
+    // March - Eastern European Time (EET) - UTC+2:00
+    2,
+    // April - Eastern European Summer Time (EEST) - UTC+3:00
+    3,
+    // May - Eastern European Summer Time (EEST) - UTC+3:00
+    3,
+    // June - Eastern European Summer Time (EEST) - UTC+3:00
+    3,
+    // July - Eastern European Summer Time (EEST) - UTC+3:00
+    3,
+    // August - Eastern European Summer Time (EEST) - UTC+3:00
+    3,
+    // September - Eastern European Summer Time (EEST) - UTC+3:00
+    3,
+    // October - Eastern European Time (EET) - UTC+2:00
+    2,
+    // November - Eastern European Time (EET) - UTC+2:00
+    2,
+    // December - Eastern European Time (EET) - UTC+2:00
+    2
 ];

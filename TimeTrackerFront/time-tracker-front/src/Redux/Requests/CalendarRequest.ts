@@ -3,6 +3,9 @@ import { GetAjaxObservable } from "./TimeRequests";
 import { CalendarDay } from "../Types/Calendar";
 import { CalendarDayRequest } from "../Types/Calendar";
 import { MonthOrWeek } from "../../Components/Calendar";
+import { ajax } from "rxjs/ajax";
+import { locationOffset } from "../../Components/Calendar";
+import exp from "constants";
 
 interface GraphqlCalendar {
   calendar: {
@@ -10,12 +13,41 @@ interface GraphqlCalendar {
   }
 }
 
-export function addEvent(event: CalendarDay) {
+const geolocationApiUrl = "https://ipgeolocation.abstractapi.com/v1/?api_key=7a512804745e44d5a66fe5150974bc79"
+
+interface GeologationType {
+  "city": string,
+  "country_code": string,
+  timezone: {
+    name: string,
+    abbreviation: string,
+    gmt_offset: number,
+    current_time: string,
+    is_dst: boolean
+  }
+}
+
+export function GetLocation(): Observable<GeologationType> {
+  return ajax<GeologationType>(geolocationApiUrl)
+    .pipe(
+      map(res => {
+        if (!res.response.timezone.abbreviation) {
+          console.error(JSON.stringify(res.response))
+          throw "error"
+        }
+
+        return res.response
+      })
+    )
+}
+
+
+export function addEvent(event: CalendarDay, geoOffset: number) {
 
   const requestData: CalendarDayRequest = {
     title: event.title,
-    endDate: event.end,
-    startDate: event.start
+    endDate: new Date(event.end.getTime() + (locationOffset - geoOffset) * 60000),
+    startDate: new Date(event.start.getTime() + (locationOffset - geoOffset) * 60000)
   };
   return GetAjaxObservable<string>(`mutation($event:CalendarInput!){
         calendar{
@@ -36,9 +68,9 @@ export function addEvent(event: CalendarDay) {
   )
 }
 
-export function addEventRange(events: CalendarDay[]) {
+export function addEventRange(events: CalendarDay[], geoOffset: number) {
 
-  const rangeEvent: CalendarDayRequest[] = events.map(c => ({ title: c.title, endDate: c.end, startDate: c.start }))
+  const rangeEvent: CalendarDayRequest[] = events.map(c => ({ title: c.title, endDate: new Date(c.end.getTime() + (locationOffset - geoOffset) * 60000), startDate: new Date(c.start.getTime() + (locationOffset - geoOffset) * 60000) }))
 
   return GetAjaxObservable<string>(`mutation($rangeEvent:[CalendarInput!]){
     calendar{
@@ -60,17 +92,17 @@ export function addEventRange(events: CalendarDay[]) {
 }
 
 
-export function GetEvents(date: Date, weekOrMonth: MonthOrWeek): Observable<CalendarDay[]> {
+export function GetEvents(date: Date, weekOrMonth: MonthOrWeek,userId:number|null): Observable<CalendarDay[]> {
 
-  return GetAjaxObservable<GraphqlCalendar>(`query($date:DateTime!,$weekOrMonth:MonthOrWeek!){
+  return GetAjaxObservable<GraphqlCalendar>(`query($userId:Int,$date:DateTime!,$weekOrMonth:MonthOrWeek!){
         calendar{
-          getEvents(date:$date,weekOrMonth:$weekOrMonth){
+          getEvents(userId:$userId,date:$date,weekOrMonth:$weekOrMonth){
             title,
             endDate,
             startDate
           }
         }
-      }`, { date: date.toISOString(), weekOrMonth }).pipe(
+      }`, {userId,date: date.toISOString(), weekOrMonth }).pipe(
     map(res => {
       if (res.response.errors) {
         console.error(JSON.stringify(res.response.errors))
@@ -81,12 +113,12 @@ export function GetEvents(date: Date, weekOrMonth: MonthOrWeek): Observable<Cale
   )
 }
 
-export function UpdateEvent(eventStartDate: Date, ev: CalendarDay): Observable<string> {
+export function UpdateEvent(eventStartDate: Date, ev: CalendarDay, geoOffset: number): Observable<string> {
 
   const event: CalendarDayRequest = {
     title: ev.title,
-    endDate: ev.end,
-    startDate: ev.start
+    endDate: new Date(ev.end.getTime()+(locationOffset-geoOffset)*60000),
+    startDate: new Date(ev.start.getTime()+(locationOffset-geoOffset)*60000)
   };
 
   return GetAjaxObservable<string>(`mutation($eventStartDate:DateTime!,$event:CalendarInput!){
@@ -105,12 +137,13 @@ export function UpdateEvent(eventStartDate: Date, ev: CalendarDay): Observable<s
 }
 
 
-export function DeleteEvent(eventStartDate: Date): Observable<string> {
+export function DeleteEvent(eventStartDate: Date, geoOffset: number): Observable<string> {
+  eventStartDate = new Date(eventStartDate.getTime()+(locationOffset-geoOffset)*60000)
   return GetAjaxObservable<string>(`mutation($eventStartDate:DateTime!){
     calendar{
       deleteEvent(eventStartDate:$eventStartDate)
     }
-  }`, { eventStartDate}).pipe(
+  }`, { eventStartDate }).pipe(
     map(res => {
       if (res.response.errors) {
         console.error(JSON.stringify(res.response.errors))
@@ -119,4 +152,46 @@ export function DeleteEvent(eventStartDate: Date): Observable<string> {
       return res.response.data
     })
   )
+}
+
+export interface GetCalendarGraphType {
+  calendar:{
+    getCalendarUser:{
+      count:number,
+      calendarUsers:CalendarUser[]
+    }
+  }
+}
+
+export interface CalendarUserPage{
+    count:number,
+    calendarUsers:CalendarUser[]
+}
+
+export interface CalendarUser{
+    id:number,
+    fullName:string,
+    email:string
+}
+
+export function GetCalendarUsers(pageNumber:number,itemsInPage:number,search:string){
+  return GetAjaxObservable<GetCalendarGraphType>(`query($pageNumber:Int!,$itemsInPage:Int!,$search:String!){
+    calendar{
+      getCalendarUser(pageNumber:$pageNumber,itemsInPage:$itemsInPage,search:$search){
+        count,
+        calendarUsers{
+          id,
+          fullName,
+          email
+        }
+      }
+    }
+  }`,{pageNumber,itemsInPage,search}).pipe(
+    map(res => {
+      if (res.response.errors) {
+        console.error(JSON.stringify(res.response.errors))
+        throw "error"
+      }
+      return res.response.data.calendar.getCalendarUser
+    }))
 }

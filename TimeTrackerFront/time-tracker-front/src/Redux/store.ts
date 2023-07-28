@@ -4,6 +4,7 @@ import { rootEpic } from "./rootEpic";
 import UserReducer from "./Slices/UserSlice";
 import CurrentUserReducer from "./Slices/CurrentUserSlice";
 import TimeReducer from "./Slices/TimeSlice";
+import VacationReducer from "./Slices/VacationSlice";
 
 const epicMiddleware = createEpicMiddleware();
 
@@ -11,7 +12,8 @@ const store = configureStore({
    reducer: {
       users: UserReducer,
       currentUser: CurrentUserReducer,
-      time:TimeReducer
+      time:TimeReducer,
+      vacation:VacationReducer
    },
    middleware: [epicMiddleware]
 });

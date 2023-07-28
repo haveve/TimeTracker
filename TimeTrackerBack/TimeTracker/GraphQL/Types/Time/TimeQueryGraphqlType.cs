@@ -45,11 +45,11 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             {
                 time.ToDayDate = DateTime.Now;
             }
-            else if (DateOnly.FromDateTime(ToUkraineDateTime(time.ToDayDate.Value)).AddDays(1) <= DateOnly.FromDateTime(ToUkraineDateTime(DateTime.Now)))
+            else if (DateOnly.FromDateTime(ToUtcDateTime(time.ToDayDate.Value)).AddDays(1) <= DateOnly.FromDateTime(ToUtcDateTime(DateTime.Now)))
             {
-                var date = DateOnly.FromDateTime(ToUkraineDateTime(time.ToDayDate.Value));
+                var date = DateOnly.FromDateTime(ToUtcDateTime(time.ToDayDate.Value));
 
-                if (date.DayNumber / 7 < DateOnly.FromDateTime(ToUkraineDateTime(DateTime.Now)).DayNumber / 7)
+                if (date.DayNumber / 7 < DateOnly.FromDateTime(ToUtcDateTime(DateTime.Now)).DayNumber / 7)
                 {
                     time.WeekSeconds = 0;
                 }
@@ -63,9 +63,9 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             return time;
         }
 
-        public static DateTime ToUkraineDateTime(DateTime date)
+        public static DateTime ToUtcDateTime(DateTime date)
         {
-            var dateTime = TimeZoneInfo.ConvertTime(date,TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"));
+            var dateTime = TimeZoneInfo.ConvertTimeToUtc(date);
             return dateTime;
         }
 

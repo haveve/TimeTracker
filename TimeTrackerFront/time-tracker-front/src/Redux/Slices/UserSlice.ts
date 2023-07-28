@@ -6,12 +6,14 @@ import { statusType } from "./TimeSlice";
 
 export interface usersState {
     Users: User[],
+    UsersBySearch: User[]
     UsersPage: UsersPage,
     status:statusType,
     error?:string
 }
 const initialState: usersState = {
     Users: [],
+    UsersBySearch: [],
     UsersPage: {} as UsersPage,
     status: "idle"
 };
@@ -23,6 +25,10 @@ export const userSlice = createSlice({
         getUsersList: (state,
             action: PayloadAction<User[]>) => {
             state.Users = action.payload
+        },
+        getUsersListBySearch: (state,
+                             action: PayloadAction<User[]>) => {
+            state.UsersBySearch = action.payload
         },
         getUsersPage: (state,
             action: PayloadAction<UsersPage>) => {
@@ -47,6 +53,7 @@ export const userSlice = createSlice({
 
 export const {
     getUsersList,
+    getUsersListBySearch,
     getUsersPage,
     setloadingStatus,
     setErrorStatusAndError,
