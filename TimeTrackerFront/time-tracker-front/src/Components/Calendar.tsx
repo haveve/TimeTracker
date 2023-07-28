@@ -531,11 +531,10 @@ export default function Calendar() {
     const holidayAfterCelebrateList = useRef<GlobalEventsViewModel[]>([...defaultEventsList])
     let setNextHoliday = false;
     return <> <FullCalendar
+        ref = {calendarRef}
         dayHeaderClassNames={['calendar-head-color']}
         height={"100%"}
-        ref={calendarRef}
         dayCellContent={function (info) {
-
             const celebrate = globalCalendar.filter(cg => {
                 return DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
             })
@@ -623,7 +622,7 @@ export default function Calendar() {
                 && info.date.getDay() != 6
                 && info.date.getMonth() === navigateDate.getMonth()
                 && !holidayAfterCelebrateList.current.some(cg => (DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
-                    && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month))) {
+                    && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month&&cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate))) {
                 setIsVisible(n => !n)
                 setChangedDay(info.date)
             }
