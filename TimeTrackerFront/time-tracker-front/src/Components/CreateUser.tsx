@@ -14,6 +14,7 @@ function CreateUser() {
 
     const [fullName, setFullName] = useState("")
     const [email, setEmail] = useState("")
+    const [workHours, setWorkHours] = useState(100)
     const [cRUDUsers, setCRUDUsers] = useState(false)
     const [editPermiters, setEditPermiters] = useState(false)
     const [viewUsers, setViewUsers] = useState(false)
@@ -24,7 +25,7 @@ function CreateUser() {
 
     const HandleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (email === "" || fullName === "") {setShowError(true); setErrorMessage("Fill all fields"); return;}
+        if (email === "" || fullName === "") { setShowError(true); setErrorMessage("Fill all fields"); return; }
         const user: User = {
             login: "login",
             password: "password",
@@ -36,11 +37,13 @@ function CreateUser() {
             editWorkHours: editWorkHours,
             importExcel: importExcel,
             controlPresence: controlPresence,
-            controlDayOffs: controlDayOffs
+            controlDayOffs: controlDayOffs,
+            workHours: workHours
         }
         RequestCreateUser(user).subscribe()
         setFullName("")
         setEmail("")
+        setWorkHours(100)
         setCRUDUsers(false)
         setEditPermiters(false)
         setViewUsers(false)
@@ -70,11 +73,14 @@ function CreateUser() {
                             onChange={(e) => setEmail(e.target.value)}
                             value={email}
                         />
-                        {/* <p className='m-0'>Work hours</p>
-                        <InputGroup className="mb-3 w-50">
+                        <p className='m-0'>Work hours</p>
+                        <InputGroup className="mb-3 w-100">
                             <InputGroup.Text>%</InputGroup.Text>
-                            <Form.Control />
-                        </InputGroup> */}
+                            <Form.Control type='number' min={1} max={100}
+                                onChange={(e) => setWorkHours(parseInt(e.target.value))}
+                                value={workHours}
+                                />
+                        </InputGroup>
                         <p className='m-0'>Permissions</p>
                         <InputGroup className="mb-3 d-flex flex-column">
                             <Form.Check

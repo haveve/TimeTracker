@@ -10,6 +10,5 @@ export interface TimeResponse{
 }
 
 export interface TimeRequest{
-    id:number,
     time:Time
 }

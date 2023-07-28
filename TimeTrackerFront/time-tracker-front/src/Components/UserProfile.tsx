@@ -7,6 +7,7 @@ import { RequestUpdateUser, RequestUpdatePassword } from '../Redux/Requests/User
 import { RootState } from '../Redux/store';
 import { getUsers } from '../Redux/epics';
 import { Error } from './Error';
+import TimeManage from './TimeManage';
 import '../Custom.css';
 
 
@@ -16,6 +17,7 @@ function UserProfile() {
     const [showEdit, setShowEdit] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    const [showTimeManage, setShowTimeManage] = useState(false);
 
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -26,8 +28,7 @@ function UserProfile() {
     const handleClosePassword = () => { setShowPassword(false); setShowError(false); };
     const handleShowPassword = () => setShowPassword(true);
 
-    let user = useSelector((state: RootState) => state.currentUser.User);
-
+    const [user, setUser] = useState(useSelector((state: RootState) => state.currentUser.User));
 
     const [id, setId] = useState(0);
     const [login, setLogin] = useState('');
@@ -102,9 +103,10 @@ function UserProfile() {
                                 <p className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</p>
                             </div>
                             <p className='mb-2'>Worker</p>
-                            <div className='d-flex flex-column'>
-                                <Button variant='outline-secondary w-25 mb-2' onClick={handleShowEdit}>Edit</Button>
-                                <Button variant='outline-secondary w-25 mb-2' onClick={handleShowPassword}>Change Password</Button>
+                            <div className='flex flex-column'>
+                                <Button variant="outline-secondary mb-2" type="submit" onClick={() => setShowTimeManage(n => !n)}>Time Manage</Button>
+                                <Button variant='outline-secondary mb-2 mx-2' onClick={handleShowEdit}>Edit</Button>
+                                <Button variant='outline-secondary mb-2' onClick={handleShowPassword}>Change Password</Button>
                             </div>
                         </Card.Body>
                     </Card>
@@ -176,6 +178,7 @@ function UserProfile() {
                             </Modal.Footer>
                         </Form>
                     </Modal>
+                    <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} setUser={setUser}></TimeManage>
                 </>
             )
                 : (

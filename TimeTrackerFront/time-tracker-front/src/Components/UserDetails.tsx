@@ -9,13 +9,14 @@ import { getUsers } from '../Redux/epics';
 import TimeManage from './TimeManage';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
 import { RequestUser } from '../Redux/Requests/UserRequests';
+import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
 import { User } from '../Redux/Types/User';
 
 function UserDetails() {
   const { userId = "" } = useParams();
   const [showDelete, setShowDelete] = useState(false);
-  const [showTimeManage, setShowTimeManage] = useState(false);
   const [user, setUser] = useState({} as User);
+  const [totalWorkTime, setTotalWorkTime] = useState(0);
 
 
   const dispatch = useDispatch();
@@ -24,6 +25,9 @@ function UserDetails() {
   useEffect(() => {
     RequestUser(parseInt(userId)).subscribe((x) => {
       setUser(x);
+    })
+    RequestGetTotalWorkTime(parseInt(userId)).subscribe((x) => {
+      setTotalWorkTime(x);
     })
   }, []);
 
@@ -57,20 +61,26 @@ function UserDetails() {
                 </Col>
                 <Col>
                   <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100'>
-                    <p className='m-0'>Worked today</p>
-                    {TimeForStatisticFromSeconds(user.daySeconds!)}
-                    <ProgressBar now={50} animated className='mb-2' />
-                    <p className='m-0'>Worked this week</p>
-                    {TimeForStatisticFromSeconds(user.weekSeconds!)}
-                    <ProgressBar now={40} animated className='mb-2' />
-                    <p className='m-0'>Worked this month</p>
-                    {TimeForStatisticFromSeconds(user.monthSeconds!)}
-                    <ProgressBar now={60} animated />
+                    <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                      <p className='m-0'>Worked today</p>
+                      {TimeForStatisticFromSeconds(user.daySeconds!)}
+                    </div>
+                    <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                      <p className='m-0'>Worked this week</p>
+                      {TimeForStatisticFromSeconds(user.weekSeconds!)}
+                    </div>
+                    <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                      <p className='m-0'>Worked this month</p>
+                      {TimeForStatisticFromSeconds(user.monthSeconds!)}
+                    </div>
+                    <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'/>
+                      {TimeForStatisticFromSeconds(totalWorkTime)}
+                    </div>
                   </span>
                 </Col>
               </Row>
               <div className='ms-auto'>
-                <Button variant='outline-success me-2' onClick={() => setShowTimeManage(n => !n)}>TimeManage</Button>
                 <Button variant='outline-secondary me-2' onClick={handleShowPermissions}>Permissions</Button>
                 <Button variant='outline-danger' onClick={handleShowDelete}>Delete</Button>
               </div>
@@ -95,8 +105,6 @@ function UserDetails() {
               <Button variant="danger" onClick={handleUserDelete}>Delete</Button>
             </Modal.Footer>
           </Modal>
-          { user.daySeconds != undefined?
-          <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} setUser = {setUser} />:null}
         </>
       )
         : (

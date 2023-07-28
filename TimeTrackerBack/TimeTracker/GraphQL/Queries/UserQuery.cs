@@ -1,4 +1,7 @@
-﻿using GraphQL.Types;
+
+﻿using GraphQL;
+using GraphQL.Types;
+using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.GraphQL.Types.UserTypes;
 using TimeTracker.Repositories;
@@ -16,8 +19,11 @@ namespace TimeTracker.GraphQL.Queries
             .Resolve(context => new { });
             Field<TimeQueryGraphqlType>("time")
             .Resolve(context => new { });
+            Field<CalendarQueryGraphqlType>("calendar")
+                .Resolve(context => new { });
             Field<VacationQuery>("vacation")
             .Resolve(context => new { });
+
         }
     }
 }

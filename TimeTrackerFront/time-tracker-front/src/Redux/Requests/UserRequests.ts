@@ -125,6 +125,7 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
                                 daySeconds
                                 weekSeconds
                                 monthSeconds
+                                timeManagedBy
                               }
                               totalCount
                               pageIndex
@@ -314,7 +315,8 @@ export function RequestCreateUser(user: User): Observable<string> {
                     "editWorkHours": user.editWorkHours,
                     "importExcel": user.importExcel,
                     "controlPresence": user.controlPresence,
-                    "controlDayOffs": user.controlDayOffs
+                    "controlDayOffs": user.controlDayOffs,
+                    "workHours": user.workHours
                 }
             }
         })

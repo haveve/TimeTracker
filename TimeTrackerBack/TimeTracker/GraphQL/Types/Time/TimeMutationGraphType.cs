@@ -18,7 +18,7 @@ namespace TimeTracker.GraphQL.Types.Time
                 {
                     _timeRepository.SetStartOrEndTrackDate(
                         StartOrEnd.Start,
-                        TimeQueryGraphqlType.ToUkraineDateTime(DateTime.Now),
+                        TimeQueryGraphqlType.ToUtcDateTime(DateTime.Now),
                         TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
                     return "Successfully";
                 });
@@ -27,11 +27,11 @@ namespace TimeTracker.GraphQL.Types.Time
                  {
                      _timeRepository.SetStartOrEndTrackDate(
                         StartOrEnd.End,
-                        TimeQueryGraphqlType.ToUkraineDateTime(DateTime.Now),
+                        TimeQueryGraphqlType.ToUtcDateTime(DateTime.Now),
                         TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
                      return "Successfully";
                  });
-            Field<ManageTimeMutationGraphType>("manageTime").AuthorizeWithPolicy("EditWorkHours")
+            Field<ManageTimeMutationGraphType>("manageTime")
                 .Resolve(context => new { });
         }
     }

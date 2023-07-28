@@ -13,6 +13,7 @@ import { getTokenOrNavigate } from '../Login/Api/login-logout';
 import TimeStatistic from "./TimeStatistic"
 import RequestResetPassword from "./RequestResetPassword";
 import UserRegistration from './UserRegistration';
+import Calendar from './Calendar';
 import ApproversSetup from "./ApproversSetup";
 
 const router = createBrowserRouter([
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
       {
         path: "/User/:login",
         element: <UserProfile />
+      },
+      {
+        path:"/Calendar",
+        element:<Calendar/>
       },
       {
         path: "/ApproversSetup",

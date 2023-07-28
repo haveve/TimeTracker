@@ -12,10 +12,6 @@ interface GraphqlTime {
     }
 }
 
-interface GraphqlToken {
-    getToken:string
-}
-
 const url = "https://localhost:7226/graphql";
 
 
@@ -64,6 +60,31 @@ export function RequestGetTime(): Observable<TimeResponse> {
     );
 }
 
+interface GraphqlTotalTime {
+    time: {
+        getTotalWorkTime: number
+    }
+}
+
+export function RequestGetTotalWorkTime(id: number): Observable<number> {
+    return GetAjaxObservable<GraphqlTotalTime>(`
+    query($id: Int!){
+        time{
+            getTotalWorkTime(id: $id)
+          }
+        }
+    `, {id}).pipe(
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+
+            let time = res.response.data.time.getTotalWorkTime;
+            return time;
+        })
+    );
+}
 
 export function RequestSetStartDate(): Observable<string> {
     return GetAjaxObservable<string>(`
@@ -103,10 +124,10 @@ export function RequestSetEndDate(): Observable<string> {
 
 export function RequestUpdateDate(time:TimeRequest): Observable<TimeRequest> {
     return GetAjaxObservable<string>(`
-    mutation($id:Int!,$time:ManageTimeInputGrpahqType!){
+    mutation($time:ManageTimeInputGrpahqType!){
         time{
           manageTime{
-            updateTime(userId:$id,userTime:$time)
+            updateTime(userTime:$time)
             }
         }
       }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using TimeTracker.Repositories;
 
 namespace TimeTracker.Models
 {
@@ -22,5 +23,7 @@ namespace TimeTracker.Models
         public int WeekSeconds { get; set; } = 0;
         public int MonthSeconds { get; set; } = 0;
         public bool Enabled { get; set; } = false;
+        public int WorkHours {  get; set; }
+        public LasUpdatedBy TimeManagedBy { get; set; }
     }
 }

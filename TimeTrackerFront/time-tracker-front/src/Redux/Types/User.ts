@@ -11,8 +11,18 @@ export interface User {
     importExcel?: boolean,
     controlPresence?: boolean,
     controlDayOffs?: boolean,
-    daySeconds?:number,
-    weekSeconds?:number,
-    monthSeconds?:number
+
+    daySeconds?: number,
+    weekSeconds?: number,
+    monthSeconds?: number,
+    workHours?: number
+    timeManagedBy?:LasUpdatedBy
+}
+
+export enum LasUpdatedBy
+{
+    None,
+    Auto,
+    Hand
 
 }
