@@ -43,18 +43,19 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
         {
             if (time.ToDayDate == null)
             {
-                time.ToDayDate = DateTime.Now;
+                time.ToDayDate = DateTime.UtcNow;
             }
-            else if (DateOnly.FromDateTime(ToUtcDateTime(time.ToDayDate.Value)).AddDays(1) <= DateOnly.FromDateTime(ToUtcDateTime(DateTime.Now)))
-            {
-                var date = DateOnly.FromDateTime(ToUtcDateTime(time.ToDayDate.Value));
 
-                if (date.DayNumber / 7 < DateOnly.FromDateTime(ToUtcDateTime(DateTime.Now)).DayNumber / 7)
+            else if (DateOnly.FromDateTime(time.ToDayDate.Value).AddDays(1) <= DateOnly.FromDateTime(DateTime.UtcNow))
+            {
+                var date = DateOnly.FromDateTime(time.ToDayDate.Value);
+
+                if (date.DayNumber / 7 < DateOnly.FromDateTime((DateTime.UtcNow)).DayNumber / 7)
                 {
                     time.WeekSeconds = 0;
                 }
 
-                time.ToDayDate = DateTime.Now;
+                time.ToDayDate = DateTime.UtcNow;
                 time.DaySeconds = 0;
             }
                 TimeTrackManage(time, repo,userId);
