@@ -12,6 +12,7 @@ import '../Custom.css';
 import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
 import { getCookie } from '../Login/Api/login-logout';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import VacationRequests from "./VacationRequests";
 
 
 function UserProfile() {
@@ -22,6 +23,8 @@ function UserProfile() {
 
     const [showTimeManage, setShowTimeManage] = useState(false);
 
+    const [showVacationRequests, setShowVacationRequests] = useState(false);
+
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -30,6 +33,10 @@ function UserProfile() {
 
     const handleClosePassword = () => { setShowPassword(false); setShowError(false); };
     const handleShowPassword = () => setShowPassword(true);
+
+    const handleShowVacationRequests = () => setShowVacationRequests(true);
+    const handleCloseVacationRequests = () => setShowVacationRequests(false);
+
 
     const [user, setUser] = useState({} as User);
     const [totalWorkTime, setTotalWorkTime] = useState(0);
@@ -144,6 +151,8 @@ function UserProfile() {
                                 <Button variant='outline-secondary mb-2 mx-2' onClick={handleShowEdit}>Edit</Button>
                                 <Button variant='outline-secondary mb-2' onClick={handleShowPassword}>Change Password</Button>
                             </div>
+
+                            <VacationRequests user={user}></VacationRequests>
                         </Card.Body>
                     </Card>
                     <Modal
@@ -154,6 +163,7 @@ function UserProfile() {
                         data-bs-theme="dark"
                         onHide={handleCloseEdit}
                     >
+
                         <Form onSubmit={e => handleUpdate(e)}>
                             <Modal.Header closeButton>
                                 <Modal.Title>Edit your information</Modal.Title>
@@ -215,6 +225,7 @@ function UserProfile() {
                         </Form>
                     </Modal>
                     <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} setUser={setUser}></TimeManage>
+
                 </>
             )
                 : (

@@ -18,13 +18,65 @@ namespace TimeTracker.Repositories
             _emailSender = emailSender;
             _userRepository = userRepository;
         }
+        #region Setup part
+
+        public List<ApproverSetupNode> GetSetupNodesByRequesterId(int requesterId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string query = $"Select * from ApproversSetup where UserIdRequester = {requesterId}";
+                return db.Query<ApproverSetupNode>(query).ToList();
+            }
+        }
+        public List<ApproverSetupNode> GetSetupNodesByApproverId(int approverId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string query = $"Select * from ApproversSetup where UserIdApprover = {approverId}";
+                return db.Query<ApproverSetupNode>(query).ToList();
+            }
+        }
+        public List<ApproverSetupNode> GetSetupNodes(int requesterId, int approverId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string query = $"Select * from ApproversSetup where UserIdApprover = {approverId} and UserIdRequester = {requesterId}";
+                return db.Query<ApproverSetupNode>(query).ToList();
+            }
+        }
+        public void AddApprover(int userApproverId, int userRequestId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                if (GetSetupNodes(userApproverId, userRequestId).Count != 0)
+                    return;
+                if (userApproverId == userRequestId)
+                    return;
+
+                string query = $"INSERT INTO ApproversSetup (UserIdApprover, UserIdRequester) " +
+                    $"VALUES ({userApproverId},{userRequestId})";
+                db.Execute(query);
+            }
+        }
+        public void DeleteApprover(int userApproverId, int userRequesterId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string query = $"DELETE FROM ApproversSetup " +
+                    $"WHERE UserIdApprover = {userApproverId} " +
+                    $"AND UserIdRequester = {userRequesterId}";
+                db.Execute(query);
+            }
+        }
+
+        #endregion
         public List<User> GetApproversByRequesterId(int UserRequestId)
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"SELECT Users.Id, Users.Login, Users.FullName, Users.Email FROM Users join Approvers " +
-                    $"on Users.Id = Approvers.UserIdApprover " +
-                    $"where Approvers.UserIdRequester = {UserRequestId}";
+                string query = $"SELECT Users.Id, Users.Login, Users.FullName, Users.Email FROM Users join ApproversSetup " +
+                    $"on Users.Id = ApproversSetup.UserIdApprover " +
+                    $"where ApproversSetup.UserIdRequester = {UserRequestId}";
                 return db.Query<User>(query).ToList();
             }
         }
@@ -32,9 +84,9 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"SELECT * FROM Users join Approvers " +
-                    $"on Users.Id = Approvers.UserIdRequester " +
-                    $"where Approvers.UserIdApprover = {userApproverId}";
+                string query = $"SELECT Users.Id, Users.Login, Users.FullName, Users.Email FROM Users join ApproversSetup " +
+                    $"on Users.Id = ApproversSetup.UserIdRequester " +
+                    $"where ApproversSetup.UserIdApprover = {userApproverId}";
                 return db.Query<User>(query).ToList();
             }
         }
@@ -45,11 +97,6 @@ namespace TimeTracker.Repositories
                 string query = $"SELECT * FROM VacationRequests " +
                     $"WHERE Id = {id}";
                 var request = db.Query<VacationRequest>(query).FirstOrDefault();
-                if (request == null)
-                {
-                    return null;
-                }
-                request.ApproversList = GetApproversByRequesterId(request.RequesterId);
                 return request;
             }
         }
@@ -67,29 +114,58 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"Select VacationRequests.Id, RequesterId, " +
-                    $"InfoAboutRequest, Status " +
-                    $"From VacationRequests join Approvers " +
-                    $"on Approvers.RequestId = VacationRequests.Id " +
-                    $"where Approvers.UserIdApprover = {UserApproverId}";
+                string query = $"Select VacationRequests.Id, RequesterId" +
+                    $"InfoAboutRequest, Status, StartDate, EndDate " +
+                    $"From VacationRequests join ApproversReaction " +
+                    $"on ApproversReaction.RequestId = VacationRequests.Id " +
+                    $"where ApproversReaction.UserIdApprover = {UserApproverId}";
                 return db.Query<VacationRequest>(query).ToList();
             }
         }
+        public List<ApproverNode> GetApproversNodes(int requestId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string query = $"Select * from ApproversReaction " +
+                    $"Where RequestId = {requestId}";
+                return db.Query<ApproverNode>(query).ToList();
+            }
+        }
+        // ---------------?
         public List<ApproverNode> GetApproverNodes(int UserApproverId, int UserRequestId)
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"Select * from Approvers " +
+                string query = $"Select * from ApproversSetup " +
                     $"Where UserIdApprover = {UserApproverId} " +
                     $"and UserIdRequester = {UserRequestId}";
                 return db.Query<ApproverNode>(query).ToList();
             }
         }
+        public List<ApproverNode> GetApproverNodesByApproverId(int UserApproverId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string query = $"Select * from ApproversReaction " +
+                    $"Where UserIdApprover = {UserApproverId}";
+                return db.Query<ApproverNode>(query).ToList();
+            }
+        }
+        public List<ApproverNode> GetApproverNodesByRequesterId(int UserRequestId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string query = $"Select * from ApproversReaction " +
+                    $"Where UserIdRequester = {UserRequestId}";
+                return db.Query<ApproverNode>(query).ToList();
+            }
+        }
+
         public ApproversReaction GetApproversReaction(int requestId)
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"Select * From Approvers Where RequestId = {requestId}";
+                string query = $"Select * From ApproversReaction Where RequestId = {requestId}";
                 var approverNodes = db.Query<ApproverNode>(query).ToList();
 
                 int approversCount = approverNodes.Count;
@@ -120,47 +196,45 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"INSERT INTO VacationRequests (RequesterId, " +
-                    $"InfoAboutRequest, Status) " +
-                    $"VALUES ({request.RequesterId},{request.InfoAboutRequest}, " +
-                    $"{request.Status})";
+
+                string query = $"INSERT INTO VacationRequests (RequesterId, InfoAboutRequest, Status, StartDate, EndDate) " +
+                    $"VALUES ({request.RequesterId}, '{request.InfoAboutRequest}', '{request.Status}', '{request.StartDate.ToString("yyyy-MM-dd HH:mm:ss")}', '{request.EndDate.ToString("yyyy-MM-dd HH:mm:ss")}')";
+
                 db.Execute(query);
+
+                // get id of created request
+                string getId = $"Select Id From VacationRequests Where RequesterId = {request.RequesterId} " +
+                    $"And StartDate = '{request.StartDate.ToString("yyyy-MM-dd HH:mm:ss")}'";
+                int requestId = db.Query<int>(getId).FirstOrDefault();
+
+                // create reaction nodes
+                var setupNodes = GetSetupNodesByRequesterId(request.RequesterId);
+                foreach (var node in setupNodes)
+                {
+                    string prequery = $"insert into ApproversReaction (UserIdApprover, UserIdRequester, RequestId) Values " +
+                        $"({node.UserIdApprover}, {node.UserIdRequester}, {requestId})";
+                    db.Execute(prequery);
+                }
             }
         }
-        public void DeleteVacationRequest(int id)
+        public void DeleteVacationRequest(int requestId)
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"DELETE * FROM VacationRequests WHERE Id = {id}";
+                var nodes = GetApproversNodes(requestId);
+                foreach (var node in nodes)
+                {
+                    string prequery = $"Delete * from ApproversReaction Where RequestId = {requestId}";
+                    db.Execute(prequery);
+                }
+
+                string query = $"DELETE * FROM VacationRequests WHERE Id = {requestId}";
                 db.Execute(query);
             }
         }
 
 
-        public void AddApprover(int userApproverId, int userRequestId)
-        {
-            using (IDbConnection db = new SqlConnection(conectionString))
-            {
-                if (GetApproverNodes(userApproverId, userRequestId).Count != 0)
-                    return;
-                if (userApproverId == userRequestId)
-                    return;
 
-                string query = $"INSERT INTO Approvers (UserIdApprover, UserIdRequester) " +
-                    $"VALUES ({userApproverId},{userRequestId})";
-                db.Execute(query);
-            }
-        }
-        public void DeleteApprover(int userApproverId, int userRequesterId)
-        {
-            using (IDbConnection db = new SqlConnection(conectionString))
-            {
-                string query = $"DELETE FROM Approvers " +
-                    $"WHERE UserIdApprover = {userApproverId} " +
-                    $"AND UserIdRequester = {userRequesterId}";
-                db.Execute(query);
-            }
-        }
         public void UpdateRequestDetailsToApprovers(int userRequesterId, int requestId)
         {
             using (IDbConnection db = new SqlConnection(conectionString))

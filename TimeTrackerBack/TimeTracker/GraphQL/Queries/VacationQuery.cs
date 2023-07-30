@@ -28,26 +28,74 @@ namespace TimeTracker.GraphQL.Queries
                 .Argument<NonNullGraphType<IntGraphType>>("approverId")
                 .Resolve(context =>
                 {
-                    int appruverUserId = context.GetArgument<int>("approverId");
-                    return vacRepo.GetRequestersByApproverId(appruverUserId);
+                    int approverUserId = context.GetArgument<int>("approverId");
+                    return vacRepo.GetRequestersByApproverId(approverUserId);
                 });
             Field<ListGraphType<VacationRequestType>>("vacationRequest")
                 .Argument<IntGraphType>("requesterId")
+                .Argument<IntGraphType>("approverId")
                 .Argument<IntGraphType>("requestId")
                 .Resolve(context =>
                 {
-                    int approverUserId = context.GetArgument<int>("requesterId");
+                    int requesterId = context.GetArgument<int>("requesterId");
                     int id = context.GetArgument<int>("requestId");
+                    int approverId = context.GetArgument<int>("approverId");
 
                     if (id != 0)
                     {
-                        return new List<VacationRequest>() { vacRepo.GetVacationRequest(id) };
+                        var request = vacRepo.GetVacationRequest(id);
+                        request.ApproversNodes = vacRepo.GetApproverNodes(requesterId, id);
+                        for (int i = 0; i < request.ApproversNodes.Count; i++)
+                        {
+                            request.ApproversNodes[i].Approver = userRepo.GetUser(request.ApproversNodes[i].UserIdApprover);
+                        }
+                        request.Requester = userRepo.GetUser(requesterId);
+                        return new List<VacationRequest>() { request };
                     }
-                    if (approverUserId != 0)
+                    else if (requesterId != 0)
                     {
-                        return vacRepo.GetVacationRequestsByRequesterId(approverUserId);
+                        var requests = vacRepo.GetVacationRequestsByRequesterId(requesterId);
+                        foreach (var request in requests)
+                        {
+                            request.ApproversNodes = vacRepo.GetApproverNodesByRequesterId(requesterId);
+                            for (int i = 0; i < request.ApproversNodes.Count; i++)
+                            {
+                                request.ApproversNodes[i].Approver = userRepo.GetUser(request.ApproversNodes[i].UserIdApprover);
+                            }
+                        }
+                        return requests;
+                    }
+                    else if (approverId != 0)
+                    {
+                        var requests = vacRepo.GetVacationRequestsByApproverId(requesterId);
+                        foreach (var request in requests)
+                        {
+                            request.ApproversNodes = vacRepo.GetApproverNodes(requesterId, id);
+                            for (int i = 0; i < request.ApproversNodes.Count; i++)
+                            {
+                                request.ApproversNodes[i].Requester = userRepo.GetUser(request.ApproversNodes[i].UserIdRequester);
+                            }
+                        }
+                        return requests;
                     }
                     return null;
+                });
+            Field<ListGraphType<ApproverNodeType>>("approversReaction")
+                .Argument<NonNullGraphType<IntGraphType>>("requestId")
+                .Resolve(context =>
+                {
+                    int requestId = context.GetArgument<int>("requestId");
+
+                    var nodes = vacRepo.GetApproversNodes(requestId);
+                    if (nodes == null)
+                        return null;
+
+                    foreach (var node in nodes)
+                    {
+                        node.Approver = userRepo.GetUser(node.UserIdApprover);
+                    }
+
+                    return nodes;
                 });
 
 

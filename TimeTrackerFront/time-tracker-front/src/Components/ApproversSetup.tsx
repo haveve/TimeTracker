@@ -9,10 +9,7 @@ import {ApproverNode} from "../Redux/Types/ApproverNode";
 import {forEach} from "react-bootstrap/ElementChildren";
 
 
-
-
 export default function ApproversSetup() {
-
 
 
     const [requesterPicked, setRequesterPicked] = useState(false);
@@ -20,15 +17,16 @@ export default function ApproversSetup() {
     const [search, setSearch] = useState("");
 
     let userList = useSelector((state: RootState) => state.users.UsersBySearch);
-    const initUser = {} as User;
+    const initUser = {id:-1} as User;
     const [requester, setRequester] = useState<User>(initUser);
 
 
     const approversList = useSelector((state: RootState) => state.vacation.approvers);
 
-    userList = userList.filter((item) => !approversList.some((el) => el.id === item.id));
-    userList = userList.filter((item) => item.id !== requester.id);
-
+    if (requester.id !== initUser.id) {
+        userList = userList.filter((item) => !approversList.some((el) => el.id === item.id));
+        userList = userList.filter((item) => item.id !== requester.id);
+    }
 
     const dispatch = useDispatch();
 
@@ -50,6 +48,7 @@ export default function ApproversSetup() {
     }
     const UnPickClickHandler = (event: React.MouseEvent) => {
         setRequesterPicked(false);
+        setRequester(initUser);
     }
     const RemoveClickHandler = (event: React.MouseEvent, user: User) => {
         const approverNode = {approverId: user.id, requesterId: requester.id} as ApproverNode;

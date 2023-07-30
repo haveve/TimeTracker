@@ -11,7 +11,9 @@ namespace TimeTracker.GraphQL.Types.Vacation
             Field(i => i.RequesterId, type: typeof(IntGraphType));
             Field(i => i.InfoAboutRequest, type: typeof(StringGraphType));
             Field(i => i.Status, type: typeof(StringGraphType));
-            Field(i => i.ApproversList, type: typeof(ListGraphType<StringGraphType>));
+            Field(i => i.ApproversNodes, type: typeof(ListGraphType<ApproverNodeType>));
+            Field(i => i.StartDate);
+            Field(i => i.EndDate);
         }
     }
 }

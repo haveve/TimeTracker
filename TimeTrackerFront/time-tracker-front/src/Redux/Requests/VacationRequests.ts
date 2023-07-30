@@ -5,18 +5,19 @@ import {ApproverNode} from "../Types/ApproverNode";
 import {GetAjaxObservable} from "./TimeRequests";
 import {TimeRequest} from "../Types/Time";
 import App from "../../App";
+import {VacationRequest} from "../Types/VacationRequest";
 
 const url = "https://localhost:7226/graphql";
 
 interface GraphQlUsers {
-    data:{
-        vacation:{
+    data: {
+        vacation: {
             approvers: User[]
         }
     }
 }
 
-export function RequestApprovers(requesterId:Number): Observable<User[]> {
+export function RequestApprovers(requesterId: Number): Observable<User[]> {
     return ajax<GraphQlUsers>({
         url,
         method: "POST",
@@ -39,13 +40,13 @@ export function RequestApprovers(requesterId:Number): Observable<User[]> {
 
         })
     }).pipe(
-        map(res=>{
-
+        map(res => {
             return res.response.data.vacation.approvers;
         })
     );
 }
-interface GraphQlAddApprover{
+
+interface GraphQlAddApprover {
     data: {
         vacation: {
             addApproverForUser: string;
@@ -53,7 +54,8 @@ interface GraphQlAddApprover{
 
     }
 }
-export function RequestAddApprover(approverNode:ApproverNode): Observable<string> {
+
+export function RequestAddApprover(approverNode: ApproverNode): Observable<string> {
     return ajax<GraphQlAddApprover>({
         url,
         method: "POST",
@@ -75,31 +77,15 @@ export function RequestAddApprover(approverNode:ApproverNode): Observable<string
 
         })
     }).pipe(
-        map(res=>{
+        map(res => {
 
             return res.response.data.vacation.addApproverForUser;
         })
     );
 }
 
-export function RequestAddApprover1(approverNode:ApproverNode): Observable<ApproverNode> {
-    return GetAjaxObservable<string>(`
-                mutation addApproverForUser($approverId:Int!,$requesterId:Int!){
-                    vacation{
-                        addApproverForUser(approverUserId: $approverId, requesterUserId: $requesterId)
-                    }
-                }
-            `,approverNode,true).pipe(
-        map(res => {
-            if (res.response.errors) {
-                console.error(JSON.stringify(res.response.errors))
-                throw "error"
-            }
-            return approverNode
-        })
-    );
-}
-interface GraphQlDeleteApprover{
+
+interface GraphQlDeleteApprover {
     data: {
         vacation: {
             deleteApprover: string;
@@ -107,7 +93,8 @@ interface GraphQlDeleteApprover{
 
     }
 }
-export function RequestDeleteApprover(approverNode:ApproverNode): Observable<string> {
+
+export function RequestDeleteApprover(approverNode: ApproverNode): Observable<string> {
     return ajax<GraphQlDeleteApprover>({
         url,
         method: "POST",
@@ -129,9 +116,89 @@ export function RequestDeleteApprover(approverNode:ApproverNode): Observable<str
 
         })
     }).pipe(
-        map(res=>{
+        map(res => {
 
             return res.response.data.vacation.deleteApprover;
         })
     );
 }
+
+interface GraphQlVacationRequests {
+    data: {
+        vacation: {
+            vacationRequest: VacationRequest[]
+        }
+    }
+}
+
+export function RequestVacationRequestsByRequesterId(requesterId: Number): Observable<VacationRequest[]> {
+    return ajax<GraphQlVacationRequests>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                query vacationRequest($requesterId:Int!){
+                    vacation{
+                        vacationRequest(requesterId:$requesterId){
+                            id, requesterId, infoAboutRequest, status, startDate, endDate
+                        }
+                    }
+                }
+            `,
+            variables: {
+                "requesterId": Number(requesterId)
+            }
+
+        })
+    }).pipe(
+        map(res => {
+            return res.response.data.vacation.vacationRequest;
+        })
+    );
+}
+
+interface GraphQlApproverNodes {
+    data: {
+        vacation: {
+            approversReaction: ApproverNode[]
+        }
+    }
+}
+
+export function RequestApproversReaction(requestId: Number): Observable<ApproverNode[]> {
+    return ajax<GraphQlApproverNodes>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                query approversReaction($requestId: Int!){
+                    vacation{
+                        approversReaction(requestId: $requestId){
+                            id, approver{
+                                 id,fullName, login, email
+                            }
+                            isRequestApproved, reactionMessage
+                        }
+                    }
+                }
+            `,
+            variables: {
+                "requestId": Number(requestId)
+            }
+
+        })
+    }).pipe(
+        map(res => {
+            console.log("res")
+            console.log(res.response)
+            return res.response.data.vacation.approversReaction;
+        })
+    );
+}
+

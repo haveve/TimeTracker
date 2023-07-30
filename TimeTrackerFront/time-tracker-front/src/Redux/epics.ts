@@ -21,9 +21,15 @@ import {setErrorStatusAndError as setErrorStatusAndErrorUserList} from "./Slices
 import {Page} from "./Types/Page";
 import {UsersPage} from "./Types/UsersPage";
 import {RequestUpdateDate} from "./Requests/TimeRequests";
-import {RequestAddApprover, RequestApprovers, RequestDeleteApprover} from "./Requests/VacationRequests";
-import {getApproversList} from "./Slices/VacationSlice";
+import {
+    RequestAddApprover,
+    RequestApprovers, RequestApproversReaction,
+    RequestDeleteApprover,
+    RequestVacationRequestsByRequesterId
+} from "./Requests/VacationRequests";
+import {getApproversList, getApproversReactionList, getVacationRequestsListByRequesterId} from "./Slices/VacationSlice";
 import {ApproverNode} from "./Types/ApproverNode";
+import {VacationRequest} from "./Types/VacationRequest";
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
@@ -127,3 +133,23 @@ export const deleteApproverEpic: Epic = (action$: Observable<PayloadAction<Appro
         map(() => getApprovers(approverNode.requesterId))
     ))
 );
+
+export const getVacationRequestsByRequesterId = (requesterId: number) =>
+    ({type: "getVacationRequestsByRequesterId", payload: requesterId});
+export const getVacationRequestsEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
+    ofType("getVacationRequestsByRequesterId"),
+    map(action => action.payload),
+    mergeMap((requesterId) => RequestVacationRequestsByRequesterId(requesterId).pipe(
+        map((res: VacationRequest[]) => getVacationRequestsListByRequesterId(res))
+    ))
+)
+
+export const getApproversReaction = (requestId: number) =>
+    ({type: "getApproversReaction", payload: requestId});
+export const getApproversReactionEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
+    ofType("getApproversReaction"),
+    map(action => action.payload),
+    mergeMap((requestId) => RequestApproversReaction(requestId).pipe(
+        map((res: ApproverNode[]) => getApproversReactionList(res))
+    ))
+)
