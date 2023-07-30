@@ -48,7 +48,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                if (GetSetupNodes(userApproverId, userRequestId).Count != 0)
+                if (GetSetupNodes(userRequestId, userApproverId).Count != 0)
                     return;
                 if (userApproverId == userRequestId)
                     return;
@@ -114,12 +114,13 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"Select VacationRequests.Id, RequesterId" +
+                string query = $"Select VacationRequests.Id, RequesterId, " +
                     $"InfoAboutRequest, Status, StartDate, EndDate " +
                     $"From VacationRequests join ApproversReaction " +
                     $"on ApproversReaction.RequestId = VacationRequests.Id " +
                     $"where ApproversReaction.UserIdApprover = {UserApproverId}";
-                return db.Query<VacationRequest>(query).ToList();
+                var temp = db.Query<VacationRequest>(query).ToList();
+                return temp;
             }
         }
         public List<ApproverNode> GetApproversNodes(int requestId)
@@ -179,7 +180,8 @@ namespace TimeTracker.Repositories
 
                     if (node.IsRequestApproved == true)
                         positiveReactionCount++;
-
+                    else
+                        return new ApproversReaction(false, false);
 
                 }
                 if (positiveReactionCount == approversCount)
@@ -215,6 +217,23 @@ namespace TimeTracker.Repositories
                         $"({node.UserIdApprover}, {node.UserIdRequester}, {requestId})";
                     db.Execute(prequery);
                 }
+
+
+            }
+        }
+        public void CancelVacationRequest(int requestId)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                var nodes = GetApproversNodes(requestId);
+                foreach (var node in nodes)
+                {
+                    string prequery = $"Update ApproversReaction Set IsRequestApproved = NULL, ReactionMessage = 'Request was canceled' Where RequestId = {requestId}";
+                    db.Execute(prequery);
+                }
+
+                string query = $"Update VacationRequests Set Status = 'Canceled' WHERE Id = {requestId}";
+                db.Execute(query);
             }
         }
         public void DeleteVacationRequest(int requestId)
@@ -224,11 +243,11 @@ namespace TimeTracker.Repositories
                 var nodes = GetApproversNodes(requestId);
                 foreach (var node in nodes)
                 {
-                    string prequery = $"Delete * from ApproversReaction Where RequestId = {requestId}";
+                    string prequery = $"Delete from ApproversReaction Where RequestId = {requestId}";
                     db.Execute(prequery);
                 }
 
-                string query = $"DELETE * FROM VacationRequests WHERE Id = {requestId}";
+                string query = $"DELETE FROM VacationRequests WHERE Id = {requestId}";
                 db.Execute(query);
             }
         }
@@ -260,22 +279,24 @@ namespace TimeTracker.Repositories
                 string query = $"Update VacationRequests Set Status = '{status}' " +
                     $"Where Id = {requestId}";
 
-                /// TODO: Send email with info
-                /// 
                 db.Execute(query);
-                ClearRequestDetailsToApprovers(requestId);
-                User user = _userRepository.GetUser(requestId);
-                _emailSender.SendResponseOfVacationRequest(status == "Approved" ? true : false,
-                    GetVacationRequest(requestId).InfoAboutRequest,
-                    user.Email);
+                // get vacationRequest
+                VacationRequest vacationRequest = GetVacationRequest(requestId);
+                vacationRequest.ApproversNodes = GetApproversNodes(requestId);
+                foreach (var nodes in vacationRequest.ApproversNodes)
+                {
+                    nodes.Approver = _userRepository.GetUser(nodes.UserIdApprover);
+                }
+                User user = _userRepository.GetUser(vacationRequest.RequesterId);
+                _emailSender.SendResponseOfVacationRequest(vacationRequest, user.Email);
             }
         }
-        public void UpdateApproverReaction(int approverUserId, int requestId, bool reaction)
+        public void UpdateApproverReaction(int approverUserId, int requestId, bool reaction, string reactionMessage)
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
                 int tempReaction = reaction ? 1 : 0;
-                string query = $"Update Approvers Set IsRequestApproved = {tempReaction} " +
+                string query = $"Update ApproversReaction Set IsRequestApproved = {tempReaction}, ReactionMessage = '{reactionMessage}' " +
                     $"where UserIdApprover = {approverUserId} AND RequestId = {requestId}";
                 db.Execute(query);
 
@@ -297,8 +318,7 @@ namespace TimeTracker.Repositories
             {
                 UpdateVacationRequestStatus(requestId, "Approved");
             }
-            else if (approversReaction.IsAllApproverReacted
-                && approversReaction.FinalApproversReaction == false)
+            if (approversReaction.FinalApproversReaction == false)
             {
                 UpdateVacationRequestStatus(requestId, "Declined");
             }

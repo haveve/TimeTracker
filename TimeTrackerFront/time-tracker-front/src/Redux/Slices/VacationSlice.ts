@@ -8,12 +8,14 @@ import {ApproverNode} from "../Types/ApproverNode";
 export interface vacationState {
     approvers: User[],
     vacationRequests: VacationRequest[],
+    incomingVacationRequests: VacationRequest[],
     approversReaction: ApproverNode[]
 }
 
 const initialState: vacationState = {
     approvers: [],
     vacationRequests: [],
+    incomingVacationRequests: [],
     approversReaction: []
 }
 export const vacationSlice = createSlice({
@@ -28,14 +30,21 @@ export const vacationSlice = createSlice({
                                   action: PayloadAction<VacationRequest[]>) => {
             state.vacationRequests = action.payload
         },
+        getIncomingVacationRequestsListByApproverId: (state,
+                                               action: PayloadAction<VacationRequest[]>) => {
+            state.incomingVacationRequests = action.payload
+        },
         getApproversReactionList: (state, action:PayloadAction<ApproverNode[]>) =>{
             state.approversReaction = action.payload
-        }
+        },
+
+
     }
 });
 export const {
     getApproversList,
     getVacationRequestsListByRequesterId,
+    getIncomingVacationRequestsListByApproverId,
     getApproversReactionList
 } = vacationSlice.actions;
 

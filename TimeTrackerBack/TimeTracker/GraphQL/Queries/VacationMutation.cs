@@ -38,6 +38,30 @@ namespace TimeTracker.GraphQL.Queries
                     return "Request created successfully.";
 
                 });
+            Field<StringGraphType>("cancelVacationRequest")
+                .Argument<NonNullGraphType<IntGraphType>>("requestId")
+                .Resolve(context =>
+                {
+                    int requestId = context.GetArgument<int>("requestId");
+                    if (requestId == 0)
+                    {
+                        return "Vacation was not found";
+                    }
+                    vacRepo.CancelVacationRequest(requestId);
+                    return "Vacation canceled successfully.";
+                });
+            Field<StringGraphType>("deleteVacationRequest")
+                .Argument<NonNullGraphType<IntGraphType>>("requestId")
+                .Resolve(context =>
+                {
+                    int requestId = context.GetArgument<int>("requestId");
+                    if (requestId == 0)
+                    {
+                        return "Vacation was not found";
+                    }
+                    vacRepo.DeleteVacationRequest(requestId);
+                    return "Vacation deleted successfully.";
+                });
             Field<StringGraphType>("addApproverForUser")
                 .Argument<NonNullGraphType<IntGraphType>>("approverUserId")
                 .Argument<NonNullGraphType<IntGraphType>>("requesterUserId")
@@ -67,13 +91,17 @@ namespace TimeTracker.GraphQL.Queries
                 .Argument<NonNullGraphType<IntGraphType>>("approverUserId")
                 .Argument<NonNullGraphType<IntGraphType>>("requestId")
                 .Argument<NonNullGraphType<BooleanGraphType>>("reaction")
+                .Argument<NonNullGraphType<StringGraphType>>("reactionMessage")
                 .Resolve(context =>
                 {
                     int approverUserId = context.GetArgument<int>("approverUserId");
                     int requestId = context.GetArgument<int>("requestId");
                     bool reaction = context.GetArgument<bool>("reaction");
+                    string reactionMessage = context.GetArgument<string>("reactionMessage");
 
-                    vacRepo.UpdateApproverReaction(approverUserId, requestId, reaction);
+                    vacRepo.UpdateApproverReaction(approverUserId, requestId, reaction, reactionMessage);
+
+                    //vacRepo.CheckRequestStatus(requestId);
 
                     return "Reaction added successfully.";
                 });

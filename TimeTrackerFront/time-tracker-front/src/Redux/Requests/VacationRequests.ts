@@ -6,6 +6,9 @@ import {GetAjaxObservable} from "./TimeRequests";
 import {TimeRequest} from "../Types/Time";
 import App from "../../App";
 import {VacationRequest} from "../Types/VacationRequest";
+import {vacationState} from "../Slices/VacationSlice";
+import {InputVacationRequest} from "../Types/InputVacationRequest";
+import {InputApproverReaction} from "../Types/InputApproverReaction";
 
 const url = "https://localhost:7226/graphql";
 
@@ -160,6 +163,46 @@ export function RequestVacationRequestsByRequesterId(requesterId: Number): Obser
     );
 }
 
+
+interface GraphQlIncomingVacationRequests {
+    data: {
+        vacation: {
+            vacationRequest: VacationRequest[]
+        }
+    }
+}
+
+export function RequestIncomingVacationRequestsByApproverId(approverId: Number): Observable<VacationRequest[]> {
+    return ajax<GraphQlIncomingVacationRequests>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                query vacationRequest($approverId:Int!){
+                    vacation{
+                        vacationRequest(approverId:$approverId){
+                            id, requesterId, infoAboutRequest, status, startDate, endDate, requester {
+        id, login, fullName, email
+      }
+                        }
+                    }
+                }
+            `,
+            variables: {
+                "approverId": Number(approverId)
+            }
+
+        })
+    }).pipe(
+        map(res => {
+            return res.response.data.vacation.vacationRequest;
+        })
+    );
+}
+
 interface GraphQlApproverNodes {
     data: {
         vacation: {
@@ -195,9 +238,162 @@ export function RequestApproversReaction(requestId: Number): Observable<Approver
         })
     }).pipe(
         map(res => {
-            console.log("res")
-            console.log(res.response)
             return res.response.data.vacation.approversReaction;
+        })
+    );
+}
+
+interface GraphQlAddApproverReaction {
+    data: {
+        vacation: {
+            addApproverReaction: string
+        }
+    }
+}
+
+
+export function RequestAddApproverReaction(inputApproverReaction:InputApproverReaction){
+    return ajax<GraphQlAddApproverReaction>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                mutation addApproverReaction($approverUserId:Int!,$requestId:Int!,$reaction: Boolean!, $reactionMessage: String!){
+                    vacation{
+                        addApproverReaction(approverUserId: $approverUserId, requestId: $requestId, reaction: $reaction, reactionMessage:$reactionMessage)
+                    }
+                }
+            `,
+            variables: {
+                "approverUserId":Number(inputApproverReaction.approverId),
+                "requestId": Number(inputApproverReaction.requestId),
+                "reaction": Boolean(inputApproverReaction.reaction),
+                "reactionMessage": String(inputApproverReaction.reactionMessage),
+            }
+
+        })
+    }).pipe(
+        map(res => {
+
+            return res.response.data.vacation.addApproverReaction;
+        })
+    );
+}
+
+
+
+
+interface GraphQlCancelVacationRequest {
+    data: {
+        vacation: {
+            cancelVacationRequest: string
+        }
+    }
+}
+
+
+export function RequestCancelVacationRequest(vacationRequest:VacationRequest){
+    return ajax<GraphQlCancelVacationRequest>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                mutation cancelVacationRequest($requestId:Int!){
+                    vacation{
+                        cancelVacationRequest(requestId:$requestId)
+                    }
+                }
+            `,
+            variables: {
+                "requestId": Number(vacationRequest.id)
+            }
+
+        })
+    }).pipe(
+        map(res => {
+
+            return res.response.data.vacation.cancelVacationRequest;
+        })
+    );
+}
+
+interface GraphQlDeleteVacationRequest {
+    data: {
+        vacation: {
+            deleteVacationRequest: string
+        }
+    }
+}
+
+
+export function RequestDeleteVacationRequest(vacationRequest:VacationRequest){
+    return ajax<GraphQlDeleteVacationRequest>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                mutation deleteVacationRequest($requestId:Int!){
+                    vacation{
+                        deleteVacationRequest(requestId:$requestId)
+                    }
+                }
+            `,
+            variables: {
+                "requestId": Number(vacationRequest.id)
+            }
+
+        })
+    }).pipe(
+        map(res => {
+            return res.response.data.vacation.deleteVacationRequest;
+        })
+    );
+}
+
+interface GraphQlCreateVacationRequest {
+    data: {
+        vacation: {
+            createVacationRequest: string
+        }
+    }
+}
+
+
+export function RequestCreateVacationRequest(vacationRequest:InputVacationRequest){
+    return ajax<GraphQlCreateVacationRequest>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: `
+                mutation createVacationRequest($requesterId:Int!, $infoAboutRequest: String!, $startDate: DateTime!, $endDate: DateTime!){
+                    vacation{
+                        createVacationRequest(requesterId:$requesterId, infoAboutRequest: $infoAboutRequest, startDate: $startDate, endDate:$endDate )
+                    }
+                }
+            `,
+            variables: {
+                "requesterId": Number(vacationRequest.requesterId),
+                "infoAboutRequest": vacationRequest.infoAboutRequest,
+                "startDate": vacationRequest.startDate.toISOString(),
+                "endDate": vacationRequest.endDate.toISOString(),
+            }
+
+        })
+    }).pipe(
+        map(res => {
+            return res.response.data.vacation.createVacationRequest;
         })
     );
 }

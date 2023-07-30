@@ -7,6 +7,8 @@ namespace TimeTracker.Repositories
     {
         void AddApprover(int approverId, int requesterId);
         void AddVacationRequest(VacationRequest request);
+        void CancelVacationRequest(int requestId);
+        void CheckRequestStatus(int requestId);
         void DeleteApprover(int approverId, int requesterId);
         void DeleteVacationRequest(int id);
         List<ApproverNode> GetApproverNodes(int UserApproverId, int UserRequestId);
@@ -21,7 +23,7 @@ namespace TimeTracker.Repositories
         VacationRequest GetVacationRequest(int id);
         List<VacationRequest> GetVacationRequestsByApproverId(int approverId);
         List<VacationRequest> GetVacationRequestsByRequesterId(int requesterId);
-        void UpdateApproverReaction(int approverUserId, int requestId, bool reaction);
+        void UpdateApproverReaction(int approverUserId, int requestId, bool reaction, string reactionMessage);
         void UpdateRequestDetailsToApprovers(int userRequesterId, int requestId);
         void UpdateVacationRequestStatus(int requestId, string status);
     }
