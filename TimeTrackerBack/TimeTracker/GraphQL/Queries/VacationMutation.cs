@@ -14,17 +14,17 @@ namespace TimeTracker.GraphQL.Queries
 
             Field<StringGraphType>("createVacationRequest")
                 .Argument<NonNullGraphType<IntGraphType>>("requesterId")
-                .Argument<NonNullGraphType<StringGraphType>>("infoAboutRequest")
+                .Argument<StringGraphType>("infoAboutRequest")
                 .Argument<NonNullGraphType<DateTimeGraphType>>("startDate")
                 .Argument<NonNullGraphType<DateTimeGraphType>>("endDate")
                 .Resolve(context =>
                 {
                     int requesterId = context.GetArgument<int>("requesterId");
-                    string infoAboutRequest = context.GetArgument<string>("infoAboutRequest");
+                    string? infoAboutRequest = context.GetArgument<string>("infoAboutRequest");
                     DateTime startDate = context.GetArgument<DateTime>("startDate");
                     DateTime endDate = context.GetArgument<DateTime>("endDate");
 
-                    if (requesterId != 0 && infoAboutRequest != null && infoAboutRequest != "")
+                    if (requesterId != 0)
                     {
                         VacationRequest request = new VacationRequest();
                         request.RequesterId = requesterId;
