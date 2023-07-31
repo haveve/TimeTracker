@@ -7,7 +7,6 @@ import Userslist from './UsersList';
 import AppNavbar from './Navbar';
 import UserDetails from './UserDetails';
 import CreateUser from './CreateUser';
-import UserPermissions from './UserPermissions';
 import UserProfile from './UserProfile';
 import { getTokenOrNavigate } from '../Login/Api/login-logout';
 import TimeStatistic from "./TimeStatistic"
@@ -32,10 +31,6 @@ const router = createBrowserRouter([
       {
         path: "/Users/:userId",
         element: <UserDetails />
-      },
-      {
-        path: "/UserPermissions/:userId",
-        element: <UserPermissions />
       },
       {
         path: "/CreateUser",

@@ -177,6 +177,13 @@ export function RequestUser(Id: Number): Observable<User> {
                         id
                         login
                         fullName
+                        cRUDUsers
+                        viewUsers
+                        editWorkHours
+                        editPermiters
+                        importExcel
+                        controlPresence
+                        controlDayOffs
                         daySeconds
                         weekSeconds
                         monthSeconds

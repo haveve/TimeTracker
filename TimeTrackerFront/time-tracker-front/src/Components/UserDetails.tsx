@@ -8,16 +8,25 @@ import { deleteUser } from '../Redux/epics';
 import { getUsers } from '../Redux/epics';
 import TimeManage from './TimeManage';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
-import { RequestUser } from '../Redux/Requests/UserRequests';
+import { RequestUpdateUserPermissions, RequestUser, RequestUserPermissions } from '../Redux/Requests/UserRequests';
 import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
 import { User } from '../Redux/Types/User';
+import { Permissions } from '../Redux/Types/Permissions';
 
 function UserDetails() {
   const { userId = "" } = useParams();
   const [showDelete, setShowDelete] = useState(false);
+  const [showPermissions, setShowPermissions] = useState(false);
   const [user, setUser] = useState({} as User);
   const [totalWorkTime, setTotalWorkTime] = useState(0);
 
+  const [cRUDUsers, setCRUDUsers] = useState(false)
+  const [editPermiters, setEditPermiters] = useState(false)
+  const [viewUsers, setViewUsers] = useState(false)
+  const [editWorkHours, setEditWorkHours] = useState(false)
+  const [importExcel, setImportExcel] = useState(false)
+  const [controlPresence, setControlPresence] = useState(false)
+  const [controlDayOffs, setControlDayOffs] = useState(false)
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -34,8 +43,34 @@ function UserDetails() {
   const handleCloseDelete = () => setShowDelete(false);
   const handleShowDelete = () => setShowDelete(true);
 
+  const handleClosePermissions = () => setShowPermissions(false);
   const handleShowPermissions = () => {
-    navigate("/UserPermissions/" + userId);
+    RequestUserPermissions(parseInt(userId)).subscribe((x) => {
+      setCRUDUsers(x.cRUDUsers)
+      setEditPermiters(x.editPermiters)
+      setViewUsers(x.viewUsers)
+      setEditWorkHours(x.editWorkHours)
+      setImportExcel(x.importExcel)
+      setControlPresence(x.controlPresence)
+      setControlDayOffs(x.controlDayOffs)
+    })
+    setShowPermissions(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const Permissions: Permissions = {
+      id: parseInt(userId),
+      cRUDUsers: cRUDUsers,
+      editPermiters: editPermiters,
+      viewUsers: viewUsers,
+      editWorkHours: editWorkHours,
+      importExcel: importExcel,
+      controlPresence: controlPresence,
+      controlDayOffs: controlDayOffs
+    }
+    RequestUpdateUserPermissions(Permissions).subscribe()
+    handleClosePermissions()
   }
 
   const handleUserDelete = () => {
@@ -74,7 +109,7 @@ function UserDetails() {
                       {TimeForStatisticFromSeconds(user.monthSeconds!)}
                     </div>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success'/>
+                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success' />
                       {TimeForStatisticFromSeconds(totalWorkTime)}
                     </div>
                   </span>
@@ -104,6 +139,78 @@ function UserDetails() {
               <Button variant="secondary" onClick={handleCloseDelete}>Cancel</Button>
               <Button variant="danger" onClick={handleUserDelete}>Delete</Button>
             </Modal.Footer>
+          </Modal>
+          <Modal
+            show={showPermissions}
+            backdrop="static"
+            keyboard={false}
+            centered
+            data-bs-theme="dark"
+            onHide={handleClosePermissions}
+          >
+
+            <Form onSubmit={(e) => handleSubmit(e)}>
+              <Modal.Header closeButton>
+                <Modal.Title>Permissions</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <InputGroup className="mb-3 d-flex flex-column">
+                  <Form.Check
+                    type="switch"
+                    id="custom-switch-1"
+                    label="View users"
+                    checked={viewUsers}
+                    onClick={() => { setViewUsers(!viewUsers); }}
+                  />
+                  <Form.Check
+                    type="switch"
+                    id="custom-switch-2"
+                    label="Import excell"
+                    checked={importExcel}
+                    onClick={() => { setImportExcel(!importExcel) }}
+                  />
+                  <Form.Check
+                    type="switch"
+                    id="custom-switch-3"
+                    label="Manage users"
+                    checked={cRUDUsers}
+                    onClick={() => { setCRUDUsers(!cRUDUsers) }}
+                  />
+                  <Form.Check
+                    type="switch"
+                    id="custom-switch-4"
+                    label="Manage permiters"
+                    checked={editPermiters}
+                    onClick={() => { setEditPermiters(!editPermiters) }}
+                  />
+                  <Form.Check
+                    type="switch"
+                    id="custom-switch-5"
+                    label="Manage work hours"
+                    checked={editWorkHours}
+                    onClick={() => { setEditWorkHours(!editWorkHours) }}
+                  />
+                  <Form.Check
+                    type="switch"
+                    id="custom-switch-6"
+                    label="Manage presence"
+                    checked={controlPresence}
+                    onClick={() => { setControlPresence(!controlPresence) }}
+                  />
+                  <Form.Check
+                    type="switch"
+                    id="custom-switch-7"
+                    label="Manage day offs"
+                    checked={controlDayOffs}
+                    onClick={() => { setControlDayOffs(!controlDayOffs) }}
+                  />
+                </InputGroup>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleClosePermissions}>Cancel</Button>
+                <Button variant="success" type="submit">Update</Button>
+              </Modal.Footer>
+            </Form>
           </Modal>
         </>
       )
