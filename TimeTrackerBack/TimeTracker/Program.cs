@@ -60,17 +60,17 @@ builder.Services.AddSingleton<ISchema, IdentitySchema>(services =>
     return scheme;
 });
 
-builder.Services.AddSingleton<ISchema, VacationSchema>(services =>
+/*builder.Services.AddSingleton<ISchema, VacationSchema>(services =>
 {
     var scheme = new VacationSchema(new SelfActivatingServiceProvider(services));
     return scheme;
-});
+});*/
 builder.Services.AddSingleton<ObjectGraphType<VacationRequest>, VacationRequestType>();
 
 builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                   .AddSchema<UserShema>()
                                   .AddSchema<IdentitySchema>()
-                                  .AddSchema<VacationSchema>()
+                                  //.AddSchema<VacationSchema>()
                                   .AddAuthorization(setting =>
                                   {
                                       setting.AddPolicy("CRUDUsers", p => p.RequireClaim("CRUDUsers", "True"));
@@ -84,7 +84,7 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                   })
                                   .AddGraphTypes(typeof(UserShema).Assembly)
                                   .AddGraphTypes(typeof(IdentitySchema).Assembly)
-                                  .AddGraphTypes(typeof(VacationSchema).Assembly)
+                                  //.AddGraphTypes(typeof(VacationSchema).Assembly)
                                   );
 
 

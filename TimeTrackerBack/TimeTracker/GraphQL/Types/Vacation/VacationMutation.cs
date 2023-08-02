@@ -3,7 +3,7 @@ using GraphQL.Types;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 
-namespace TimeTracker.GraphQL.Queries
+namespace TimeTracker.GraphQL.Types.Vacation
 {
     public class VacationMutation : ObjectGraphType
     {

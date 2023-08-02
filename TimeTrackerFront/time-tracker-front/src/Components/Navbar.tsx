@@ -38,7 +38,7 @@ function AppNavbar() {
 
   return (
     <Container fluid className='p-0 m-0 h-100'>
-      <Navbar expand={false} className="bg-black height-header">
+      <Navbar expand={false} className="bg-black">
         <Container fluid className='justify-content-start'>
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-false`} />
           <Navbar.Brand as={Link} to={"/"} className='ms-1'>TimeTracker</Navbar.Brand>

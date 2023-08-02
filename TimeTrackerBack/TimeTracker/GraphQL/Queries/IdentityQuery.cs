@@ -24,13 +24,16 @@ namespace TimeTracker.GraphQL.Queries
                 var userRepository = context.RequestServices.GetService<IUserRepository>();
 
                 var user = userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
-
-                
                 if (user == null)
                 {
                     throw new Exception("User does not exist");
                 }
 
+                if(user.Enabled != true)
+                {
+                    context.Errors.Add(new ExecutionError("User was disabled"));
+                    return null;
+                }
                 var jwt = new JwtSecurityToken(
                 issuer: configuration["JWT:Author"],
                 audience: configuration["JWT:Audience"],

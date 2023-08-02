@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { InputGroup, Form, Button, Card, Modal, ProgressBar, Row, Col } from "react-bootstrap";
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from "../Redux/store";
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../Redux/store';
 import '../Custom.css';
-import { deleteUser } from '../Redux/epics';
-import { getUsers } from '../Redux/epics';
-import TimeManage from './TimeManage';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
-import { RequestUpdateUserPermissions, RequestUser, RequestUserPermissions } from '../Redux/Requests/UserRequests';
+import { RequestDisableUser, RequestUpdateUserPermissions, RequestUser, RequestUserPermissions } from '../Redux/Requests/UserRequests';
 import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
 import { User } from '../Redux/Types/User';
 import { Permissions } from '../Redux/Types/Permissions';
 
 function UserDetails() {
   const { userId = "" } = useParams();
-  const [showDelete, setShowDelete] = useState(false);
+  const [showDisable, setShowDisable] = useState(false);
   const [showPermissions, setShowPermissions] = useState(false);
   const [user, setUser] = useState({} as User);
   const [totalWorkTime, setTotalWorkTime] = useState(0);
@@ -31,6 +28,8 @@ function UserDetails() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  let currentUser = useSelector((state: RootState) => state.currentUser.User);
+
   useEffect(() => {
     RequestUser(parseInt(userId)).subscribe((x) => {
       setUser(x);
@@ -40,8 +39,8 @@ function UserDetails() {
     })
   }, []);
 
-  const handleCloseDelete = () => setShowDelete(false);
-  const handleShowDelete = () => setShowDelete(true);
+  const handleCloseDisable = () => setShowDisable(false);
+  const handleShowDisable = () => setShowDisable(true);
 
   const handleClosePermissions = () => setShowPermissions(false);
   const handleShowPermissions = () => {
@@ -73,9 +72,9 @@ function UserDetails() {
     handleClosePermissions()
   }
 
-  const handleUserDelete = () => {
-    dispatch(deleteUser(parseInt(userId)));
-    navigate("/Users")
+  const handleUserDisable = () => {
+    RequestDisableUser(parseInt(userId)).subscribe()
+    handleCloseDisable()
   }
   return (
 
@@ -91,11 +90,28 @@ function UserDetails() {
             <Card.Body className='d-flex flex-column'>
               <Row className='mb-3'>
                 <Col>
-                  <p className='m-0 fs-5'>{user.fullName}</p>
-                  <p className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</p>
+                  <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 h-100 bg-darkgray'>
+                    <p className='m-0 fs-5 text-white'>{user.fullName}</p>
+                    <p className="m-0 fs-6 text-secondary">@{user.login}</p>
+                    <p className="m-0 fs-6 text-secondary">{user.email}</p>
+                    {user.enabled == false ?
+                      <p className='m-0 mt-auto text-danger'>User disabled</p>
+                      :
+                      <>
+                        {currentUser.cRUDUsers ?
+                          <InputGroup className='mt-auto'>
+                            <Button variant='outline-secondary' onClick={handleShowPermissions}>Permissions</Button>
+                            <Button variant='outline-secondary' onClick={handleShowDisable}>Disable</Button>
+                          </InputGroup>
+                          :
+                          <></>
+                        }
+                      </>
+                    }
+                  </span>
                 </Col>
                 <Col>
-                  <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100'>
+                  <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                       <p className='m-0'>Worked today</p>
                       {TimeForStatisticFromSeconds(user.daySeconds!)}
@@ -116,28 +132,26 @@ function UserDetails() {
                 </Col>
               </Row>
               <div className='ms-auto'>
-                <Button variant='outline-secondary me-2' onClick={handleShowPermissions}>Permissions</Button>
-                <Button variant='outline-danger' onClick={handleShowDelete}>Delete</Button>
               </div>
             </Card.Body>
           </Card>
           <Modal
-            show={showDelete}
-            onHide={handleCloseDelete}
+            show={showDisable}
+            onHide={handleCloseDisable}
             backdrop="static"
             keyboard={false}
             centered
             data-bs-theme="dark"
           >
             <Modal.Header closeButton>
-              <Modal.Title>Delete user @{user.login}</Modal.Title>
+              <Modal.Title>Disable user @{user.login}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              Are you sure you want to delete user?
+              Are you sure you want to disable user {user.fullName}?
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={handleCloseDelete}>Cancel</Button>
-              <Button variant="danger" onClick={handleUserDelete}>Delete</Button>
+              <Button variant="secondary" onClick={handleCloseDisable}>Cancel</Button>
+              <Button variant="danger" onClick={handleUserDisable}>Disable</Button>
             </Modal.Footer>
           </Modal>
           <Modal
@@ -218,7 +232,7 @@ function UserDetails() {
           <p>User not found</p>
         )
       }
-    </div>
+    </div >
   );
 }
 

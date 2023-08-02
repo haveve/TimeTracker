@@ -14,8 +14,9 @@ export interface User {
     daySeconds?: number,
     weekSeconds?: number,
     monthSeconds?: number,
-    workHours?: number
-    timeManagedBy?:LasUpdatedBy
+    workHours?: number,
+    timeManagedBy?:LasUpdatedBy,
+    enabled?: boolean
 }
 
 export enum LasUpdatedBy

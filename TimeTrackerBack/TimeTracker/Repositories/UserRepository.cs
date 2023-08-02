@@ -24,16 +24,12 @@ namespace TimeTracker.Repositories
                 return db.Query<User>("SELECT * FROM Users").ToList();
             }
         }
-        public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string filterfield, int minhours, int maxhours)
+        public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string enabled)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                if (orderfield != null)
-                {
-                    return db.Query<User>($"SELECT * FROM Users WHERE Login LIKE '%{search}%' OR FullName LIKE '%{search}%' ORDER BY {orderfield} {order}").ToList();
-                }
-                return db.Query<User>($"SELECT * FROM Users WHERE (Login LIKE '%{search}%' OR FullName LIKE '%{search}%') " +
-                    $"AND ({filterfield} >= {minhours} AND {filterfield} <= {maxhours}) ORDER BY Id {order}").ToList();
+                if (orderfield == null) orderfield = "Id";
+                return db.Query<User>($"SELECT * FROM Users WHERE (Login LIKE '%{search}%' OR FullName LIKE '%{search}%') AND (Enabled LIKE {enabled}) ORDER BY {orderfield} {order}").ToList();
             }
         }
         public List<User> GetUsersByFullName(string FullName)
@@ -154,6 +150,14 @@ namespace TimeTracker.Repositories
             {
                 var sqlQuery = "UPDATE Users SET CRUDUsers = @CRUDUsers, EditPermiters = @EditPermiters, ViewUsers = @ViewUsers, EditWorkHours = @EditWorkHours, ImportExcel = @ImportExcel, ControlPresence = @ControlPresence, ControlDayOffs = @ControlDayOffs WHERE Id = @Id";
                 db.Execute(sqlQuery, permissions);
+            }
+        }
+        public void DisableUser(int id)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                var sqlQuery = "UPDATE Users SET Enabled = 0 WHERE Id = @id";
+                db.Execute(sqlQuery, new { id });
             }
         }
         public void DeleteUser(int id)

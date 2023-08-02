@@ -25,6 +25,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field(t => t.WeekSeconds, nullable: false);
             Field(t => t.MonthSeconds, nullable: false);
             Field(t => t.TimeManagedBy, nullable: false);
+            Field(i => i.Enabled, type: typeof(BooleanGraphType));
         }
     }
 }
