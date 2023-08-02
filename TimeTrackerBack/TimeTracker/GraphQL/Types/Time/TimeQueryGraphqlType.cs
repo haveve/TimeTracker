@@ -20,16 +20,17 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             Field<TimeWithFlagOutPutGraphql>("getTime")
                 .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")
                 .Argument<NonNullGraphType<IntGraphType>>("pageNumber")
+                .Argument<IntGraphType>("offSet")
                 .Argument<NonNullGraphType<IntGraphType>>("itemsInPage")
                 .Resolve(context =>
                 {
                     int pageNumber = context.GetArgument<int>("pageNumber");
                     int itemsInPage = context.GetArgument<int>("itemsInPage");
                     var timeMark = context.GetArgument<List<TimeMark>>("timeMark");
-
+                    var offSet = context.GetArgument<int?>("offSet")??0;
                     var userId = GetUserIdFromClaims(context.User!);
                     var time = _timeRepository.GetTime(userId);
-                    return GetTimeFromSession(time, timeMark, itemsInPage, pageNumber);
+                    return GetTimeFromSession(time, timeMark, offSet, itemsInPage, pageNumber);
                 });
             Field<IntGraphType>("getTotalWorkTime")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
@@ -40,7 +41,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 });
         }
 
-        public static TimeWithFlagViewModel GetTimeFromSession(List<Models.Time>? sessions, List<TimeMark> timeMarks,int itemsInPage = int.MaxValue, int pageNumber = 0)
+        public static TimeWithFlagViewModel GetTimeFromSession(List<Models.Time>? sessions, List<TimeMark> timeMarks,int offSet ,int itemsInPage = int.MaxValue, int pageNumber = 0)
         {
             var time = new TimeWithFlagViewModel();
             time.Time = new();
@@ -60,7 +61,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 {
 
                     var seconds = (session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds;
-                    if (session.StartTimeTrackDate.DayOfYear <= DateTime.Now.DayOfYear && DateTime.Now.DayOfYear <= ((DateTime)session.EndTimeTrackDate).DayOfYear)
+                    if (session.StartTimeTrackDate.AddHours(offSet).DayOfYear <= DateTime.Now.AddHours(offSet).DayOfYear && DateTime.Now.AddHours(offSet).DayOfYear <= ((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear)
                     {
                         timeSession.TimeMark = TimeMark.Day;
                         time.Time.DaySeconds += (int)seconds;
@@ -68,7 +69,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                         time.Time.MonthSeconds += (int)seconds;
 
                     }
-                    else if (Math.Ceiling((decimal)session.StartTimeTrackDate.DayOfYear / 7) <= Math.Ceiling((decimal)DateTime.Now.DayOfYear / 7) && Math.Ceiling((decimal)DateTime.Now.DayOfYear / 7) <= Math.Ceiling((decimal)((DateTime)session.EndTimeTrackDate).DayOfYear / 7))
+                    else if (Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear/ 7) <= Math.Ceiling((decimal)DateTime.Now.AddHours(offSet).DayOfYear / 7) && Math.Ceiling((decimal)DateTime.Now.AddHours(offSet).DayOfYear / 7) <= Math.Ceiling((decimal)((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear / 7))
                     {
                         timeSession.TimeMark = TimeMark.Week;
                         time.Time.WeekSeconds += (int)seconds;

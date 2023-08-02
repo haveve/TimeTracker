@@ -101,28 +101,30 @@ export const deleteUserEpic: Epic = (action$: Observable<PayloadAction<number>>)
 export interface TimePayloadType{
     timeMark:TimeMark[],
     pageNumber:number,
-    itemsInPage:number
+    itemsInPage:number,
+    offset:number
 }
 
-export const setTimeE = (timeMark:TimeMark[],pageNumber:number,itemsInPage:number) => ({type: "setTime",payload:{
-    timeMark,pageNumber,itemsInPage
+export const setTimeE = (timeMark:TimeMark[],pageNumber:number,itemsInPage:number,offset:number) => ({type: "setTime",payload:{
+    timeMark,pageNumber,itemsInPage,offset
 }})
 export const setTimeEpic: Epic = (action$:Observable<PayloadAction<TimePayloadType>>)=> {
     return action$.pipe(
         ofType("setTime"),
         map(a=>a.payload),
-        mergeMap((p) => RequestGetTime(p.timeMark,p.pageNumber,p.itemsInPage).pipe(
+        mergeMap((p) => RequestGetTime(p.timeMark,p.pageNumber,p.itemsInPage,p.offset).pipe(
             map((res: TimeResponse) => setTime(res)),
             catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
         )),
     )
 };
 
-export const setStartTimeE = () => ({type: "setStartTime"})
-export const setStartTimeEpic: Epic = (action$)=> {
+export const setStartTimeE = (offset:number) => ({type: "setStartTime",payload:offset})
+export const setStartTimeEpic: Epic = (action$:Observable<PayloadAction<number>>)=> {
     return action$.pipe(
         ofType("setStartTime"),
-        mergeMap(() => RequestSetStartDate().pipe(
+        map(a=>a.payload),
+        mergeMap((offset) => RequestSetStartDate(offset).pipe(
             map((res) => setStartTime(res)),
             catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
         )),
@@ -130,11 +132,12 @@ export const setStartTimeEpic: Epic = (action$)=> {
 };
 
 
-export const setEndTimeE = () => ({type: "setEndTime"})
-export const setEndTimeEpic: Epic = (action$)=> {
+export const setEndTimeE = (offset:number) => ({type: "setEndTime",payload:offset})
+export const setEndTimeEpic: Epic = (action$:Observable<PayloadAction<number>>)=> {
     return action$.pipe(
         ofType("setEndTime"),
-        mergeMap(() => RequestSetEndDate().pipe(
+        map(a=>a.payload),
+        mergeMap((offset) => RequestSetEndDate(offset).pipe(
             map((res) => setEndTime(res)),
             catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
         )),

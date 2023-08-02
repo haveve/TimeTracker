@@ -23,6 +23,11 @@ export default function TimeTracker() {
     const [localTimeInSeconds, setLocalTimeInSeconds] = useState(0)
 
     const dispatch = useDispatch();
+
+    const offset = useSelector((state: RootState) => {
+        return state.location.userOffset;
+    });
+
     const status = useSelector((state: RootState) => {
         return state.time.status;
     });
@@ -54,11 +59,11 @@ export default function TimeTracker() {
         <Button variant={isSuccessOrIdle ? "success" : "dark"} disabled={isSuccessOrIdle ? false : true} className='m-5 my-0 ' onClick={() => {
 
             if (!isStarted) {
-                dispatch(setStartTimeE())
+                dispatch(setStartTimeE(offset))
             }
             else {
 
-                dispatch(setEndTimeE())
+                dispatch(setEndTimeE(offset))
                 unsubTimer.unsubscribe();
             }
 

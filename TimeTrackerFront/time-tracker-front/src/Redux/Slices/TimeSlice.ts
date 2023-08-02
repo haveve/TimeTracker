@@ -1,6 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {TimeMark, TimeResponse } from "../Types/Time";
 import { itemsInPage } from "../../Components/TimeStatistic";
+import {LocationSlicer} from "./LocationSlice";
+import { locationOffset } from "./LocationSlice";
+import { ChangeLocationPayload,Location,officeTimeZone } from "./LocationSlice";
+import { act } from "@testing-library/react";
+import { LocationPayload } from "./LocationSlice";
 
 export type statusType = "idle" | "error" | "success" | "loading";
 
@@ -69,6 +74,20 @@ export const timeSlicer = createSlice({
             state.time.isStarted = !state.time.isStarted;
         }
     },
+    extraReducers:{
+        [LocationSlicer.actions.changeLocation.type]:(state,action:PayloadAction<ChangeLocationPayload>)=>{
+            state.time.time.sessions.forEach(v=>{
+                v.endTimeTrackDate = v.endTimeTrackDate?new Date(new Date(v.endTimeTrackDate).getTime() + (action.payload.newOffSet-action.payload.oldOffSet)*60000 ):v.endTimeTrackDate
+                v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + (action.payload.newOffSet-action.payload.oldOffSet)*60000) 
+            })
+        },
+        [LocationSlicer.actions.setLocation.type]:(state,action:PayloadAction<LocationPayload>)=>{
+            state.time.time.sessions.forEach(v=>{
+                v.endTimeTrackDate = v.endTimeTrackDate?new Date(new Date(v.endTimeTrackDate).getTime() + (action.payload.userOffset-action.payload.oldOffset)*60000 ):v.endTimeTrackDate
+                v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + (action.payload.userOffset-action.payload.oldOffset)*60000) 
+            })
+        },
+    }
 })
 
 export const timeSlicerAction = timeSlicer.actions;

@@ -4,7 +4,7 @@ import { CalendarDay } from "../Types/Calendar";
 import { CalendarDayRequest } from "../Types/Calendar";
 import { MonthOrWeek } from "../../Components/Calendar";
 import { ajax } from "rxjs/ajax";
-import { locationOffset } from "../../Components/Calendar";
+import { locationOffset } from "../Slices/LocationSlice";
 import exp from "constants";
 
 interface GraphqlCalendar {
@@ -35,7 +35,6 @@ export function GetLocation(): Observable<GeologationType> {
           console.error(JSON.stringify(res.response))
           throw "error"
         }
-
         return res.response
       })
     )
