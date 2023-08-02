@@ -12,52 +12,33 @@ namespace TimeTracker.Repositories
         {
             _dapperContext = context;
         }
-        public Time GetTime(int userId)
+        public List<Models.Time>? GetTime(int userId)
         {
-            string query = $"SELECT ToDayDate, DaySeconds, WeekSeconds, MonthSeconds, StartTimeTrackDate, EndTimeTrackDate  FROM Users WHERE Id = {userId}";
+            string query = $"SELECT * FROM UserTime WHERE UserId = {userId}";
             using var connection = _dapperContext.CreateConnection();
 
-            var time = connection.QuerySingle<Time>(query);
+            var time = connection.Query<Models.Time>(query).ToList();
             return time;
         }
 
-        public void UpdateTime(Time time, int userId, UpdateTimeE updateTime)
+        public void SetEndTrackDate(DateTime date, int userId)
         {
-            string query = "";
-
-            switch (updateTime)
-            {
-                case UpdateTimeE.FullTime:
-                    query =
-                       @$"UPDATE Users SET TodayDate = @TodayDate, DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, StartTimeTrackDate = @StartTimeTrackDate, EndTimeTrackDate = @EndTimeTrackDate";
-                    if(time.EndTimeTrackDate != null)
-                    {
-                        query += ", TimeManagedBy = 1";
-                        time.StartTimeTrackDate = null;
-                        time.EndTimeTrackDate = null;
-                    }
-                    query += $" WHERE Id = {userId}";
-                    break;
-                case UpdateTimeE.OnlySeconds:
-                    query =
-                        @$"UPDATE Users SET DaySeconds = @DaySeconds, WeekSeconds = @WeekSeconds, MonthSeconds = @MonthSeconds, TimeManagedBy = 2 WHERE Id = {userId}";
-                    break;
-            }
+            string query = $"UPDATE TOP (1) UserTime SET EndTimeTrackDate = @date WHERE UserId = {userId} AND EndTimeTrackDate IS NULL ";
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query, time);
+            connection.Execute(query, new { date});
         }
 
-        public void SetStartOrEndTrackDate(StartOrEnd startOrEnd, DateTime date, int userId)
+        public void CreateTime(DateTime startDate, int userId)
         {
-            string query = "";
-            switch (startOrEnd)
-            {
-                case StartOrEnd.Start: query = $"UPDATE Users SET StartTimeTrackDate = @date WHERE Id = {userId}"; break;
-                case StartOrEnd.End: query = $"UPDATE Users SET EndTimeTrackDate = @date WHERE Id = {userId}"; break;
-            }
-
+            string query = "INSERT INTO UserTime (StartTimeTrackDate, UserId) VALUES (@startDate, @userId)";
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query, new { date });
+            connection.Execute(query, new {userId, startDate });
+        }
+        public void UpdateTime(DateTime oldStartDate, Models.Time time, int userId)
+        {
+            string query = $"UPDATE UserTime SET EndTimeTrackDate = @date StartTimeTrackDate = @date WHERE Id = {userId} AND StartTimeTrackDate = @oldStartDate";
+            using var connection = _dapperContext.CreateConnection();
+            connection.Execute(query, new { time.StartTimeTrackDate,time.EndTimeTrackDate,userId, oldStartDate });
         }
     }
     public enum LasUpdatedBy

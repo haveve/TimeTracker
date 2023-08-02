@@ -7,7 +7,6 @@ import { RequestUpdateUser, RequestUpdatePassword, RequestUser } from '../Redux/
 import { RootState } from '../Redux/store';
 import { getCurrentUser, getUsers } from '../Redux/epics';
 import { Error } from './Error';
-import TimeManage from './TimeManage';
 import '../Custom.css';
 import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
 import { getCookie } from '../Login/Api/login-logout';
@@ -147,7 +146,6 @@ function UserProfile() {
                                 </Col>
                             </Row>
                             <div className='flex flex-column'>
-                                <Button variant="outline-secondary mb-2" type="submit" onClick={() => setShowTimeManage(n => !n)}>Time Manage</Button>
                                 <Button variant='outline-secondary mb-2 mx-2' onClick={handleShowEdit}>Edit</Button>
                                 <Button variant='outline-secondary mb-2' onClick={handleShowPassword}>Change Password</Button>
                             </div>
@@ -224,8 +222,6 @@ function UserProfile() {
                             </Modal.Footer>
                         </Form>
                     </Modal>
-                    <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} setUser={setUser}></TimeManage>
-
                 </>
             )
                 : (

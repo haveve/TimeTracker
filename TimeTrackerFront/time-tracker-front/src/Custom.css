@@ -12089,4 +12089,6 @@ body {
 .calendar-head-color{
   background: #005f73 !important;
 }/*# sourceMappingURL=Custom.css.map */
-
+.dropdown-toggle::after {
+  display: none !important; 
+}

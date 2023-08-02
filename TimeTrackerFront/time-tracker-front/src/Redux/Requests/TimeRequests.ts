@@ -2,7 +2,7 @@ import { ajax } from "rxjs/internal/ajax/ajax";
 import { map, Observable } from "rxjs";
 import { User } from "../Types/User";
 import { getCookie} from "../../Login/Api/login-logout";
-import { Time, TimeResponse,TimeRequest } from "../Types/Time";
+import { Time, TimeResponse,TimeRequest,TimeMark } from "../Types/Time";
 import { response } from "../Types/ResponseType";
 import { Alert } from "react-bootstrap";
 
@@ -33,28 +33,37 @@ export function GetAjaxObservable<T>(query: string, variables: {},withCredential
     })
 }
 
-export function RequestGetTime(): Observable<TimeResponse> {
+export function RequestGetTime(timeMark:TimeMark[],pageNumber:number,itemsInPage:number): Observable<TimeResponse> {
     return GetAjaxObservable<GraphqlTime>(`
-    query{
+    query($timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
         time{
-          getTime{
+          getTime(timeMark:$timeMark,pageNumber:$pageNumber,itemsInPage:$itemsInPage){
+            itemsCount,
             isStarted,
-            time{
-              daySeconds,
-              weekSeconds,
-              monthSeconds
-            }
+          time{
+          daySeconds
+          weekSeconds
+          monthSeconds
+          sessions {
+            startTimeTrackDate
+            endTimeTrackDate
+            timeMark
           }
         }
       }
-    `, {}).pipe(
+        }
+      }
+    `, {timeMark,pageNumber,itemsInPage}).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-
             let time = res.response.data.time.getTime;
+            time.time.sessions.forEach(v=>{
+                v.endTimeTrackDate = v.endTimeTrackDate?new Date(v.endTimeTrackDate):v.endTimeTrackDate
+                v.startTimeTrackDate = new Date(v.startTimeTrackDate)
+            })
             return time;
         })
     );
@@ -86,8 +95,14 @@ export function RequestGetTotalWorkTime(id: number): Observable<number> {
     );
 }
 
-export function RequestSetStartDate(): Observable<string> {
-    return GetAjaxObservable<string>(`
+
+type setStartDate = {
+    time:{
+        setStartDate:Date
+      }
+}
+export function RequestSetStartDate(): Observable<Date> {
+    return GetAjaxObservable<setStartDate>(`
     mutation{
         time{
           setStartDate
@@ -99,13 +114,19 @@ export function RequestSetStartDate(): Observable<string> {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return res.response.data
+            return new Date (res.response.data.time.setStartDate)
         })
     );
 }
 
-export function RequestSetEndDate(): Observable<string> {
-    return GetAjaxObservable<string>(`
+type setEndDate = {
+    time:{
+        setEndDate:Date
+      }
+}
+
+export function RequestSetEndDate(): Observable<Date> {
+    return GetAjaxObservable<setEndDate>(`
     mutation{
         time{
           setEndDate
@@ -117,7 +138,7 @@ export function RequestSetEndDate(): Observable<string> {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return res.response.data
+            return new Date (res.response.data.time.setEndDate)
         })
     );
 }

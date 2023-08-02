@@ -13,15 +13,14 @@ import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
 import { setloadingStatus, setIdleStatus, statusType, setErrorStatusAndError } from '../Redux/Slices/TimeSlice';
-import { RequestSetStartDate, RequestSetEndDate } from '../Redux/Requests/TimeRequests';
-import { ErrorMassagePattern } from '../Redux/epics';
+import { ErrorMassagePattern,setStartTimeE,setEndTimeE } from '../Redux/epics';
 import { changeTimerState } from '../Redux/Slices/TimeSlice';
+import { TimeMark } from '../Redux/Types/Time';
 
 export default function TimeTracker() {
     const [buttonMassage, setButtonMassage] = useState("Start");
     const [unsubTimer, setUnsubTimer] = useState(new Subscription());
     const [localTimeInSeconds, setLocalTimeInSeconds] = useState(0)
-
 
     const dispatch = useDispatch();
     const status = useSelector((state: RootState) => {
@@ -32,11 +31,6 @@ export default function TimeTracker() {
         return state.time.time.isStarted;
     });
 
-    useEffect(() => {
-        dispatch(setloadingStatus());
-        dispatch(setTimeE());
-
-    }, [])
     useEffect(() => {
         if (isStarted) {
             const subscriber = timer(0, 1000).subscribe(n => {
@@ -60,18 +54,11 @@ export default function TimeTracker() {
         <Button variant={isSuccessOrIdle ? "success" : "dark"} disabled={isSuccessOrIdle ? false : true} className='m-5 my-0 ' onClick={() => {
 
             if (!isStarted) {
-                RequestSetStartDate().subscribe({
-                    next: () => { dispatch(setIdleStatus()); },
-                    error: () => { unsubTimer.unsubscribe(); dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
-                });
+                dispatch(setStartTimeE())
             }
             else {
 
-                RequestSetEndDate().subscribe({
-                    next: () => { dispatch(setIdleStatus()) },
-                    error: () => { dispatch(setErrorStatusAndError(ErrorMassagePattern)) }
-                });
-
+                dispatch(setEndTimeE())
                 unsubTimer.unsubscribe();
             }
 

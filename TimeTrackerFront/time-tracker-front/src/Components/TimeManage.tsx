@@ -49,7 +49,8 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
   const timeUser: Time = {
     daySeconds: props.User.daySeconds!,
     weekSeconds: props.User.weekSeconds!,
-    monthSeconds: props.User.monthSeconds!
+    monthSeconds: props.User.monthSeconds!,
+    sessions:[]
   }
 
   const [changedTime, setChangedTime] = useImmer({ ...timeUser })
@@ -171,7 +172,7 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
           </Col>
           <Col>
             <Alert className='p-1 text-center' variant='secondary'>
-              Current time for {FromIndexToString(selected)} <br /> {FullTimeFromSeconds(time)}
+              Current time for {FromIndexToString(selected)} <br /> {FullTimeFromSeconds(1)}
             </Alert>
           </Col>
         </Row>
@@ -234,7 +235,8 @@ export default function TimeManage(props: { isShowed: boolean, setShowed: (smth:
       let time = {
         daySeconds: 0,
         weekSeconds: 0,
-        monthSeconds: 0
+        monthSeconds: 0,
+        sessions:[]   
       }
 
       setChangedTime(time => {

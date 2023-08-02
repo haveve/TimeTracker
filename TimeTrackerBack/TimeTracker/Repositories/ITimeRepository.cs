@@ -5,18 +5,9 @@ namespace TimeTracker.Repositories
 {
     public interface ITimeRepository
     {
-        public Time GetTime(int userId);
-        public void UpdateTime(Time time,int userId, UpdateTimeE updateTime);
-        public void SetStartOrEndTrackDate(StartOrEnd startOrEnd,DateTime date, int userId);
-    }
-    public enum StartOrEnd
-    {
-        Start,
-        End
-    }
-    public enum UpdateTimeE
-    {
-        FullTime,
-        OnlySeconds
+        public List<Models.Time>? GetTime(int userId);
+        public void UpdateTime(DateTime oldStartDate,Models.Time time,int userId);
+        public void SetEndTrackDate(DateTime date, int userId);
+        public void CreateTime(DateTime startDate, int userId);
     }
 }

@@ -51,7 +51,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
             Field<NonNullGraphType<CalendarPageOutputGraphType>>("getCalendarUser")
                 .Argument<NonNullGraphType<IntGraphType>>("pageNumber")
                 .Argument<NonNullGraphType<IntGraphType>>("itemsInPage")
-                                .Argument<NonNullGraphType<StringGraphType>>("search")
+                .Argument<NonNullGraphType<StringGraphType>>("search")
                 .Resolve(context =>
                 {
                     string search = context.GetArgument<string>("search");
