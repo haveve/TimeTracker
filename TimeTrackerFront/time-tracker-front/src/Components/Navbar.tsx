@@ -26,7 +26,7 @@ import { RootState } from '../Redux/store';
 import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
 import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
 import '../Custom.css';
-import { setErrorStatusAndError as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
+import { setErrorStatusAndError as setErroMassageLocation,clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
 import { boolean } from 'yup';
 
@@ -63,7 +63,7 @@ function AppNavbar() {
           }))
           setCookie({ name: "canUseUserIp", value: 'true' })
         },
-        error: () => clearErroMassageLocation(ErrorMassagePattern)
+        error: () => setErroMassageLocation(ErrorMassagePattern)
       })
     }
     else if(!canUseUserIp){
@@ -181,14 +181,14 @@ return (
           }))
           setCookie({ name: "canUseUserIp", value: 'true' })
         },
-        error: () => clearErroMassageLocation(ErrorMassagePattern)
+        error: () => setErroMassageLocation(ErrorMassagePattern)
       })
     }} reject={() => {
       setCookie({ name: "canUseUserIp", value: 'false' })
     }}>{canUserApi}</CheckModalWindow>
     <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
     <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
-    <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
+    <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>
 
   </Container>
 );

@@ -19,8 +19,9 @@ import TimeTracker, { TimeStringFromSeconds } from './TimeTracker'
 import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
 import { getCookie } from '../Login/Api/login-logout';
 import { CalendarUserPage } from '../Redux/Requests/CalendarRequest';
-import { TimeMark } from '../Redux/Types/Time';
+import { Session, TimeMark } from '../Redux/Types/Time';
 import { setloadingStatus } from '../Redux/Slices/TimeSlice';
+import TimeManage from './TimeManage';
 
 export const itemsInPage = 3;
 
@@ -30,6 +31,9 @@ export default function TimeStatistic() {
 
     const [page, setPage] = useState(0);
     const [error, setError] = useState('');
+
+    const [selected, SetSelected] = useState<Session | null>(null);
+    const [show, setShow] = useState(false)
 
     const dispatch = useDispatch();
     const offset = useSelector((state: RootState) => {
@@ -145,7 +149,7 @@ export default function TimeStatistic() {
                             const image = <Image height={45} src={s.timeMark === TimeMark.Day ? dayImg : s.timeMark === TimeMark.Week ? weekImg : monthImg}></Image>
                             const bgColor = s.endTimeTrackDate ? "primary" : "danger";
                             const endDate = s.endTimeTrackDate ? s.endTimeTrackDate.toLocaleString() : "----------"
-                            return <Col className={`m-0 `} ><Alert className={`pt-3 ps-2 mb-2 m-0 p-2`} variant={bgColor}>
+                            return <Col className={`m-0 `} key={s.startTimeTrackDate.toISOString()} ><Alert className={`pt-3 ps-2 mb-2 m-0 p-2`} variant={bgColor}>
                                 <Row className='p-0 m-0'>
                                     <Col sm={1}>
                                         {image}
@@ -157,7 +161,10 @@ export default function TimeStatistic() {
                                         <span>End Date<br /><span>{endDate}</span></span>
                                     </Col>
                                     <Col sm={2} className='d-flex align-items-center justify-content-end ' >
-                                        <Button variant={`${s.endTimeTrackDate ? "outline-info" : "outline-danger"} h-75 my-2`} disabled={s.endTimeTrackDate ? false : true}>Edit</Button>
+                                        <Button variant={`${s.endTimeTrackDate ? "outline-info" : "outline-danger"} h-75 my-2`} disabled={s.endTimeTrackDate ? false : true} onClick={() => {
+                                            setShow(n => !n);
+                                            SetSelected(s);
+                                        }}>Edit</Button>
                                     </Col>
                                 </Row>
                             </Alert></Col>
@@ -168,6 +175,8 @@ export default function TimeStatistic() {
             <Col className='p-0 m-0 h-100' md={3} lg={3}>
                 <TimeTracker />
             </Col>
+            {selected != null ?
+                <TimeManage selected={selected!} setShow={setShow} isShowed = {show} setSelected={SetSelected}></TimeManage>:null}
         </Row>
     </Container>
 }

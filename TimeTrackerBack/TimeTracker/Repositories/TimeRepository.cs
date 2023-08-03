@@ -36,7 +36,7 @@ namespace TimeTracker.Repositories
         }
         public void UpdateTime(DateTime oldStartDate, Models.Time time, int userId)
         {
-            string query = $"UPDATE UserTime SET EndTimeTrackDate = @date StartTimeTrackDate = @date WHERE Id = {userId} AND StartTimeTrackDate = @oldStartDate";
+            string query = $"UPDATE UserTime SET EndTimeTrackDate = @EndTimeTrackDate, StartTimeTrackDate = @StartTimeTrackDate WHERE UserId = {userId} AND StartTimeTrackDate = @oldStartDate";
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query, new { time.StartTimeTrackDate,time.EndTimeTrackDate,userId, oldStartDate });
         }

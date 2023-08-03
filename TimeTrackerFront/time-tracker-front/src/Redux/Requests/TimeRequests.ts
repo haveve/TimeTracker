@@ -1,11 +1,13 @@
 import { ajax } from "rxjs/internal/ajax/ajax";
 import { map, Observable } from "rxjs";
 import { User } from "../Types/User";
-import { getCookie} from "../../Login/Api/login-logout";
-import { Time, TimeResponse,TimeRequest,TimeMark } from "../Types/Time";
+import { getCookie } from "../../Login/Api/login-logout";
+import { Time, TimeResponse, TimeRequest, TimeMark } from "../Types/Time";
 import { response } from "../Types/ResponseType";
 import { Alert } from "react-bootstrap";
 import { locationOffset } from "../Slices/LocationSlice";
+import { Session } from "../Types/Time";
+import { ErrorGraphql } from "../Slices/TimeSlice";
 
 interface GraphqlTime {
     time: {
@@ -17,7 +19,7 @@ const url = "https://localhost:7226/graphql";
 
 
 
-export function GetAjaxObservable<T>(query: string, variables: {},withCredentials = false) {
+export function GetAjaxObservable<T>(query: string, variables: {}, withCredentials = false) {
 
     return ajax<response<T>>({
         url,
@@ -34,7 +36,7 @@ export function GetAjaxObservable<T>(query: string, variables: {},withCredential
     })
 }
 
-export function RequestGetTime(timeMark:TimeMark[],pageNumber:number,itemsInPage:number,offset:number): Observable<TimeResponse> {
+export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number): Observable<TimeResponse> {
     return GetAjaxObservable<GraphqlTime>(`
     query($offset:Int,$timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
         time{
@@ -54,16 +56,16 @@ export function RequestGetTime(timeMark:TimeMark[],pageNumber:number,itemsInPage
       }
         }
       }
-    `, {offset:offset/60,timeMark,pageNumber,itemsInPage}).pipe(
+    `, { offset: offset / 60, timeMark, pageNumber, itemsInPage }).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
             let time = res.response.data.time.getTime;
-            time.time.sessions.forEach(v=>{
-                v.endTimeTrackDate = v.endTimeTrackDate?new Date(new Date(v.endTimeTrackDate).getTime()+offset*60000) :v.endTimeTrackDate
-                v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime()+offset*60000) 
+            time.time.sessions.forEach(v => {
+                v.endTimeTrackDate = v.endTimeTrackDate ? new Date(new Date(v.endTimeTrackDate).getTime() + offset * 60000) : v.endTimeTrackDate
+                v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + offset * 60000)
             })
             return time;
         })
@@ -83,7 +85,7 @@ export function RequestGetTotalWorkTime(id: number): Observable<number> {
             getTotalWorkTime(id: $id)
           }
         }
-    `, {id}).pipe(
+    `, { id }).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
@@ -98,63 +100,76 @@ export function RequestGetTotalWorkTime(id: number): Observable<number> {
 
 
 type setStartDate = {
-    time:{
-        setStartDate:Date
-      }
+    time: {
+        setStartDate: Date
+    }
 }
-export function RequestSetStartDate(offset:number): Observable<Date> {
+export function RequestSetStartDate(offset: number): Observable<Date> {
     return GetAjaxObservable<setStartDate>(`
     mutation{
         time{
           setStartDate
         }
       }
-    `, {},true).pipe(
+    `, {}, true).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return new Date(new Date (res.response.data.time.setStartDate).getTime() - (locationOffset - offset)*60000)
+            return new Date(new Date(res.response.data.time.setStartDate).getTime() - (locationOffset - offset) * 60000)
         })
     );
 }
 
 type setEndDate = {
-    time:{
-        setEndDate:Date
-      }
+    time: {
+        setEndDate: Date
+    }
 }
 
-export function RequestSetEndDate(offset:number): Observable<Date> {
+export function RequestSetEndDate(offset: number): Observable<Date> {
     return GetAjaxObservable<setEndDate>(`
     mutation{
         time{
           setEndDate
         }
       }
-    `, {},true).pipe(
+    `, {}, true).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return new Date(new Date (res.response.data.time.setEndDate).getTime() - (locationOffset - offset)*60000)
+            return new Date(new Date(res.response.data.time.setEndDate).getTime() - (locationOffset - offset) * 60000)
         })
     );
 }
 
-export function RequestUpdateDate(time:TimeRequest): Observable<TimeRequest> {
+export function RequestUpdateDate(oldTime:Date,time: Session, offset: number) {
+
+    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+
     return GetAjaxObservable<string>(`
-    mutation($time:ManageTimeInputGrpahqType!){
+    mutation($oldTime:DateTime!,$time:ManageTimeInputGrpahqType!){
         time{
           manageTime{
-            updateTime(userTime:$time)
-            }
+            updateTime(oldStartTime:$oldTime,userTime:$time)
+          }
         }
-      }
-    `,time,true).pipe(
+    }
+    `, {oldTime,time:{
+        endTimeTrackDate:time.endTimeTrackDate,
+        startTimeTrackDate:time.startTimeTrackDate 
+    }}, true).pipe(
         map(res => {
+            
+            const sqlErro:ErrorGraphql = res.response.errors;
+            if(sqlErro&&sqlErro[0].extensions.code === "SQL"){
+                console.error(JSON.stringify(res.response.errors))
+                throw "SQL"
+            }
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
