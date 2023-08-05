@@ -27,7 +27,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     Console.Write(user.Email);
                     emailSender.SendRegistrationEmail(code, user.Email);
                     return "User created successfully";
-                });
+                }).AuthorizeWithPolicy("CRUDUsers");
 
             Field<StringGraphType>("updateUser")
                 .Argument<NonNullGraphType<IntGraphType>>("Id")
@@ -105,7 +105,16 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     var permissions = context.GetArgument<Permissions>("Permissions");
                     repo.UpdateUserPermissions(permissions);
                     return "permissions updated successfully";
-                });
+                }).AuthorizeWithPolicy("CRUDUsers");
+
+            Field<StringGraphType>("disableUser")
+                .Argument<NonNullGraphType<IntGraphType>>("id")
+                .ResolveAsync(async context =>
+                {
+                    int id = context.GetArgument<int>("id");
+                    repo.DisableUser(id);
+                    return "User deleted successfully";
+                }).AuthorizeWithPolicy("CRUDUsers");
 
             Field<StringGraphType>("deleteUser")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
@@ -114,7 +123,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     int id = context.GetArgument<int>("id");
                     repo.DeleteUser(id);
                     return "User deleted successfully";
-                });
+                }).AuthorizeWithPolicy("CRUDUsers");
         }
     }
 }

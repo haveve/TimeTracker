@@ -1,8 +1,6 @@
 import { combineEpics, Epic } from "redux-observable";
 import {
-    deleteUserEpic,
     getUsersEpic,
-    updateUserPermissionsEpic,
     setTimeEpic,
     getCurrentUserEpic,
     getPagedUsersEpic,
@@ -25,8 +23,6 @@ export const rootEpic: Epic = (action$, store$, dependencies) =>
         getUsersEpic,
         getPagedUsersEpic,
         getUsersBySearchEpic,
-        updateUserPermissionsEpic,
-        deleteUserEpic,
         //Time
         setTimeEpic,
         // Vacation

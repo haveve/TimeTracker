@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Button, Card, Modal, Row, Col, ProgressBar } from "react-bootstrap";
+import { Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { User } from '../Redux/Types/User';
@@ -44,6 +44,7 @@ function UserProfile() {
     const [id, setId] = useState(0);
     const [login, setLogin] = useState('');
     const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const [newPassword, setNewPassword] = useState('');
@@ -74,6 +75,7 @@ function UserProfile() {
             id: id,
             login: login,
             fullName: fullName,
+            email: email,
             password: password
         }
         RequestUpdateUser(User).subscribe((x) => {
@@ -82,7 +84,6 @@ function UserProfile() {
                 RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
                     setUser(x);
                 })
-                User.password = ""
                 setShowError(false);
             }
             else {
@@ -122,11 +123,23 @@ function UserProfile() {
                         <Card.Body className='d-flex flex-column'>
                             <Row className='mb-3'>
                                 <Col>
-                                    <p className='m-0 fs-5'>{user.fullName}</p>
-                                    <p className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</p>
+                                    <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 h-100 bg-darkgray'>
+                                        <p className='m-0 fs-5 text-white'>{user.fullName}</p>
+                                        <p className="m-0 fs-6 text-secondary">@{user.login}</p>
+                                        <p className="m-0 fs-6 text-secondary">{user.email}</p>
+                                        <InputGroup className='mt-auto'>
+                                            {user.editWorkHours ?
+                                                <Button variant="outline-secondary" type="submit" onClick={() => setShowTimeManage(n => !n)}>Time Manage</Button>
+                                                :
+                                                <></>
+                                            }
+                                            <Button variant='outline-secondary' onClick={handleShowEdit}>Edit</Button>
+                                            <Button variant='outline-secondary' onClick={handleShowPassword}>Change Password</Button>
+                                        </InputGroup>
+                                    </span>
                                 </Col>
                                 <Col>
-                                    <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100'>
+                                    <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                                             <p className='m-0'>Worked today</p>
                                             {TimeForStatisticFromSeconds(user.daySeconds!)}
@@ -146,11 +159,6 @@ function UserProfile() {
                                     </span>
                                 </Col>
                             </Row>
-                            <div className='flex flex-column'>
-                                <Button variant="outline-secondary mb-2" type="submit" onClick={() => setShowTimeManage(n => !n)}>Time Manage</Button>
-                                <Button variant='outline-secondary mb-2 mx-2' onClick={handleShowEdit}>Edit</Button>
-                                <Button variant='outline-secondary mb-2' onClick={handleShowPassword}>Change Password</Button>
-                            </div>
 
                             <VacationRequests user={user}></VacationRequests>
                         </Card.Body>
@@ -170,12 +178,16 @@ function UserProfile() {
                             </Modal.Header>
                             <Modal.Body>
                                 <Form.Group className="mb-3">
+                                    <Form.Label>Full Name</Form.Label>
+                                    <Form.Control type="text" defaultValue={user.fullName} onChange={e => setFullName(e.target.value)} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
                                     <Form.Label>Login</Form.Label>
                                     <Form.Control type="text" defaultValue={user.login} onChange={e => setLogin(e.target.value)} />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Full Name</Form.Label>
-                                    <Form.Control type="text" defaultValue={user.fullName} onChange={e => setFullName(e.target.value)} />
+                                    <Form.Label>Email</Form.Label>
+                                    <Form.Control type="email" defaultValue={user.email} onChange={e => setEmail(e.target.value)} />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Password</Form.Label>
@@ -232,7 +244,7 @@ function UserProfile() {
                     <p>User not found</p>
                 )
             }
-        </div>
+        </div >
     );
 }
 
