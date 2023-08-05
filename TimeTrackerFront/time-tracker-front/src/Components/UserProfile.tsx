@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Button, Card, Modal } from "react-bootstrap";
+import { Form, Button, Card, Modal, Row, Col, ProgressBar } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { User } from '../Redux/Types/User';
-import { RequestUpdateUser, RequestUpdatePassword } from '../Redux/Requests/UserRequests';
+import { RequestUpdateUser, RequestUpdatePassword, RequestUser } from '../Redux/Requests/UserRequests';
 import { RootState } from '../Redux/store';
-import { getUsers } from '../Redux/epics';
+import { getCurrentUser, getUsers } from '../Redux/epics';
 import { Error } from './Error';
-import TimeManage from './TimeManage';
 import '../Custom.css';
+import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
+import { getCookie } from '../Login/Api/login-logout';
+import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import VacationRequests from "./VacationRequests";
 
 
 function UserProfile() {
@@ -19,6 +22,8 @@ function UserProfile() {
 
     const [showTimeManage, setShowTimeManage] = useState(false);
 
+    const [showVacationRequests, setShowVacationRequests] = useState(false);
+
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -28,7 +33,12 @@ function UserProfile() {
     const handleClosePassword = () => { setShowPassword(false); setShowError(false); };
     const handleShowPassword = () => setShowPassword(true);
 
-    const [user, setUser] = useState(useSelector((state: RootState) => state.currentUser.User));
+    const handleShowVacationRequests = () => setShowVacationRequests(true);
+    const handleCloseVacationRequests = () => setShowVacationRequests(false);
+
+
+    const [user, setUser] = useState({} as User);
+    const [totalWorkTime, setTotalWorkTime] = useState(0);
 
     const [id, setId] = useState(0);
     const [login, setLogin] = useState('');
@@ -37,6 +47,15 @@ function UserProfile() {
 
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
+
+    useEffect(() => {
+        RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
+            setUser(x);
+        })
+        RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
+            setTotalWorkTime(x);
+        })
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -49,6 +68,7 @@ function UserProfile() {
 
     const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        if (!password || !login || !fullName) { setShowError(true); setErrorMessage("Fill all fields"); return; }
         const User: User = {
             id: id,
             login: login,
@@ -56,15 +76,16 @@ function UserProfile() {
             password: password
         }
         RequestUpdateUser(User).subscribe((x) => {
-            console.log(x);
             if (x === "User updated successfully") {
                 setShowEdit(false);
-                dispatch(getUsers());
+                RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
+                    setUser(x);
+                })
                 User.password = ""
-                localStorage.setItem("User", JSON.stringify(User));
+                setShowError(false);
             }
             else {
-                setErrorMessage("Wrong password");
+                setErrorMessage(x);
                 setShowError(true);
             }
         });
@@ -77,7 +98,7 @@ function UserProfile() {
         RequestUpdatePassword(id, newPassword, password).subscribe((x) => {
             if (x === "Password updated successfully") {
                 setShowPassword(false);
-                dispatch(getUsers());
+                setShowError(false);
             }
             else {
                 setErrorMessage("Wrong password");
@@ -98,16 +119,38 @@ function UserProfile() {
                 <>
                     <Card style={{ width: '18rem' }} className='w-75'>
                         <Card.Body className='d-flex flex-column'>
-                            <div>
-                                <p className='m-0 fs-5'>{user.fullName}</p>
-                                <p className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</p>
-                            </div>
-                            <p className='mb-2'>Worker</p>
+                            <Row className='mb-3'>
+                                <Col>
+                                    <p className='m-0 fs-5'>{user.fullName}</p>
+                                    <p className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</p>
+                                </Col>
+                                <Col>
+                                    <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100'>
+                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                                            <p className='m-0'>Worked today</p>
+                                            {TimeForStatisticFromSeconds(user.daySeconds!)}
+                                        </div>
+                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                                            <p className='m-0'>Worked this week</p>
+                                            {TimeForStatisticFromSeconds(user.weekSeconds!)}
+                                        </div>
+                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                                            <p className='m-0'>Worked this month</p>
+                                            {TimeForStatisticFromSeconds(user.monthSeconds!)}
+                                        </div>
+                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
+                                            <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success' />
+                                            {TimeForStatisticFromSeconds(totalWorkTime)}
+                                        </div>
+                                    </span>
+                                </Col>
+                            </Row>
                             <div className='flex flex-column'>
-                                <Button variant="outline-secondary mb-2" type="submit" onClick={() => setShowTimeManage(n => !n)}>Time Manage</Button>
                                 <Button variant='outline-secondary mb-2 mx-2' onClick={handleShowEdit}>Edit</Button>
                                 <Button variant='outline-secondary mb-2' onClick={handleShowPassword}>Change Password</Button>
                             </div>
+
+                            <VacationRequests user={user}></VacationRequests>
                         </Card.Body>
                     </Card>
                     <Modal
@@ -118,6 +161,7 @@ function UserProfile() {
                         data-bs-theme="dark"
                         onHide={handleCloseEdit}
                     >
+
                         <Form onSubmit={e => handleUpdate(e)}>
                             <Modal.Header closeButton>
                                 <Modal.Title>Edit your information</Modal.Title>
@@ -178,7 +222,6 @@ function UserProfile() {
                             </Modal.Footer>
                         </Form>
                     </Modal>
-                    <TimeManage isShowed={showTimeManage} setShowed={setShowTimeManage} User={user} setUser={setUser}></TimeManage>
                 </>
             )
                 : (

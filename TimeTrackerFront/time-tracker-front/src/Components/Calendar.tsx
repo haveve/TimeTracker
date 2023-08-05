@@ -10,6 +10,7 @@ import { GetEvents, addEventRange, addEvent, UpdateEvent, DeleteEvent,DeleteGlob
 import { DateTime } from 'luxon';
 import CheckModalWindow from "./CheckModalWindow"
 import CalendarUserslist from './CalendarUsers';
+import { RootState } from '../Redux/store';
 import { GlobalEventsViewModel } from '../Redux/Types/Calendar';
 import { GetGlobalCalendar } from '../Redux/Requests/CalendarRequest';
 import { TypeOfGlobalEvent } from '../Redux/Types/Calendar';
@@ -22,6 +23,7 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import allLocales from '@fullcalendar/core/locales-all';
 import { Subscription } from 'rxjs';
 import moment from 'moment';
+import { useSelector } from 'react-redux';
 import { DayCellContainer } from '@fullcalendar/core/internal';
 
 export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
@@ -37,8 +39,6 @@ export enum MonthOrWeek {
     Week = "WEEK"
 }
 
-export const locationOffset = moment().utcOffset();
-
 export default function Calendar() {
 
     const startArray: CalendarDay[] = [];
@@ -51,10 +51,10 @@ export default function Calendar() {
     const [title, setTitle] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [canUserApi, setCanUserApi] = useState("Can we use your IP to locate you?")
-    const [geoOffset, setGeoOffset] = useState(officeTimeZone[new Date().getMonth()] * 60);
-
-    const [listOfTimeZones, setListOfTimeZones] = useState([{ name: "Office(Kyiv)", value: officeTimeZone[new Date().getMonth()] * 60 }])
+    
+    const geoOffset = useSelector((state:RootState)=>{
+        return state.location.userOffset
+    })
 
     const [toDelete, setToDelete] = useState<Date | null>(null)
 
@@ -659,19 +659,6 @@ export default function Calendar() {
                 text: 'today',
                 click: handleBackToday
             },
-            yourLocation: {
-                text: (function () {
-                    const list = listOfTimeZones.filter(l => l.value === geoOffset)
-                    return list[1] ? list[1].name : list[0].name
-                })(),
-                click: () => {
-                    const list = listOfTimeZones.filter(l => l.value === geoOffset)
-                    const name = list[1] ? list[1].name : list[0].name
-                    const obj = listOfTimeZones.filter(l => l.name !== name)[0]
-                    if (obj)
-                        setGeoOffset(obj.value)
-                }
-            },
             othersButton: {
                 text: 'others',
                 click: () => setShowedUserList(n => !n)
@@ -679,7 +666,7 @@ export default function Calendar() {
         }}
         headerToolbar={{
             center: 'title',
-            left: 'prevButton,nextButton,todayButton yourLocation',
+            left: 'prevButton,nextButton,todayButton',
             right: 'othersButton backToMonthButton,backToWeekButton'
         }}
     />
@@ -958,23 +945,7 @@ export default function Calendar() {
                 </Row>
             </Modal.Footer>
         </Modal>
-        <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {
-            GetLocation().subscribe({
-                next: (value) => {
-                    setGeoOffset(value.timezone.gmt_offset * 60)
-                    setListOfTimeZones(list => {
-                        return [...list, {
-                            name: `${value.city} (${value.country_code})`,
-                            value: value.timezone.gmt_offset * 60
-                        }]
-                    })
-                },
-                error: () => setError(ErrorMassagePattern)
-            })
-        }} reject={() => {
-
-        }}>{canUserApi}</CheckModalWindow>
-        <CalendarUserslist isShowed={isShowedUserList} setShowed={setShowedUserList} setUserIndex={setUserId}></CalendarUserslist>
+        <CalendarUserslist isShowed = {isShowedUserList} setShowed={setShowedUserList} setUserIndex={setUserId}></CalendarUserslist>
         <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
         <NotificationModalWindow isShowed={success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
     </>
@@ -1066,6 +1037,7 @@ export const daysInMonth = [
     31, // October
     30, // November
     31  // December
+
 ];
 
 const officeTimeZone = [

@@ -1,37 +1,26 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Rewrite;
-using System.Net;
 using GraphQL;
-using Microsoft.AspNetCore.Builder;
-using GraphQL.Introspection;
-using Newtonsoft.Json.Linq;
-using GraphQL.Types;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using GraphQL.MicrosoftDI;
-using TimeTracker.GraphQL.Schemas;
-using Microsoft.AspNetCore.Authentication.OAuth;
+using GraphQL.Types;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using TimeTracker.GraphQL.Schemas;
+using TimeTracker.GraphQL.Types.Vacation;
+using TimeTracker.Models;
 using TimeTracker.Repositories;
-using Microsoft.AspNetCore.Antiforgery;
-using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis;
-using Azure.Core;
 using TimeTracker.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
+
 builder.Services.AddSingleton<IEmailSender,EmailSender>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<ITimeRepository, TimeRepository>();
 builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
+builder.Services.AddSingleton<IVacationRepository, VacationRepository>();
+
 
 //Token
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -61,7 +50,7 @@ builder.Services.AddSingleton<ISchema, UserShema>(services =>
 {
     var scheme = new UserShema(new SelfActivatingServiceProvider(services));
     scheme.AuthorizeWithPolicy("Authorized");
-    scheme.Mutation!.Fields.First(f=>f.Name=="user").AuthorizeWithPolicy("CRUDUsers");
+    scheme.Mutation!.Fields.First(f => f.Name == "user").AuthorizeWithPolicy("CRUDUsers");
     return scheme;
 });
 
@@ -71,9 +60,17 @@ builder.Services.AddSingleton<ISchema, IdentitySchema>(services =>
     return scheme;
 });
 
+builder.Services.AddSingleton<ISchema, VacationSchema>(services =>
+{
+    var scheme = new VacationSchema(new SelfActivatingServiceProvider(services));
+    return scheme;
+});
+builder.Services.AddSingleton<ObjectGraphType<VacationRequest>, VacationRequestType>();
+
 builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                   .AddSchema<UserShema>()
                                   .AddSchema<IdentitySchema>()
+                                  .AddSchema<VacationSchema>()
                                   .AddAuthorization(setting =>
                                   {
                                       setting.AddPolicy("CRUDUsers", p => p.RequireClaim("CRUDUsers", "True"));
@@ -87,6 +84,7 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                   })
                                   .AddGraphTypes(typeof(UserShema).Assembly)
                                   .AddGraphTypes(typeof(IdentitySchema).Assembly)
+                                  .AddGraphTypes(typeof(VacationSchema).Assembly)
                                   );
 
 

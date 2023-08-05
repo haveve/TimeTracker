@@ -36,6 +36,13 @@ namespace TimeTracker.Repositories
                     $"AND ({filterfield} >= {minhours} AND {filterfield} <= {maxhours}) ORDER BY Id {order}").ToList();
             }
         }
+        public List<User> GetUsersByFullName(string FullName)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<User>($"SELECT * FROM Users WHERE FullName LIKE '%{FullName}%' ORDER BY FullName ASC").ToList();
+            }
+        }
         public User GetUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
@@ -108,8 +115,8 @@ namespace TimeTracker.Repositories
             Password = PasswordHasher.ComputeHash(Password, salt, papper, iteration);
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = $"UPDATE Users SET Password = @Password, Salt = {salt} WHERE Id = @Id";
-                db.Execute(sqlQuery, new { Id, Password });
+                var sqlQuery = $"UPDATE Users SET Password = @Password, Salt = @salt WHERE Id = @Id";
+                db.Execute(sqlQuery, new { Id, salt, Password });
             }
         }
         public void UpdateUserPasswordAndCode(int id, string code, string password)
@@ -155,6 +162,20 @@ namespace TimeTracker.Repositories
             {
                 var sqlQuery = "DELETE FROM Users WHERE Id = @id";
                 db.Execute(sqlQuery, new { id });
+            }
+        }
+        public bool ComparePasswords(int id, string password)
+        {
+            string? salt = "";
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                salt = db.Query<string>($"SELECT Salt FROM Users WHERE id = {id}").FirstOrDefault();
+                if (salt == null)
+                    return false;
+                var papper = _configuration.GetSection("Hash:Papper").Value;
+                var iteration = int.Parse(_configuration.GetSection("Hash:Iteration").Value);
+                var hashedPassword = PasswordHasher.ComputeHash(password, salt, papper, iteration);
+                return (hashedPassword == db.Query<User>($"SELECT * FROM Users WHERE  id = {id}").First().Password);
             }
         }
     }

@@ -6,7 +6,6 @@ import type { RootState } from "../Redux/store";
 import '../Custom.css';
 import { deleteUser } from '../Redux/epics';
 import { getUsers } from '../Redux/epics';
-import TimeManage from './TimeManage';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
 import { RequestUser } from '../Redux/Requests/UserRequests';
 import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
@@ -74,7 +73,7 @@ function UserDetails() {
                       {TimeForStatisticFromSeconds(user.monthSeconds!)}
                     </div>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'/>
+                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success'/>
                       {TimeForStatisticFromSeconds(totalWorkTime)}
                     </div>
                   </span>

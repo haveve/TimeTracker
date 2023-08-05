@@ -3,13 +3,12 @@ using TimeTracker.ViewModels;
 
 namespace TimeTracker.GraphQL.Types.Time.ManageTime
 {
-    public class ManageTimeInputGrpahqType:InputObjectGraphType<TimeViewModel>
+    public class ManageTimeInputGrpahqType:InputObjectGraphType<Models.Time>
     {
         public ManageTimeInputGrpahqType()
         {
-            Field(t => t.DaySeconds, nullable: false);
-            Field(t => t.WeekSeconds, nullable: false);
-            Field(t => t.MonthSeconds, nullable: false);
+            Field(t => t.EndTimeTrackDate, nullable: true);
+            Field(t => t.StartTimeTrackDate, nullable: false);
         }
     }
 }

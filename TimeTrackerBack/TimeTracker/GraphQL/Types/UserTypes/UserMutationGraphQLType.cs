@@ -36,7 +36,8 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 {
                     var Id = context.GetArgument<int>("Id");
                     var NewUser = context.GetArgument<User>("User");
-                    if (NewUser.Password != repo.GetUser(Id).Password) return "Password is incorrect";
+                    if (!repo.ComparePasswords(Id, NewUser.Password)) return "Password is incorrect";
+                    if (repo.GetUserByEmailOrLogin(NewUser.Login) != null && repo.GetUser(Id).Login != NewUser.Login) return "Login is already used";
                     NewUser.Id = Id;
                     repo.UpdateUser(NewUser);
                     return "User updated successfully";
@@ -49,7 +50,6 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 .Argument<NonNullGraphType<StringGraphType>>("Email")
                 .ResolveAsync(async context =>
                 {
-
                     string code = context.GetArgument<string>("Code");
                     string login = context.GetArgument<string>("Login");
                     string password = context.GetArgument<string>("Password");
@@ -58,6 +58,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     if (user == null) return "User not found";
                     if (user.ResetCode == null) return "User was not created for registration";
                     if (user.ResetCode != code) return "Reset code not match";
+                    if (repo.GetUserByEmailOrLogin(login) != null) return "Login is already used";
                     user.Login = login;
                     user.Password = password;
                     repo.UpdateRegisteredUserAndCode(user);
@@ -73,7 +74,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     var Id = context.GetArgument<int>("Id");
                     var Password = context.GetArgument<string>("Password");
                     var NewPassword = context.GetArgument<string>("NewPassword");
-                    if (Password != repo.GetUser(Id).Password) return "Password is incorrect";
+                    if (!repo.ComparePasswords(Id, Password)) return "Password is incorrect";
                     repo.UpdateUserPassword(Id, NewPassword);
                     return "Password updated successfully";
                 });
@@ -88,7 +89,6 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     string password = context.GetArgument<string>("Password");
                     string email = context.GetArgument<string>("Email");
                     User? user = repo.GetUserByEmailOrLogin(email);
-
                     if (user == null) return "User not found";
                     if (user.ResetCode == null) return "User was not requesting password change";
                     if (user.ResetCode != code) return "Reset code not match";
@@ -96,8 +96,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     repo.UpdateUserPasswordAndCode(user.Id, null, password);
 
                     return "Password reseted successfully";
-                })
-                ;
+                });
 
             Field<StringGraphType>("updateUserPermissions")
                 .Argument<NonNullGraphType<PermissionsType>>("Permissions")

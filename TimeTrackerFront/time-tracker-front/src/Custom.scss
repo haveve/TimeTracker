@@ -60,6 +60,10 @@ body {
 .calendar-head-color{
   background: #005f73 !important;
 }
+
+.dropdown-toggle::after {
+  display: none !important; 
+}
 .full-width-content {
   width: 100%;
 }

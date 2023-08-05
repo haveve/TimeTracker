@@ -18,11 +18,19 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             _timeRepository = timeRepository;
 
             Field<TimeWithFlagOutPutGraphql>("getTime")
+                .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")
+                .Argument<NonNullGraphType<IntGraphType>>("pageNumber")
+                .Argument<IntGraphType>("offSet")
+                .Argument<NonNullGraphType<IntGraphType>>("itemsInPage")
                 .Resolve(context =>
                 {
+                    int pageNumber = context.GetArgument<int>("pageNumber");
+                    int itemsInPage = context.GetArgument<int>("itemsInPage");
+                    var timeMark = context.GetArgument<List<TimeMark>>("timeMark");
+                    var offSet = context.GetArgument<int?>("offSet")??0;
                     var userId = GetUserIdFromClaims(context.User!);
                     var time = _timeRepository.GetTime(userId);
-                    return new TimeWithFlagViewModel(){Time = new TimeViewModel(CheckExpires(time, userId, _timeRepository)), IsStarted = time.StartTimeTrackDate != null};
+                    return GetTimeFromSession(time, timeMark, offSet, itemsInPage, pageNumber);
                 });
             Field<IntGraphType>("getTotalWorkTime")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
@@ -33,56 +41,79 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 });
         }
 
+        public static TimeWithFlagViewModel GetTimeFromSession(List<Models.Time>? sessions, List<TimeMark> timeMarks,int offSet ,int itemsInPage = int.MaxValue, int pageNumber = 0)
+        {
+            var time = new TimeWithFlagViewModel();
+            time.Time = new();
+            time.Time.Sessions = new();
+
+            if (sessions == null)
+                return time;
+
+            foreach (var session in sessions)
+            {
+
+                var timeSession = new TimeWithMark();
+                timeSession.StartTimeTrackDate = session.StartTimeTrackDate;
+                timeSession.EndTimeTrackDate = session.EndTimeTrackDate;
+
+                if (session.EndTimeTrackDate is not null)
+                {
+
+                    var seconds = (session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds;
+                    if (session.StartTimeTrackDate.AddHours(offSet).DayOfYear <= DateTime.Now.AddHours(offSet).DayOfYear && DateTime.Now.AddHours(offSet).DayOfYear <= ((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear)
+                    {
+                        timeSession.TimeMark = TimeMark.Day;
+                        time.Time.DaySeconds += (int)seconds;
+                        time.Time.WeekSeconds += (int)seconds;
+                        time.Time.MonthSeconds += (int)seconds;
+
+                    }
+                    else if (Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear/ 7) <= Math.Ceiling((decimal)DateTime.Now.AddHours(offSet).DayOfYear / 7) && Math.Ceiling((decimal)DateTime.Now.AddHours(offSet).DayOfYear / 7) <= Math.Ceiling((decimal)((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear / 7))
+                    {
+                        timeSession.TimeMark = TimeMark.Week;
+                        time.Time.WeekSeconds += (int)seconds;
+                        time.Time.MonthSeconds += (int)seconds;
+
+                    }
+                    else
+                    {
+                        timeSession.TimeMark = TimeMark.Month;
+                        time.Time.MonthSeconds += (int)seconds;
+                    }
+                }
+                if (timeMarks.Count == 0)
+                {
+                    time.Time.Sessions.Add(timeSession);
+                }
+                else
+                {
+                    foreach (var timeMark in timeMarks)
+                    {
+                        if (timeMark == timeSession.TimeMark)
+                        {
+                            time.Time.Sessions.Add(timeSession);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            time.IsStarted = time.Time.Sessions.Any(t => t.EndTimeTrackDate == null);
+            time.ItemsCount = time.Time.Sessions.Count;
+            time.Time.Sessions = time.Time.Sessions.OrderByDescending(t => t.StartTimeTrackDate).Skip(pageNumber* itemsInPage).Take(itemsInPage).ToList();
+            return time;
+        }
+
         public static int GetUserIdFromClaims(ClaimsPrincipal user)
         {
             var id = int.Parse(user.Claims.FirstOrDefault(c => c.Type == "UserId")!.Value);
             return id;
         }
-
-        public static TimeTracker.Models.Time CheckExpires(TimeTracker.Models.Time time, int userId, ITimeRepository repo)
-        {
-            if (time.ToDayDate == null)
-            {
-                time.ToDayDate = DateTime.UtcNow;
-            }
-
-            else if (DateOnly.FromDateTime(time.ToDayDate.Value).AddDays(1) <= DateOnly.FromDateTime(DateTime.UtcNow))
-            {
-                var date = DateOnly.FromDateTime(time.ToDayDate.Value);
-
-                if (date.DayNumber / 7 < DateOnly.FromDateTime((DateTime.UtcNow)).DayNumber / 7)
-                {
-                    time.WeekSeconds = 0;
-                }
-
-                time.ToDayDate = DateTime.UtcNow;
-                time.DaySeconds = 0;
-            }
-                TimeTrackManage(time, repo,userId);
-
-            repo.UpdateTime(time, userId,UpdateTimeE.FullTime);
-            return time;
-        }
-
         public static DateTime ToUtcDateTime(DateTime date)
         {
             var dateTime = TimeZoneInfo.ConvertTimeToUtc(date);
             return dateTime;
-        }
-
-        public static void TimeTrackManage(TimeTracker.Models.Time time,ITimeRepository repo,int userId)
-        {
-            if (time.StartTimeTrackDate == null)
-                return;
-            
-            if (time.EndTimeTrackDate == null)
-                return;
-
-            var addSecond = Convert.ToInt32((time.EndTimeTrackDate - time.StartTimeTrackDate).Value.TotalSeconds);
-
-            time.DaySeconds+= addSecond;
-            time.MonthSeconds += addSecond;
-            time.WeekSeconds += addSecond;
         }
 
         public int GetMonthWorkTime(int id, IUserRepository userRepository)

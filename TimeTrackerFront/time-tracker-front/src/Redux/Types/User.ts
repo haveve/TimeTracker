@@ -11,6 +11,7 @@ export interface User {
     importExcel?: boolean,
     controlPresence?: boolean,
     controlDayOffs?: boolean,
+
     daySeconds?: number,
     weekSeconds?: number,
     monthSeconds?: number,
@@ -23,4 +24,5 @@ export enum LasUpdatedBy
     None,
     Auto,
     Hand
+
 }

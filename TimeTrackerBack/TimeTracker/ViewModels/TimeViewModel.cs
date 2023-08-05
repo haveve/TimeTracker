@@ -9,13 +9,8 @@ namespace TimeTracker.ViewModels
         
         }
 
-        public TimeViewModel(Time time)
-        {
-            DaySeconds = time.DaySeconds;
-            MonthSeconds = time.MonthSeconds;
-            WeekSeconds = time.WeekSeconds;
-        }
 
+        public List<TimeWithMark> Sessions { get; set; }
         public int DaySeconds { get; set; }
         public int WeekSeconds { get; set; }
         public int MonthSeconds { get; set; }
