@@ -50,7 +50,6 @@ builder.Services.AddSingleton<ISchema, UserShema>(services =>
 {
     var scheme = new UserShema(new SelfActivatingServiceProvider(services));
     scheme.AuthorizeWithPolicy("Authorized");
-    scheme.Mutation!.Fields.First(f => f.Name == "user").AuthorizeWithPolicy("CRUDUsers");
     return scheme;
 });
 

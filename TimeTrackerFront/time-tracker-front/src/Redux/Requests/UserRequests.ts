@@ -204,6 +204,56 @@ export function RequestUser(Id: Number): Observable<User> {
     );
 }
 
+interface GraphqlCurrentUser {
+    data: {
+        user: {
+            currentUser: User
+        }
+    }
+}
+
+export function RequestCurrentUser(): Observable<User> {
+    return ajax<GraphqlCurrentUser>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetCurrentUser{
+                    user{
+                        currentUser{
+                        id
+                        login
+                        fullName
+                        email
+                        cRUDUsers
+                        viewUsers
+                        editWorkHours
+                        editPermiters
+                        importExcel
+                        controlPresence
+                        controlDayOffs
+                        daySeconds
+                        weekSeconds
+                        monthSeconds
+                        enabled
+                      }
+                    }
+                  }
+            `
+        })
+    }).pipe(
+        map(res => {
+            {
+                return res.response.data.user.currentUser
+            }
+        })
+    );
+}
+
 interface GraphqlPermissions {
     data: {
         user: {

@@ -1,5 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using System.Security.Claims;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
@@ -48,6 +49,12 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     int id = context.GetArgument<int>("id");
                     return repo.GetUser(id);
                 });
+            Field<UserType>("currentUser")
+                .ResolveAsync(async context =>
+                {
+                    var userId = GetUserIdFromClaims(context.User!);
+                    return repo.GetUser(userId);
+                });
             Field<ListGraphType<UserType>>("usersBySearch")
                 .Argument<NonNullGraphType<StringGraphType>>("name")
                 .Resolve(context =>
@@ -73,6 +80,11 @@ namespace TimeTracker.GraphQL.Types.UserTypes
 
                     return "Email has sent!";
                 });
+        }
+        public static int GetUserIdFromClaims(ClaimsPrincipal user)
+        {
+            var id = int.Parse(user.Claims.FirstOrDefault(c => c.Type == "UserId")!.Value);
+            return id;
         }
     }
 }

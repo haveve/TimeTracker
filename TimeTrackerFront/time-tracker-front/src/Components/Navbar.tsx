@@ -31,8 +31,7 @@ function AppNavbar() {
 
   const dispatch = useDispatch();
   useEffect(() => {
-    var id = getCookie("user_id");
-    dispatch(getCurrentUser(parseInt(id!)));
+    dispatch(getCurrentUser());
   }, []);
   let user = useSelector((state: RootState) => state.currentUser.User);
 

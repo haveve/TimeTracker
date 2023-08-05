@@ -6,7 +6,8 @@ import {
     RequestUpdateUser,
     RequestUser,
     RequestPagedUsers,
-    RequestUsersBySearch
+    RequestUsersBySearch,
+    RequestCurrentUser
 } from "./Requests/UserRequests";
 import {User} from "./Types/User";
 import {Permissions} from "./Types/Permissions";
@@ -65,11 +66,10 @@ export const getPagedUsersEpic: Epic = (action$: Observable<PayloadAction<Page>>
     ))
 );
 
-export const getCurrentUser = (id: number) => ({ type: "getCurrentUser", payload: id });
+export const getCurrentUser = () => ({ type: "getCurrentUser"});
 export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
     ofType("getCurrentUser"),
-    map(action => action.payload),
-    mergeMap((id) => RequestUser(id).pipe(
+    mergeMap(() => RequestCurrentUser().pipe(
         map((res: User) => getTheCurrentUser(res))
     ))
 );

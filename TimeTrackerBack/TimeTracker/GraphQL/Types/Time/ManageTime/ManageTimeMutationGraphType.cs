@@ -24,7 +24,7 @@ namespace TimeTracker.GraphQL.Types.Time.ManageTime
                     _timeRepository.UpdateTime(new Models.Time(userTime), userId, UpdateTimeE.OnlySeconds);
 
                     return "successfully";
-                });
+                }).AuthorizeWithPolicy("EditWorkHours");
         }
     }
 }
