@@ -110,7 +110,6 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             var id = int.Parse(user.Claims.FirstOrDefault(c => c.Type == "UserId")!.Value);
             return id;
         }
-
         public static DateTime ToUtcDateTime(DateTime date)
         {
             var dateTime = TimeZoneInfo.ConvertTimeToUtc(date);

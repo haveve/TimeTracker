@@ -55,13 +55,13 @@ namespace TimeTracker.Repositories
             string? salt = "";
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                salt = db.Query<string>($"SELECT Salt FROM Users WHERE Login = '{login}'").FirstOrDefault();
+                salt = db.Query<string>($"SELECT Salt FROM Users WHERE Login = @login",new{ login}).FirstOrDefault();
                 if (salt == null)
                     return null;
                 var papper = _configuration.GetSection("Hash:Papper").Value;
                 var iteration = int.Parse(_configuration.GetSection("Hash:Iteration").Value);
                 var hashedPassword = PasswordHasher.ComputeHash(password, salt, papper, iteration);
-                return db.Query<User>($"SELECT * FROM Users WHERE Login = '{login}' AND Password = '{hashedPassword}'").FirstOrDefault();
+                return db.Query<User>($"SELECT * FROM Users WHERE Login = @login AND Password = @hashedPassword",new{login,hashedPassword}).FirstOrDefault();
             }
         }
         public User? GetUserByEmailOrLogin(string LoginOrEmail)
