@@ -16,15 +16,18 @@ import {useParams, useNavigate, Link} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../Redux/store';
 import '../Custom.css';
-import {TimeForStatisticFromSeconds} from './TimeStatistic';
+import { deleteUser } from '../Redux/epics';
+import { getUsers } from '../Redux/epics';
+import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import { RequestUser } from '../Redux/Requests/UserRequests';
+import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
+import { User } from '../Redux/Types/User';
 import {
   RequestDisableUser,
   RequestUpdateUserPermissions,
   RequestUser,
   RequestUserPermissions
 } from '../Redux/Requests/UserRequests';
-import {RequestGetTotalWorkTime} from '../Redux/Requests/TimeRequests';
-import {User} from '../Redux/Types/User';
 import {Permissions} from '../Redux/Types/Permissions';
 import {addApprover, deleteApprover, getApprovers, getPagedUsers} from "../Redux/epics";
 import {ApproverNode} from "../Redux/Types/ApproverNode";

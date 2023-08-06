@@ -13,23 +13,23 @@ namespace TimeTracker.GraphQL.Types.Time
         {
             _timeRepository = timeRepository;
 
-            Field<StringGraphType>("setStartDate")
+            Field<DateTimeGraphType>("setStartDate")
                 .Resolve(context =>
                 {
-                    _timeRepository.SetStartOrEndTrackDate(
-                        StartOrEnd.Start,
-                        TimeQueryGraphqlType.ToUtcDateTime(DateTime.Now),
+                    var startDay = DateTime.UtcNow;
+                    _timeRepository.CreateTime(
+                        startDay,
                         TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
-                    return "Successfully";
+                    return startDay;
                 });
-            Field<StringGraphType>("setEndDate")
+            Field<DateTimeGraphType>("setEndDate")
                 .Resolve(context =>
                  {
-                     _timeRepository.SetStartOrEndTrackDate(
-                        StartOrEnd.End,
-                        TimeQueryGraphqlType.ToUtcDateTime(DateTime.Now),
+                     var endDay = DateTime.UtcNow;
+                     _timeRepository.SetEndTrackDate(
+                        endDay,
                         TimeQueryGraphqlType.GetUserIdFromClaims(context.User!));
-                     return "Successfully";
+                     return endDay;
                  });
             Field<ManageTimeMutationGraphType>("manageTime")
                 .Resolve(context => new { }).AuthorizeWithPolicy("ControlPresence"); ;

@@ -5,7 +5,7 @@ import { GetCalendarUsers, CalendarUserPage } from '../Redux/Requests/CalendarRe
 import { ErrorMassagePattern } from '../Redux/epics';
 import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
 
-function CalendarUserslist(props: { isShowed: boolean, setShowed: (value: boolean) => void, setUserIndex: (id: number|null) => void }) {
+function CalendarUserslist(props: { isShowed: boolean, setShowed: (value: boolean) => void, setUserIndex: (id: number | null) => void }) {
     const itemsInPage = 4;
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
@@ -22,10 +22,11 @@ function CalendarUserslist(props: { isShowed: boolean, setShowed: (value: boolea
 
     return (
         <Modal
-            size='lg'
+            centered
+            size='xl'
             show={props.isShowed}
             onHide={() => props.setShowed(!props.isShowed)}
-            data-bs-theme = "dark"
+            data-bs-theme="dark"
         >
             <Modal.Header closeButton>
                 <Modal.Title>Select User Calendar</Modal.Title>
@@ -42,14 +43,17 @@ function CalendarUserslist(props: { isShowed: boolean, setShowed: (value: boolea
                                 />
                             </InputGroup>
                         </Col>
-                        <Col className='justify-content-end d-flex m-0 p-0'>
+                        <Col className='justify-content-end gap-2 d-flex m-0 p-0'>
+                            <Button variant='outline-success' onClick={() => props.setUserIndex(-1)}>
+                                Manage Calendar
+                            </Button>
                             <Button variant='outline-success' onClick={() => props.setUserIndex(null)}>
                                 Back to me
                             </Button>
                         </Col>
                     </Row>
                 </div>
-                <ListGroup className='w-75 d-flex'>
+                <ListGroup className='w-75 d-flex gap-1'>
                     {
                         calendarUserList.calendarUsers?.map((user) =>
                             <ListGroup.Item key={user.id} className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
@@ -70,7 +74,7 @@ function CalendarUserslist(props: { isShowed: boolean, setShowed: (value: boolea
                         <Pagination.Prev onClick={() => { if (page != 0) setPage(n => n - 1) }} />
                         <Pagination.Item active>{page + 1}</Pagination.Item>
                         <Pagination.Next onClick={() => { if (page != Math.ceil(calendarUserList.count / itemsInPage) - 1) setPage(n => n + 1) }} />
-                        <Pagination.Last onClick={() => setPage(Math.ceil(calendarUserList.count / itemsInPage)-1)} />
+                        <Pagination.Last onClick={() => setPage(Math.ceil(calendarUserList.count / itemsInPage) - 1)} />
                     </Pagination>
                     : <p>No users found</p>
                 }

@@ -14,9 +14,9 @@ import {Permissions} from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
 import {getUsersPage, getUsersList, getUsersListBySearch} from "./Slices/UserSlice";
 import {getTheCurrentUser} from "./Slices/CurrentUserSlice";
-import {RequestGetTime} from "./Requests/TimeRequests";
-import {Time, TimeResponse, TimeRequest} from "./Types/Time";
-import {setTime, setErrorStatusAndError as setErrorStatusAndErrorTime} from "./Slices/TimeSlice"
+import {RequestGetTime,RequestSetStartDate,RequestSetEndDate} from "./Requests/TimeRequests";
+import {Time, TimeResponse, TimeRequest,TimeMark} from "./Types/Time";
+import {setTime, setErrorStatusAndError as setErrorStatusAndErrorTime, setStartTime,setEndTime} from "./Slices/TimeSlice"
 import {setErrorStatusAndError as setErrorStatusAndErrorUserList} from "./Slices/UserSlice";
 import {Page} from "./Types/Page";
 import {UsersPage} from "./Types/UsersPage";
@@ -76,12 +76,49 @@ export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<numbe
 
 //TimeSlice
 
-export const setTimeE = () => ({ type: "setTime" })
-export const setTimeEpic: Epic = action$ => {
+
+export interface TimePayloadType{
+    timeMark:TimeMark[],
+    pageNumber:number,
+    itemsInPage:number,
+    offset:number
+}
+
+export const setTimeE = (timeMark:TimeMark[],pageNumber:number,itemsInPage:number,offset:number) => ({type: "setTime",payload:{
+    timeMark,pageNumber,itemsInPage,offset
+}})
+export const setTimeEpic: Epic = (action$:Observable<PayloadAction<TimePayloadType>>)=> {
+
     return action$.pipe(
         ofType("setTime"),
-        mergeMap(() => RequestGetTime().pipe(
+        map(a=>a.payload),
+        mergeMap((p) => RequestGetTime(p.timeMark,p.pageNumber,p.itemsInPage,p.offset).pipe(
             map((res: TimeResponse) => setTime(res)),
+            catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
+        )),
+    )
+};
+
+export const setStartTimeE = (offset:number) => ({type: "setStartTime",payload:offset})
+export const setStartTimeEpic: Epic = (action$:Observable<PayloadAction<number>>)=> {
+    return action$.pipe(
+        ofType("setStartTime"),
+        map(a=>a.payload),
+        mergeMap((offset) => RequestSetStartDate(offset).pipe(
+            map((res) => setStartTime(res)),
+            catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
+        )),
+    )
+};
+
+
+export const setEndTimeE = (offset:number) => ({type: "setEndTime",payload:offset})
+export const setEndTimeEpic: Epic = (action$:Observable<PayloadAction<number>>)=> {
+    return action$.pipe(
+        ofType("setEndTime"),
+        map(a=>a.payload),
+        mergeMap((offset) => RequestSetEndDate(offset).pipe(
+            map((res) => setEndTime(res)),
             catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
         )),
     )

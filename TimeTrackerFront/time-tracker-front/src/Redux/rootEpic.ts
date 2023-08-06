@@ -13,7 +13,9 @@ import {
     getApproversReactionEpic,
     cancelVacationRequestEpic,
     deleteVacationRequestEpic,
-    createVacationRequestEpic, getIncomingVacationRequestsByApproverIdEpic, addApproverReactionEpic
+    createVacationRequestEpic, getIncomingVacationRequestsByApproverIdEpic, addApproverReactionEpic,
+    setEndTimeEpic,
+    setStartTimeEpic
 } from "./epics";
 import { catchError } from "rxjs";
 
@@ -25,6 +27,8 @@ export const rootEpic: Epic = (action$, store$, dependencies) =>
         getUsersBySearchEpic,
         //Time
         setTimeEpic,
+        setEndTimeEpic,
+        setStartTimeEpic,
         // Vacation
         getApproversEpic,
         addApproverEpic,

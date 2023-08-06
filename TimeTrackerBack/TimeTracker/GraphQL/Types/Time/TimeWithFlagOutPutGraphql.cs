@@ -9,6 +9,7 @@ namespace TimeTracker.GraphQL.Types.Time
         {
             Field(t => t.Time, nullable: false, typeof(TimeOutPutGraphql));
             Field(t => t.IsStarted, nullable: false);
+            Field(t=>t.ItemsCount, nullable: false);
         }
     }
 }

@@ -14,14 +14,17 @@ namespace TimeTracker.GraphQL.Types.Time.ManageTime
             _timeRepository = timeRepository;
 
             Field<StringGraphType>("updateTime")
+                .Argument<NonNullGraphType<DateTimeGraphType>>("oldStartTime")
                 .Argument<NonNullGraphType<ManageTimeInputGrpahqType>>("userTime")
                 .Resolve(context =>
                 {
-                    var userTime = context.GetArgument<TimeViewModel>("userTime");
+                    var userTime = context.GetArgument<Models.Time>("userTime");
+                    var oldStartTime = context.GetArgument<DateTime>("oldStartTime");
+
 
                     var userId = TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
 
-                    _timeRepository.UpdateTime(new Models.Time(userTime), userId, UpdateTimeE.OnlySeconds);
+                    _timeRepository.UpdateTime(oldStartTime, userTime, userId);
 
                     return "successfully";
                 }).AuthorizeWithPolicy("EditWorkHours");
