@@ -64,7 +64,6 @@ const router = (user: User) => createBrowserRouter([
         path: "/Calendar",
         element: <Calendar/>
       },
-
       {
         path: "/PermissionError",
         element: <PermissionError/>
