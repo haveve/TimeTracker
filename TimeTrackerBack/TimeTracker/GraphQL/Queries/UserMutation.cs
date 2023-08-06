@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.Time;
 using TimeTracker.GraphQL.Types.UserTypes;
+using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Queries

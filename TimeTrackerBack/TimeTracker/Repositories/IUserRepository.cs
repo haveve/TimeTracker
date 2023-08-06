@@ -10,7 +10,7 @@ namespace TimeTracker.Repositories
     public interface IUserRepository
     {
         public List<User> GetUsers();
-        public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string filterfield, int minhours, int maxhours);
+        public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string enabled);
         public User GetUser(int id);
         public User? GetUserByCredentials(string login, string password);
         public void CreateUser(User user);
@@ -18,6 +18,7 @@ namespace TimeTracker.Repositories
         public void UpdateRegisteredUserAndCode(User user);
         public void UpdateUserPassword(int id,string Password);
         public void UpdateUserPermissions(Permissions permissions);
+        public void DisableUser(int id);
         public void DeleteUser(int id);
         User? GetUserByEmailOrLogin(string LoginOrEmail);
         void UpdateUserResetCodeById(int id, string code);

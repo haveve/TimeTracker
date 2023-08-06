@@ -1,11 +1,11 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using TimeTracker.GraphQL.Types;
 using TimeTracker.GraphQL.Types.UserTypes;
-using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 
-namespace TimeTracker.GraphQL.Queries
+namespace TimeTracker.GraphQL.Types.Vacation
 {
     public class VacationQuery : ObjectGraphType
     {

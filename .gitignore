@@ -34,6 +34,8 @@ yarn-error.log*
 *.suo
 *.user
 *.sln.docstates
+Custom.css
+Custom.css.map
 
 # Build results
 [Dd]ebug/

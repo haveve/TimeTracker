@@ -1,16 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { ListGroup, Pagination, Form, InputGroup, Button, Row, Col, Overlay, Tooltip, Modal } from "react-bootstrap";
 import '../Custom.css';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from "../Redux/store";
-import { deleteUser, getPagedUsers, getUsers } from '../Redux/epics';
-import { Link } from 'react-router-dom';
-import { Page } from '../Redux/Types/Page';
-import { TimeForStatisticFromSeconds } from './TimeStatistic';
 import { GetCalendarUsers, CalendarUserPage } from '../Redux/Requests/CalendarRequest';
 import { ErrorMassagePattern } from '../Redux/epics';
 import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
-import { Module } from 'module';
 
 function CalendarUserslist(props: { isShowed: boolean, setShowed: (value: boolean) => void, setUserIndex: (id: number | null) => void }) {
     const itemsInPage = 4;

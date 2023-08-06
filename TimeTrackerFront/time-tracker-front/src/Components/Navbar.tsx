@@ -16,6 +16,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
 import TimeTracker from './TimeTracker';
 
+
 import { GetLocation } from '../Redux/Requests/CalendarRequest';
 import CheckModalWindow from './CheckModalWindow';
 import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
@@ -25,6 +26,7 @@ import { getCurrentUser } from '../Redux/epics';
 import { RootState } from '../Redux/store';
 import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
 import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
+
 import '../Custom.css';
 import { setErrorStatusAndError as setErroMassageLocation,clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
@@ -33,6 +35,7 @@ import { boolean } from 'yup';
 function AppNavbar() {
   const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
   const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
+
   const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
 
   const listOfTimeZones = useSelector((state:RootState)=>{
@@ -192,7 +195,6 @@ return (
 
   </Container>
 );
-
 }
 
 export default AppNavbar;

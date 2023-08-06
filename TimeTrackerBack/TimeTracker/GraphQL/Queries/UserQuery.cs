@@ -1,9 +1,10 @@
 
-﻿using GraphQL;
+using GraphQL;
 using GraphQL.Types;
 using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.GraphQL.Types.UserTypes;
+using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Queries

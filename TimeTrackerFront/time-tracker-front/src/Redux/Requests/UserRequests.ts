@@ -115,9 +115,9 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
         },
         body: JSON.stringify({
             query: `
-                query GetUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $filderfield: String, $minHours: Int, $maxHours: Int){
+                query GetUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $enabled: String){
                     user{
-                        pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order, filderfield: $filderfield, minHours: $minHours, maxHours: $maxHours){
+                        pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order, enabled: $enabled){
                             userList{
                                 id
                                 login
@@ -139,9 +139,7 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
                 "search": page.search,
                 "orderfield": page.orderfield,
                 "order": page.order,
-                "filderfield": page.filterfield,
-                "minHours": page.minhours,
-                "maxHours": page.maxhours,
+                "enabled": page.enabled
             }
 
         })
@@ -177,9 +175,18 @@ export function RequestUser(Id: Number): Observable<User> {
                         id
                         login
                         fullName
+                        email
+                        cRUDUsers
+                        viewUsers
+                        editWorkHours
+                        editPermiters
+                        importExcel
+                        controlPresence
+                        controlDayOffs
                         daySeconds
                         weekSeconds
                         monthSeconds
+                        enabled
                       }
                     }
                   }
@@ -192,6 +199,56 @@ export function RequestUser(Id: Number): Observable<User> {
         map(res => {
             {
                 return res.response.data.user.user
+            }
+        })
+    );
+}
+
+interface GraphqlCurrentUser {
+    data: {
+        user: {
+            currentUser: User
+        }
+    }
+}
+
+export function RequestCurrentUser(): Observable<User> {
+    return ajax<GraphqlCurrentUser>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetCurrentUser{
+                    user{
+                        currentUser{
+                        id
+                        login
+                        fullName
+                        email
+                        cRUDUsers
+                        viewUsers
+                        editWorkHours
+                        editPermiters
+                        importExcel
+                        controlPresence
+                        controlDayOffs
+                        daySeconds
+                        weekSeconds
+                        monthSeconds
+                        enabled
+                      }
+                    }
+                  }
+            `
+        })
+    }).pipe(
+        map(res => {
+            {
+                return res.response.data.user.currentUser
             }
         })
     );
@@ -354,7 +411,7 @@ export function RequestUpdateUser(user: User): Observable<string> {
                     "login": user.login,
                     "fullName": user.fullName,
                     "password": user.password,
-                    "email": "email"
+                    "email": user.email
                 },
                 "Id": Number(user.id)
             }
@@ -500,7 +557,7 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
     );
 }
 
-export function RequestDeleteUser(id: number): Observable<string> {
+export function RequestDisableUser(id: number): Observable<string> {
     return ajax<string>({
         url,
         method: "POST",
@@ -510,9 +567,9 @@ export function RequestDeleteUser(id: number): Observable<string> {
         },
         body: JSON.stringify({
             query: `
-                mutation DeleteUser($id: Int!) {
+                mutation DisableUser($id: Int!) {
                     user{
-                        deleteUser(id: $id)
+                        disableUser(id: $id)
                     }
                 }
             `,

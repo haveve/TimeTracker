@@ -1,13 +1,13 @@
-import {Epic, ofType} from "redux-observable";
-import {catchError, map, mergeMap, Observable, of} from "rxjs";
+import { Epic, ofType } from "redux-observable";
+import { catchError, map, mergeMap, Observable, of } from "rxjs";
 import {
-    RequestDeleteUser,
     RequestUsers,
     RequestUpdateUserPermissions,
     RequestUpdateUser,
     RequestUser,
     RequestPagedUsers,
-    RequestUsersBySearch
+    RequestUsersBySearch,
+    RequestCurrentUser
 } from "./Requests/UserRequests";
 import {User} from "./Types/User";
 import {Permissions} from "./Types/Permissions";
@@ -40,7 +40,7 @@ import {InputApproverReaction} from "./Types/InputApproverReaction";
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
-export const getUsers = () => ({type: "getUsers"});
+export const getUsers = () => ({ type: "getUsers" });
 export const getUsersEpic: Epic = action$ => action$.pipe(
     ofType("getUsers"),
     mergeMap(() => RequestUsers().pipe(
@@ -48,7 +48,7 @@ export const getUsersEpic: Epic = action$ => action$.pipe(
     ))
 );
 
-export const getUsersBySearch = (search: String) => ({type: "getUsersBySearch", payload: search});
+export const getUsersBySearch = (search: String) => ({ type: "getUsersBySearch", payload: search });
 export const getUsersBySearchEpic: Epic = (action$: Observable<PayloadAction<String>>) => action$.pipe(
     ofType("getUsersBySearch"),
     map(action => action.payload),
@@ -57,7 +57,7 @@ export const getUsersBySearchEpic: Epic = (action$: Observable<PayloadAction<Str
     ))
 )
 
-export const getPagedUsers = (page: Page) => ({type: "getPagedUsers", payload: page});
+export const getPagedUsers = (page: Page) => ({ type: "getPagedUsers", payload: page });
 export const getPagedUsersEpic: Epic = (action$: Observable<PayloadAction<Page>>) => action$.pipe(
     ofType("getPagedUsers"),
     map(action => action.payload),
@@ -66,37 +66,16 @@ export const getPagedUsersEpic: Epic = (action$: Observable<PayloadAction<Page>>
     ))
 );
 
-export const getCurrentUser = (id: number) => ({type: "getCurrentUser", payload: id});
+export const getCurrentUser = () => ({ type: "getCurrentUser"});
 export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
     ofType("getCurrentUser"),
-    map(action => action.payload),
-    mergeMap((id) => RequestUser(id).pipe(
+    mergeMap(() => RequestCurrentUser().pipe(
         map((res: User) => getTheCurrentUser(res))
     ))
 );
 
-export const updateUserPermissions = (permissions: Permissions) => ({
-    type: "updateUserPermissions",
-    payload: permissions
-});
-export const updateUserPermissionsEpic: Epic = (action$: Observable<PayloadAction<Permissions>>) => action$.pipe(
-    ofType("updateUserPerzmissions"),
-    map(action => action.payload),
-    mergeMap((permissions) => RequestUpdateUserPermissions(permissions).pipe(
-        map(() => getUsers())
-    ))
-);
-
-export const deleteUser = (id: number) => ({type: "deleteUser", payload: id});
-export const deleteUserEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
-    ofType("deleteUser"),
-    map(action => action.payload),
-    mergeMap((id) => RequestDeleteUser(id).pipe(
-        map(() => getUsers())
-    ))
-);
-
 //TimeSlice
+
 
 export interface TimePayloadType{
     timeMark:TimeMark[],
@@ -109,6 +88,7 @@ export const setTimeE = (timeMark:TimeMark[],pageNumber:number,itemsInPage:numbe
     timeMark,pageNumber,itemsInPage,offset
 }})
 export const setTimeEpic: Epic = (action$:Observable<PayloadAction<TimePayloadType>>)=> {
+
     return action$.pipe(
         ofType("setTime"),
         map(a=>a.payload),
@@ -147,7 +127,7 @@ export const setEndTimeEpic: Epic = (action$:Observable<PayloadAction<number>>)=
 // VacationSlice
 
 export const getApprovers = (requesterId: number) =>
-    ({type: "getApprovers", payload: requesterId});
+    ({ type: "getApprovers", payload: requesterId });
 export const getApproversEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
     ofType("getApprovers"),
     map(action => action.payload),
@@ -156,8 +136,8 @@ export const getApproversEpic: Epic = (action$: Observable<PayloadAction<number>
     ))
 )
 
-export const addApprover = (approverNode: ApproverNode)=>
-    ({type: "addApprover", payload: approverNode});
+export const addApprover = (approverNode: ApproverNode) =>
+    ({ type: "addApprover", payload: approverNode });
 export const addApproverEpic: Epic = (action$: Observable<PayloadAction<ApproverNode>>) => action$.pipe(
     ofType("addApprover"),
     map(action => action.payload),
@@ -166,8 +146,8 @@ export const addApproverEpic: Epic = (action$: Observable<PayloadAction<Approver
     ))
 );
 
-export const deleteApprover = (approverNode: ApproverNode)=>
-    ({type: "deleteApprover", payload: approverNode});
+export const deleteApprover = (approverNode: ApproverNode) =>
+    ({ type: "deleteApprover", payload: approverNode });
 export const deleteApproverEpic: Epic = (action$: Observable<PayloadAction<ApproverNode>>) => action$.pipe(
     ofType("deleteApprover"),
     map(action => action.payload),

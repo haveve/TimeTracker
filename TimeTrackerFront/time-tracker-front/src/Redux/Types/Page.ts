@@ -4,7 +4,5 @@ export interface Page {
     search?: string,
     orderfield?: string,
     order?: string,
-    filterfield?: string,
-    minhours?: number,
-    maxhours?: number,
+    enabled?: string,
 }

@@ -74,6 +74,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
                     int pageNumber = context.GetArgument<int>("pageNumber");
                     int itemsInPage = context.GetArgument<int>("itemsInPage");
                     var userContext = context.RequestServices!.GetService<IUserRepository>();
+
                     List<User> list = userContext.GetSearchedSortedfUsers(search, "FullName", "ASC", "DaySeconds", 0, int.MaxValue).ToList();
                     return new CalendarPage()
                     {

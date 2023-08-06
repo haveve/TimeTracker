@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ListGroup, Pagination, Form, InputGroup, Button, Row, Col, Overlay, Tooltip } from "react-bootstrap";
+import { ListGroup, Pagination, Form, InputGroup, Button, Row, Col, Overlay } from "react-bootstrap";
 import '../Custom.css';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
-import { deleteUser, getPagedUsers, getUsers } from '../Redux/epics';
+import { getPagedUsers, getUsers } from '../Redux/epics';
 import { Link } from 'react-router-dom';
 import { Page } from '../Redux/Types/Page';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
@@ -11,13 +11,11 @@ import { TimeForStatisticFromSeconds } from './TimeStatistic';
 function Userslist() {
     const [show, setShow] = useState(false);
     const target = useRef(null);
-    const first = 5;
+    const first = 6;
     const [after, setAfter] = useState(0);
     const [search, setSearch] = useState('');
     const [orderfield, setOrderfield] = useState('');
-    const [filterfield, setFilterfield] = useState('DaySeconds');
-    const [minHours, setMinHours] = useState(Number.NaN);
-    const [maxHours, setMaxHours] = useState(Number.NaN);
+    const [enabled, setEnabled] = useState('1');
     const [order, setOrder] = useState("ASC");
     const page = useSelector((state: RootState) => state.users.UsersPage);
     const dispatch = useDispatch();
@@ -29,9 +27,7 @@ function Userslist() {
             search: search,
             orderfield: orderfield,
             order: order,
-            filterfield: filterfield,
-            minhours: minHours,
-            maxhours: maxHours
+            enabled: enabled
         }
         dispatch(getPagedUsers(page));
     }, [after, orderfield, order]);
@@ -49,9 +45,7 @@ function Userslist() {
             search: search,
             orderfield: orderfield,
             order: order,
-            filterfield: filterfield,
-            minhours: minHours,
-            maxhours: maxHours
+            enabled: enabled
         }
         setShow(false);
         dispatch(getPagedUsers(page));
@@ -96,7 +90,7 @@ function Userslist() {
                                     </svg>
                                 }
                             </Button>
-                            {/* <Button variant="outline-secondary" ref={target} onClick={() => setShow(!show)}>
+                            <Button variant="outline-secondary" ref={target} onClick={() => setShow(!show)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-funnel mb-1" viewBox="0 0 16 16">
                                     <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z" />
                                 </svg>
@@ -105,24 +99,15 @@ function Userslist() {
                                 <div className='bg-black p-2 rounded-2' data-bs-theme="dark">
                                     <Form onSubmit={(e) => { e.preventDefault(); HandleSearch() }}>
                                         <InputGroup className='mb-2'>
-                                            <Form.Select onChange={e => setFilterfield(e.target.value)} defaultValue={filterfield}>
-                                                <option value="DaySeconds">Day hours</option>
-                                                <option value="WeekSeconds">Week hours</option>
-                                                <option value="MonthSeconds">Month hours</option>
+                                            <Form.Select onChange={e => setEnabled(e.target.value)} defaultValue={enabled}>
+                                                <option value="1">Enabled users</option>
+                                                <option value="0">Disabled users</option>
                                             </Form.Select>
-                                        </InputGroup>
-                                        <InputGroup className='mb-2'>
-                                            <InputGroup.Text className='w-25'>From</InputGroup.Text>
-                                            <Form.Control type='number' defaultValue={minHours} min={0} onChange={e => setMinHours((Number)(e.target.value))} />
-                                        </InputGroup>
-                                        <InputGroup className='mb-2'>
-                                            <InputGroup.Text className='w-25'>To</InputGroup.Text>
-                                            <Form.Control type='number' defaultValue={maxHours} min={0} onChange={e => setMaxHours((Number)(e.target.value))} />
                                         </InputGroup>
                                         <Button className='w-100' variant='dark' type='submit'>Submit</Button>
                                     </Form>
                                 </div>
-                            </Overlay> */}
+                            </Overlay>
                         </InputGroup>
                     </Col>
                 </Row>
@@ -133,26 +118,36 @@ function Userslist() {
                 {
                     page.userList?.map((user) =>
                         <ListGroup.Item key={user.id} className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
-                            <div className='w-25'>
-                                <p className='m-0 fs-5'>{user.fullName}</p>
-                                <Link to={"/Users/" + user.id} className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</Link>
-                            </div>
-                            <div className='text-center'>
-                                <p className='m-0'>Day</p>
-                                {TimeForStatisticFromSeconds(user.daySeconds!)}
-                            </div>
-                            <div className='text-center'>
-                                <p className='m-0'>Week</p>
-                                {TimeForStatisticFromSeconds(user.weekSeconds!)}
-                            </div>
-                            <div className='text-center'>
-                                <p className='m-0'>Month</p>
-                                {TimeForStatisticFromSeconds(user.monthSeconds!)}
-                            </div>
-                            <div className='text-center'>
-                                <p className='m-0'>Manage Time</p>
-                                {user.timeManagedBy}
-                            </div>
+                            <Row className='w-100'>
+                                <Col sm={4}>
+                                    <p className='m-0 fs-5'>{user.fullName}</p>
+                                    <Link to={"/Users/" + user.id} className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</Link>
+                                </Col>
+                                <Col>
+                                    <div className='text-center'>
+                                        <p className='m-0'>Day</p>
+                                        {TimeForStatisticFromSeconds(user.daySeconds!)}
+                                    </div>
+                                </Col>
+                                <Col>
+                                    <div className='text-center'>
+                                        <p className='m-0'>Week</p>
+                                        {TimeForStatisticFromSeconds(user.weekSeconds!)}
+                                    </div>
+                                </Col>
+                                <Col>
+                                    <div className='text-center'>
+                                        <p className='m-0'>Month</p>
+                                        {TimeForStatisticFromSeconds(user.monthSeconds!)}
+                                    </div>
+                                </Col>
+                                <Col>
+                                    <div className='text-center'>
+                                        <p className='m-0'>Manage Time</p>
+                                        {user.timeManagedBy}
+                                    </div>
+                                </Col>
+                            </Row>
                         </ListGroup.Item>
 
                     )

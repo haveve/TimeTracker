@@ -1,5 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using System.Security.Claims;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
@@ -22,9 +23,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 .Argument<StringGraphType>("search")
                 .Argument<StringGraphType>("orderfield")
                 .Argument<StringGraphType>("order")
-                .Argument<StringGraphType>("filderfield")
-                .Argument<IntGraphType>("minHours")
-                .Argument<IntGraphType>("maxHours")
+                .Argument<StringGraphType>("enabled")
                 .ResolveAsync(async context =>
                 {
                     int first = context.GetArgument<int>("first");
@@ -32,13 +31,9 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     string search = context.GetArgument<string>("search");
                     string orderfield = context.GetArgument<string>("orderfield");
                     string order = context.GetArgument<string>("order");
-                    string filterfield = context.GetArgument<string>("filderfield");
-                    int minHours = context.GetArgument<int>("minHours");
-                    int maxHours = context.GetArgument<int>("maxHours");
+                    string enabled = context.GetArgument<string>("enabled");
                     if (orderfield == "") orderfield = null;
-                    minHours = minHours == null ? 0 : minHours * 3600;
-                    maxHours = (maxHours == null || maxHours == 0) ? int.MaxValue : maxHours * 3600;
-                    List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order, filterfield, minHours, maxHours).Where(u => u.Enabled == true).ToList();
+                    List<User> list = repo.GetSearchedSortedfUsers(search, orderfield, order, enabled).ToList();
                     return new UserPageViewModel()
                     {
                         UserList = list.Skip(after).Take(first).ToList(),
@@ -53,6 +48,12 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 {
                     int id = context.GetArgument<int>("id");
                     return repo.GetUser(id);
+                });
+            Field<UserType>("currentUser")
+                .ResolveAsync(async context =>
+                {
+                    var userId = GetUserIdFromClaims(context.User!);
+                    return repo.GetUser(userId);
                 });
             Field<ListGraphType<UserType>>("usersBySearch")
                 .Argument<NonNullGraphType<StringGraphType>>("name")
@@ -79,6 +80,11 @@ namespace TimeTracker.GraphQL.Types.UserTypes
 
                     return "Email has sent!";
                 });
+        }
+        public static int GetUserIdFromClaims(ClaimsPrincipal user)
+        {
+            var id = int.Parse(user.Claims.FirstOrDefault(c => c.Type == "UserId")!.Value);
+            return id;
         }
     }
 }
