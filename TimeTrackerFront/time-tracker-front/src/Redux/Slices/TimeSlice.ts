@@ -9,11 +9,11 @@ import { LocationPayload } from "./LocationSlice";
 
 export type ErrorGraphql = [
     {
-        "message":string
+        "message": string
         "locations":
-        { "line": number, "column": number }[], 
-        "path": string[], 
-        "extensions": { "code": string, "codes":string}
+        { "line": number, "column": number }[],
+        "path": string[],
+        "extensions": { "code": string, "codes": string }
     }
 ]
 
@@ -73,20 +73,25 @@ export const timeSlicer = createSlice({
                 if (up.startTimeTrackDate.toISOString() === action.payload.oldSDate.toISOString()) {
 
                     const olddifferenceInSeconds = Math.floor((up.endTimeTrackDate!.getTime() - up.startTimeTrackDate.getTime()) / 1000)
-
-                    state.time.time.daySeconds -= olddifferenceInSeconds
-                    state.time.time.weekSeconds -= olddifferenceInSeconds
-                    state.time.time.monthSeconds -= olddifferenceInSeconds
-
+                    const newdifferenceInSeconds = Math.floor((action.payload.time.endTimeTrackDate!.getTime() - action.payload.time.startTimeTrackDate.getTime()) / 1000)
+                    switch (up.timeMark) {
+                        case TimeMark.Day:
+                            state.time.time.daySeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            state.time.time.weekSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            state.time.time.monthSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            break;
+                        case TimeMark.Week:
+                            state.time.time.weekSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            state.time.time.monthSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            break;
+                        case TimeMark.Month:
+                            state.time.time.monthSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            break;
+                    }
                     return action.payload.time
                 }
                 return up
             })
-
-            const newdifferenceInSeconds = Math.floor((action.payload.time.endTimeTrackDate!.getTime() - action.payload.time.startTimeTrackDate.getTime()) / 1000)
-            state.time.time.daySeconds += newdifferenceInSeconds
-            state.time.time.weekSeconds += newdifferenceInSeconds
-            state.time.time.monthSeconds += newdifferenceInSeconds
 
         },
         setTime: (state, action: PayloadAction<TimeResponse>) => {

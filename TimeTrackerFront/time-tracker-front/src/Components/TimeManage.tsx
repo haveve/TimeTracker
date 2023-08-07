@@ -111,9 +111,8 @@ export default function TimeManage(props: { isShowed: boolean, setShow: (show: b
                         setError(startLessEnd)
                         return;
                     }
-                    RequestUpdateDate(props.selected.startTimeTrackDate, toUpdate, offSet).subscribe({
+                    RequestUpdateDate(props.selected.startTimeTrackDate, {...toUpdate}, offSet).subscribe({
                         next: () => {
-
                             SetSuccess('Session was succesfully updated')
                             dispatch(updateTime({
                                 oldSDate: props.selected.startTimeTrackDate,

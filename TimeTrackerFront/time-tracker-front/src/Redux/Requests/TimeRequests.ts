@@ -151,6 +151,7 @@ export function RequestUpdateDate(oldTime:Date,time: Session, offset: number) {
     time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
     time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
 
+
     return GetAjaxObservable<string>(`
     mutation($oldTime:DateTime!,$time:ManageTimeInputGrpahqType!){
         time{
