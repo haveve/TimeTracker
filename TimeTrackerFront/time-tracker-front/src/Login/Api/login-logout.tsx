@@ -10,6 +10,39 @@ import { Alert } from 'react-bootstrap';
 export const accessTokenLiveTime = 60;
 
 const url = "https://localhost:7226/graphql-login";
+/*    "errors": [
+        {
+            "message": "User does not auth"
+        }
+    ],
+    "data": {
+        "refreshToken": {
+            "refresh_token": "Your session was expired. Please, login again",
+            "user_id": 0,
+            "access_token": ""
+        }
+    }*/
+
+export function isUnvalidTokenError(response: {
+  "errors": [
+    {
+      "message": string
+    }
+  ],
+  "data": {
+    "refreshToken": {
+      "refresh_token": string,
+      "user_id": number,
+      "access_token": string
+    }
+  }
+}) {
+  const errors = response.errors;
+  if (errors && response.data.refreshToken) {
+    return true;
+  }
+  return false;
+}
 
 export function ajaxForLogin(variables: {}) {
   return ajax({
@@ -74,6 +107,15 @@ export function ajaxForRefresh(variables: {}) {
 
       let fullResponse = value.response as { data: { refreshToken: { refresh_token: string, access_token: string, user_id: string } }, errors: { message: string }[] }
       let response = fullResponse.data.refreshToken;
+
+      if (isUnvalidTokenError(value.response as any)) {
+        deleteCookie("refresh_token");
+        deleteCookie("access_token");
+        deleteCookie("user_id");
+        deleteCookie("canUseUserIp");
+        throw fullResponse.data.refreshToken.refresh_token;
+      }
+
       if ((200 > value.status && value.status > 300) || !response)
         throw fullResponse.errors[0].message;
 
@@ -87,7 +129,7 @@ export function ajaxForRefresh(variables: {}) {
   );
 }
 
-export function ajaxForLogout(token:string) {
+export function ajaxForLogout(token: string) {
   return ajax({
     url: url,
     method: "POST",
@@ -103,7 +145,7 @@ export function ajaxForLogout(token:string) {
     }),
     withCredentials: true,
   }).pipe(
-    map((res:any): void => {
+    map((res: any): void => {
 
       if (res.response.errors) {
         console.error(JSON.stringify(res.response.errors))

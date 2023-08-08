@@ -37,11 +37,6 @@ import { Subscriber } from 'rxjs';
 import { ajaxForRefresh } from '../Login/Api/login-logout';
 
 function AppNavbar() {
-  const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
-  const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
-
-  const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
-
   const listOfTimeZones = useSelector((state: RootState) => {
     return state.location.listOfTimeZones
   })
@@ -60,7 +55,10 @@ function AppNavbar() {
     setRefreshInterval(timer(0, (accessTokenLiveTime - 5) * 1000).subscribe({
       next: () => {
         ajaxForRefresh({}).subscribe({
-          error: () => setErroMassageLocation(ErrorMassagePattern)
+          error: (error: string) => {
+            refreshInterval.unsubscribe();
+            dispatch(setErroMassageLocation(error))
+          }
         })
       }
     }))
@@ -198,10 +196,6 @@ function AppNavbar() {
       }} reject={() => {
         setCookie({ name: "canUseUserIp", value: 'false' })
       }}>{canUserApi}</CheckModalWindow>
-      <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
-      <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
-      <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>
-
     </Container>
   );
 }

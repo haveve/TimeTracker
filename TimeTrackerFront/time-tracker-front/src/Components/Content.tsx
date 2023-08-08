@@ -14,11 +14,15 @@ import RequestResetPassword from "./RequestResetPassword";
 import UserRegistration from './UserRegistration';
 import Calendar from './Calendar';
 import ApproversSetup from "./ApproversSetup";
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../Redux/store';
 import PermissionError from './PermissionError';
 import {RequestCurrentUser} from '../Redux/Requests/UserRequests';
 import {User} from '../Redux/Types/User';
+import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
+import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSlice';
+import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
+import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
 
 const checkPermissions = (Permission: string, user: User) => {
   if (Permission === "ViewUsers" && user.viewUsers === false) {
@@ -91,11 +95,22 @@ const router = (user: User) => createBrowserRouter([
 
 
 function AppContent() {
+
+  const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
+  const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
+
+  const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
+
+  const dispatch = useDispatch();
+
   let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
     <div className='Content container-fluid p-0 h-100'>
       <RouterProvider router={router(user)}/>
+      <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>
     </div>
   );
 }

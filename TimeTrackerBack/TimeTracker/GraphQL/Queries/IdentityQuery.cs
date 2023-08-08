@@ -1,6 +1,7 @@
 ﻿using GraphQL;
 using GraphQL.MicrosoftDI;
 using GraphQL.Types;
+using GraphQL.Validation;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -96,7 +97,16 @@ namespace TimeTracker.GraphQL.Queries
                     var whetherValid = _authorizationManager.ValidateRefreshAndGetAccessToken(accessToken, refreshToken);
 
                     if (!whetherValid.isValid)
-                        throw new InvalidDataException(whetherValid.erroMessage);
+                    {
+                        context.Errors.Add(new ExecutionError("User does not auth"));
+                        return new LoginOutput()
+                        {
+                            access_token = "",
+                            user_id = 0,
+                            refresh_token = "Your session was expired. Please, login again",
+                        };
+                    }
+
 
                     int userId = int.Parse(_authorizationManager.ReadJwtToken(accessToken).Claims.First(c => c.Type == "UserId").Value);
 
