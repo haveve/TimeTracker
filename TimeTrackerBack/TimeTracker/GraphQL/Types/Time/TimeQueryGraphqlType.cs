@@ -61,7 +61,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 {
 
                     var seconds = (session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds;
-                    if (session.StartTimeTrackDate.AddHours(offSet).DayOfYear <= DateTime.Now.AddHours(offSet).DayOfYear && DateTime.Now.AddHours(offSet).DayOfYear <= ((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear)
+                    if (session.StartTimeTrackDate.AddHours(offSet).DayOfYear <= DateTime.UtcNow.DayOfYear && DateTime.UtcNow.AddHours(offSet).DayOfYear <= ((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear)
                     {
                         timeSession.TimeMark = TimeMark.Day;
                         time.Time.DaySeconds += (int)seconds;
@@ -69,7 +69,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                         time.Time.MonthSeconds += (int)seconds;
 
                     }
-                    else if (Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear/ 7) <= Math.Ceiling((decimal)DateTime.Now.AddHours(offSet).DayOfYear / 7) && Math.Ceiling((decimal)DateTime.Now.AddHours(offSet).DayOfYear / 7) <= Math.Ceiling((decimal)((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear / 7))
+                    else if (Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear/ 7) <= Math.Ceiling((decimal)DateTime.UtcNow.AddHours(offSet).DayOfYear / 7) && Math.Ceiling((decimal)DateTime.UtcNow.AddHours(offSet).DayOfYear / 7) <= Math.Ceiling((decimal)((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear / 7))
                     {
                         timeSession.TimeMark = TimeMark.Week;
                         time.Time.WeekSeconds += (int)seconds;
