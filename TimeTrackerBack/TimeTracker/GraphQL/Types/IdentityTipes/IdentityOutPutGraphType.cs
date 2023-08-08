@@ -9,7 +9,8 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes
         public IdentityOutPutGraphType() 
         {
             Field(l => l.access_token, nullable: false);
-            Field(l => l.user_id, nullable: false,type: typeof(IntGraphType));
+            Field(l => l.user_id, nullable: false);
+            Field(l => l.refresh_token, nullable: false);
         }
     }
 }

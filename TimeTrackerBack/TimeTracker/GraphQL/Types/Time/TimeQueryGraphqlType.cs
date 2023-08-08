@@ -107,7 +107,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
         public static int GetUserIdFromClaims(ClaimsPrincipal user)
         {
-            var id = int.Parse(user.Claims.FirstOrDefault(c => c.Type == "UserId")!.Value);
+            var id = int.Parse(user.Claims.First(c => c.Type == "UserId").Value);
             return id;
         }
         public static DateTime ToUtcDateTime(DateTime date)

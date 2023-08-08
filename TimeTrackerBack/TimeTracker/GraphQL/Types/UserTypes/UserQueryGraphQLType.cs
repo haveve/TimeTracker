@@ -52,6 +52,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field<UserType>("currentUser")
                 .ResolveAsync(async context =>
                 {
+                    var a = context.User!;
                     var userId = GetUserIdFromClaims(context.User!);
                     return repo.GetUser(userId);
                 });

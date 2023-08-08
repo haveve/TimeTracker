@@ -17,6 +17,7 @@ import { IsSuccessOrIdle } from './TimeTracker';
 import { updateTime, setErrorStatusAndError, setIdleStatus } from '../Redux/Slices/TimeSlice';
 import { RequestUpdateDate } from '../Redux/Requests/TimeRequests';
 import { ErrorMassagePattern } from '../Redux/epics';
+import { locationOffset } from '../Redux/Slices/LocationSlice';
 
 export const startLessEnd = "Start date of time period must be less then End"
 export const existedStartDate = "There is occured error. Maybe you chose start date of session that already exist. If you could not resolved issue, turn to colsole and administrator"
@@ -61,12 +62,7 @@ export default function TimeManage(props: { isShowed: boolean, setShow: (show: b
                 <Col>
                     <Form.Label>StartDate</Form.Label>
                     <input type="datetime-local"
-                        value={(function () {
-                            const locale = toUpdate.startTimeTrackDate.toLocaleString().split(" ").join().split(",");
-                            const localeDate = locale[0].split(".");
-                            [localeDate[0], localeDate[1], localeDate[2]] = [localeDate[2], localeDate[1], localeDate[0]]
-                            return (localeDate.join("-") + "T" + locale[locale.length - 1]).slice(0, 16);
-                        })()}
+                        value={new Date(toUpdate.startTimeTrackDate.getTime() + locationOffset * 60000).toISOString().slice(0, 16)}
                         className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
                         onChange={(e) => {
                             setToUpdate(up => {
@@ -80,12 +76,7 @@ export default function TimeManage(props: { isShowed: boolean, setShow: (show: b
                 <Col>
                     <Form.Label>EndDate</Form.Label>
                     <input type="datetime-local"
-                        value={(function () {
-                            const locale = toUpdate.endTimeTrackDate!.toLocaleString().split(" ").join().split(",");
-                            const localeDate = locale[0].split(".");
-                            [localeDate[0], localeDate[1], localeDate[2]] = [localeDate[2], localeDate[1], localeDate[0]]
-                            return (localeDate.join("-") + "T" + locale[locale.length - 1]).slice(0, 16);
-                        })()}
+                        value={new Date(toUpdate.endTimeTrackDate!.getTime() + locationOffset * 60000).toISOString().slice(0, 16)}
                         className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
                         onChange={(e) => {
                             setToUpdate(up => {
