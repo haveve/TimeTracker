@@ -74,13 +74,16 @@ namespace TimeTracker.Repositories
                 return db.Query<Permissions>("SELECT * FROM Permissions WHERE userId = @id", new { id }).First();
             }
         }
-        public void CreateUser(User user)
+        public void CreateUser(User user, Permissions permissions)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode, Enabled, WorkHours)" +
                     " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode, 1, @WorkHours)";
                 db.Execute(sqlQuery, user);
+                sqlQuery = "INSERT INTO Permissions (userId, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs)" +
+                    " VALUES ((SELECT ISNULL(MAX(userId) + 1, 1) FROM Permissions), @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs)";
+                db.Execute(sqlQuery, permissions );
             }
         }
         public void UpdateUser(User user)

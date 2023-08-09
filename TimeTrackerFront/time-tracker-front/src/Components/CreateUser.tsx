@@ -7,6 +7,7 @@ import '../Custom.css';
 import { User } from '../Redux/Types/User';
 import { RequestCreateUser } from '../Redux/Requests/UserRequests';
 import { Error } from './Error';
+import { Permissions } from '../Redux/Types/Permissions';
 
 function CreateUser() {
     const [showError, setShowError] = useState(false);
@@ -40,7 +41,17 @@ function CreateUser() {
             controlDayOffs: controlDayOffs,
             workHours: workHours
         }
-        RequestCreateUser(user).subscribe()
+        const permissions: Permissions = {
+            userId: 0,
+            cRUDUsers: cRUDUsers,
+            editPermiters: editPermiters,
+            viewUsers: viewUsers,
+            editWorkHours: editWorkHours,
+            importExcel: importExcel,
+            controlPresence: controlPresence,
+            controlDayOffs: controlDayOffs
+        }
+        RequestCreateUser(user, permissions).subscribe()
         setFullName("")
         setEmail("")
         setWorkHours(100)

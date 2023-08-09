@@ -17,13 +17,15 @@ namespace TimeTracker.GraphQL.Types.UserTypes
 
             Field<StringGraphType>("createUser")
                 .Argument<NonNullGraphType<UserInputType>>("User")
+                .Argument<NonNullGraphType<PermissionsInputType>>("Permissions")
                 .ResolveAsync(async context =>
                 {
                     var user = context.GetArgument<User>("User");
+                    var permissions = context.GetArgument<Permissions> ("Permissions");
                     string code = Guid.NewGuid().ToString();
                     user.ResetCode = code;
                     user.Password = code;
-                    repo.CreateUser(user);
+                    repo.CreateUser(user, permissions);
                     Console.Write(user.Email);
                     emailSender.SendRegistrationEmail(code, user.Email);
                     return "User created successfully";
@@ -105,7 +107,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     var permissions = context.GetArgument<Permissions>("Permissions");
                     repo.UpdateUserPermissions(permissions);
                     return "permissions updated successfully";
-                });
+                }).AuthorizeWithPolicy("CRUDUsers");
 
             Field<StringGraphType>("disableUser")
                 .Argument<NonNullGraphType<IntGraphType>>("id")

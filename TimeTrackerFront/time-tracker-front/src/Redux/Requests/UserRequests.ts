@@ -380,7 +380,7 @@ interface GraphqlCreateUser {
     }
 }
 
-export function RequestCreateUser(user: User): Observable<string> {
+export function RequestCreateUser(user: User, permissions: Permissions): Observable<string> {
     return ajax<GraphqlCreateUser>({
         url,
         method: "POST",
@@ -390,9 +390,9 @@ export function RequestCreateUser(user: User): Observable<string> {
         },
         body: JSON.stringify({
             query: `
-                mutation createUser($User: UserInputType!){
+                mutation createUser($User: UserInputType!, $Permissions: PermissionsInputType!){
                     user{
-                        createUser(user: $User)
+                        createUser(user: $User, permissions: $Permissions)
                     }
                   }
             `,
@@ -402,14 +402,17 @@ export function RequestCreateUser(user: User): Observable<string> {
                     "fullName": user.fullName,
                     "password": user.password,
                     "email": user.email,
-                    "cRUDUsers": user.cRUDUsers,
-                    "editPermiters": user.editPermiters,
-                    "viewUsers": user.viewUsers,
-                    "editWorkHours": user.editWorkHours,
-                    "importExcel": user.importExcel,
-                    "controlPresence": user.controlPresence,
-                    "controlDayOffs": user.controlDayOffs,
                     "workHours": user.workHours
+                },
+                "Permissions": {
+                    "userId": permissions.userId,
+                    "cRUDUsers": permissions.cRUDUsers,
+                    "editPermiters": permissions.editPermiters,
+                    "viewUsers": permissions.viewUsers,
+                    "editWorkHours": permissions.editWorkHours,
+                    "importExcel": permissions.importExcel,
+                    "controlPresence": permissions.controlPresence,
+                    "controlDayOffs": permissions.controlDayOffs,
                 }
             }
         })
