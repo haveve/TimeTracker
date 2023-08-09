@@ -62,12 +62,6 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
             JwtSecurityToken oldAccessToken = ReadJwtToken(accessToken);
 
-            if (oldAccessToken.Issuer != _configuration["JWT:Author"] ||
-                oldAccessToken.Audiences.ToList().All(aud => aud != _configuration["JWT:Audience"]))
-            {
-                return new ValidateRefreshAndGetAccess(null, false, "Expired access token is invalid");
-            }
-
             int userId = int.Parse(oldAccessToken.Claims.First(c => c.Type == "UserId").Value);
             var savedToken = _authRepo.GetRefreshToken(refreshToken, userId);
 
@@ -81,6 +75,14 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                 _authRepo.DeleteRefreshToken(refreshToken);
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is expired");
             }
+
+            if (oldAccessToken.Issuer != _configuration["JWT:Author"] ||
+            oldAccessToken.Audiences.ToList().All(aud => aud != _configuration["JWT:Audience"]))
+            {
+                _authRepo.DeleteRefreshToken(refreshToken);
+                return new ValidateRefreshAndGetAccess(null, false, "Expired access token is invalid");
+            }
+
             var user = _userRepository.GetUser(userId);
             var newAccessToken = new JwtSecurityToken(
                 issuer: _configuration["JWT:Author"],
