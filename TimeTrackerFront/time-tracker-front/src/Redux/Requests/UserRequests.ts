@@ -229,13 +229,6 @@ export function RequestCurrentUser(): Observable<User> {
                         login
                         fullName
                         email
-                        cRUDUsers
-                        viewUsers
-                        editWorkHours
-                        editPermiters
-                        importExcel
-                        controlPresence
-                        controlDayOffs
                         daySeconds
                         weekSeconds
                         monthSeconds
@@ -254,16 +247,16 @@ export function RequestCurrentUser(): Observable<User> {
     );
 }
 
-interface GraphqlPermissions {
+interface GraphqlUserPermissions {
     data: {
         user: {
-            user: Permissions
+            userPermissions: Permissions
         }
     }
 }
 
 export function RequestUserPermissions(Id: Number): Observable<Permissions> {
-    return ajax<GraphqlPermissions>({
+    return ajax<GraphqlUserPermissions>({
         url,
         method: "POST",
         headers: {
@@ -274,8 +267,8 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
             query: `
                 query GetUser($Id: Int!){
                     user{
-                        user(id: $Id){
-                        id
+                        userPermissions(id: $Id){
+                        userId
                         cRUDUsers
                         viewUsers
                         editWorkHours
@@ -294,7 +287,50 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
     }).pipe(
         map(res => {
             {
-                return res.response.data.user.user
+                return res.response.data.user.userPermissions
+            }
+        })
+    );
+}
+
+interface GraphqlCurrentUserPermissions {
+    data: {
+        user: {
+            currentUserPermissions: Permissions
+        }
+    }
+}
+
+export function RequestCurrentUserPermissions(): Observable<Permissions> {
+    return ajax<GraphqlCurrentUserPermissions>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetCurrentUserPermissions{
+                    user{
+                        currentUserPermissions{
+                        userId
+                        cRUDUsers
+                        viewUsers
+                        editWorkHours
+                        editPermiters
+                        importExcel
+                        controlPresence
+                        controlDayOffs
+                      }
+                    }
+                  }
+            `
+        })
+    }).pipe(
+        map(res => {
+            {
+                return res.response.data.user.currentUserPermissions
             }
         })
     );
@@ -533,7 +569,7 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
         },
         body: JSON.stringify({
             query: `
-                mutation  updateUserPermissions($PermissionsType : PermissionsType!){
+                mutation  updateUserPermissions($PermissionsType : PermissionsInputType!){
                     user{
                         updateUserPermissions(permissions : $PermissionsType)
                     }
@@ -541,7 +577,7 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
             `,
             variables: {
                 "PermissionsType": {
-                    "id": permissions.id,
+                    "userId": permissions.userId,
                     "cRUDUsers": permissions.cRUDUsers,
                     "editPermiters": permissions.editPermiters,
                     "viewUsers": permissions.viewUsers,

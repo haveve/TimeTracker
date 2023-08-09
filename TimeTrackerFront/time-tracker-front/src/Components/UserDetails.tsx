@@ -67,7 +67,7 @@ function UserDetails() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  let currentUser = useSelector((state: RootState) => state.currentUser.User);
+  let currentUserPermissions = useSelector((state: RootState) => state.currentUser.Permissions);
 
   useEffect(() => {
     RequestUser(parseInt(userId)).subscribe((x) => {
@@ -148,7 +148,7 @@ function UserDetails() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const Permissions: Permissions = {
-      id: parseInt(userId),
+      userId: parseInt(userId),
       cRUDUsers: cRUDUsers,
       editPermiters: editPermiters,
       viewUsers: viewUsers,
@@ -190,7 +190,7 @@ function UserDetails() {
                       :
                       <>
 
-                        {currentUser.cRUDUsers ?
+                        {currentUserPermissions.cRUDUsers ?
                           <InputGroup className='mt-auto'>
                             <Button variant='outline-secondary'
                                     onClick={handleShowPermissions}>Permissions</Button>

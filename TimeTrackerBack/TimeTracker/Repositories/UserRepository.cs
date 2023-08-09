@@ -67,6 +67,13 @@ namespace TimeTracker.Repositories
                 return db.Query<User>($"SELECT * FROM Users WHERE Email = '{LoginOrEmail}' OR Login = '{LoginOrEmail}'").FirstOrDefault();
             }
         }
+        public Permissions GetUserPermissions(int id)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<Permissions>("SELECT * FROM Permissions WHERE userId = @id", new { id }).First();
+            }
+        }
         public void CreateUser(User user)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
@@ -148,7 +155,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "UPDATE Users SET CRUDUsers = @CRUDUsers, EditPermiters = @EditPermiters, ViewUsers = @ViewUsers, EditWorkHours = @EditWorkHours, ImportExcel = @ImportExcel, ControlPresence = @ControlPresence, ControlDayOffs = @ControlDayOffs WHERE Id = @Id";
+                var sqlQuery = "UPDATE Permissions SET CRUDUsers = @CRUDUsers, EditPermiters = @EditPermiters, ViewUsers = @ViewUsers, EditWorkHours = @EditWorkHours, ImportExcel = @ImportExcel, ControlPresence = @ControlPresence, ControlDayOffs = @ControlDayOffs WHERE userId = @userId";
                 db.Execute(sqlQuery, permissions);
             }
         }

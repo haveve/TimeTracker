@@ -99,13 +99,13 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 });
 
             Field<StringGraphType>("updateUserPermissions")
-                .Argument<NonNullGraphType<PermissionsType>>("Permissions")
+                .Argument<NonNullGraphType<PermissionsInputType>>("Permissions")
                 .ResolveAsync(async context =>
                 {
                     var permissions = context.GetArgument<Permissions>("Permissions");
                     repo.UpdateUserPermissions(permissions);
                     return "permissions updated successfully";
-                }).AuthorizeWithPolicy("CRUDUsers");
+                });
 
             Field<StringGraphType>("disableUser")
                 .Argument<NonNullGraphType<IntGraphType>>("id")

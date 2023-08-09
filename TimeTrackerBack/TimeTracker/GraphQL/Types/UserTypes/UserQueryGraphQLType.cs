@@ -55,6 +55,19 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     var userId = GetUserIdFromClaims(context.User!);
                     return repo.GetUser(userId);
                 });
+            Field<PermissionsType>("userPermissions")
+                .Argument<NonNullGraphType<IntGraphType>>("id")
+                .ResolveAsync(async context =>
+                {
+                    int id = context.GetArgument<int>("id");
+                    return repo.GetUserPermissions(id);
+                });
+            Field<PermissionsType>("currentUserPermissions")
+                .ResolveAsync(async context =>
+                {
+                    var userId = GetUserIdFromClaims(context.User!);
+                    return repo.GetUserPermissions(userId);
+                });
             Field<ListGraphType<UserType>>("usersBySearch")
                 .Argument<NonNullGraphType<StringGraphType>>("name")
                 .Resolve(context =>
