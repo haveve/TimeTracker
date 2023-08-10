@@ -9,13 +9,15 @@ export interface usersState {
     UsersBySearch: User[]
     UsersPage: UsersPage,
     status:statusType,
-    error?:string
+    error?:string,
+    isLogin:boolean,
 }
 const initialState: usersState = {
     Users: [],
     UsersBySearch: [],
     UsersPage: {} as UsersPage,
-    status: "idle"
+    status: "idle",
+    isLogin:false,
 };
 
 export const userSlice = createSlice({
@@ -33,6 +35,10 @@ export const userSlice = createSlice({
         getUsersPage: (state,
             action: PayloadAction<UsersPage>) => {
             state.UsersPage = action.payload
+            state.isLogin = true;
+        },
+        setLogout:(state)=>{
+            state.isLogin = false;
         },
         setloadingStatus: (state) => {
             state.status = "loading";
@@ -58,6 +64,7 @@ export const {
     setloadingStatus,
     setErrorStatusAndError,
     setIdleStatus,
-    clearErroMassage
+    clearErroMassage,
+    setLogout
 } = userSlice.actions;
 export default userSlice.reducer;

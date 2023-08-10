@@ -14,7 +14,7 @@ import {
 } from "react-bootstrap";
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
-import TimeTracker from './TimeTracker';
+import TimeTracker, { IsSuccessOrIdle } from './TimeTracker';
 import { accessTokenLiveTime } from '../Login/Api/login-logout';
 import { Subscription, timer } from 'rxjs';
 import { ajaxForLogout } from '../Login/Api/login-logout';
@@ -26,8 +26,9 @@ import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSl
 import { deleteCookie, getCookie, setCookie } from '../Login/Api/login-logout';
 import { getCurrentUser } from '../Redux/epics';
 import { RootState } from '../Redux/store';
-import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
+import { clearErroMassage as clearErroMassageUserList, setLogout } from '../Redux/Slices/UserSlice';
 import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
+import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
 
 import '../Custom.css';
 import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
@@ -44,51 +45,41 @@ function AppNavbar() {
     return state.location.userOffset
   })
 
-  const [canUserApi, setCanUserApi] = useState("")
+  const tokenStatus = useSelector((state: RootState) => state.token.loginByToken)
 
-  const [refreshInterval, setRefreshInterval] = useState(new Subscription());
+  const [canUserApi, setCanUserApi] = useState("")
 
   const dispatch = useDispatch();
   useEffect(() => {
 
-    refreshInterval.unsubscribe();
-    setRefreshInterval(timer(0, (accessTokenLiveTime - 5) * 1000).subscribe({
-      next: () => {
-        ajaxForRefresh({}).subscribe({
-          error: (error: string) => {
-            refreshInterval.unsubscribe();
-            dispatch(setErroMassageLocation(error))
-          }
+    if (tokenStatus) {
+      const canUseUserIp = getCookie("canUseUserIp")
+
+      if (canUseUserIp && canUseUserIp === "true") {
+        GetLocation().subscribe({
+          next: (value) => {
+
+            dispatch(setLocation({
+              oldOffset: geoOffset,
+              userOffset: value.timezone.gmt_offset * 60,
+              timeZone: {
+                name: `${value.city} (${value.country_code})`,
+                value: value.timezone.gmt_offset * 60
+              }
+            }))
+            setCookie({ name: "canUseUserIp", value: 'true' })
+          },
+          error: () => setErroMassageLocation(ErrorMassagePattern)
         })
       }
-    }))
+      else if (!canUseUserIp) {
+        setCanUserApi("Can we use your IP to locate you?")
+      }
 
-    const canUseUserIp = getCookie("canUseUserIp")
-
-    if (canUseUserIp && canUseUserIp === "true") {
-      GetLocation().subscribe({
-        next: (value) => {
-
-          dispatch(setLocation({
-            oldOffset: geoOffset,
-            userOffset: value.timezone.gmt_offset * 60,
-            timeZone: {
-              name: `${value.city} (${value.country_code})`,
-              value: value.timezone.gmt_offset * 60
-            }
-          }))
-          setCookie({ name: "canUseUserIp", value: 'true' })
-        },
-        error: () => setErroMassageLocation(ErrorMassagePattern)
-      })
+      var id = getCookie("user_id");
+      dispatch(getCurrentUser());
     }
-    else if (!canUseUserIp) {
-      setCanUserApi("Can we use your IP to locate you?")
-    }
-
-    var id = getCookie("user_id");
-    dispatch(getCurrentUser());
-  }, []);
+  }, [tokenStatus]);
   let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
@@ -152,15 +143,17 @@ function AppNavbar() {
               <ListGroup className="justify-content-end flex flex-grow-1 pe-3 ">
                 <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Login"} className='m-0'
                   onClick={() => {
-
-                    deleteCookie("access_token");
-                    deleteCookie("user_id");
-                    deleteCookie("canUseUserIp");
                     ajaxForLogout(getCookie("refresh_token")!).subscribe({
-                      error: () => setErroMassageLocation(ErrorMassagePattern)
+                      next: () => {
+                        dispatch(setLogout());
+                        deleteCookie("refresh_token");
+                        deleteCookie("access_token");
+                        deleteCookie("user_id");
+                        deleteCookie("canUseUserIp");
+                        dispatch(setLoginByToken());
+                      },
+                      error: () => dispatch(setErroMassageLocation(ErrorMassagePattern))
                     });
-
-                    deleteCookie("refresh_token");
                   }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-left me-1 mb-1" viewBox="0 0 16 16">
                     <path fillRule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z" />
@@ -174,7 +167,8 @@ function AppNavbar() {
       </Navbar>
       <Row className='justify-content-end p-0 m-0 height-main h-100 '>
         <Col className='p-0 m-0 h-100 '>
-          <Outlet />
+          {tokenStatus ?
+            <Outlet /> : ""}
         </Col>
       </Row >
       <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {

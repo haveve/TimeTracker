@@ -6,6 +6,7 @@ import CurrentUserReducer from "./Slices/CurrentUserSlice";
 import TimeReducer from "./Slices/TimeSlice";
 import VacationReducer from "./Slices/VacationSlice";
 import LocationReducer from "./Slices/LocationSlice";
+import TokenReducer from "./Slices/TokenSlicer";
 
 const epicMiddleware = createEpicMiddleware();
 
@@ -15,7 +16,8 @@ const store = configureStore({
       currentUser: CurrentUserReducer,
       time:TimeReducer,
       vacation:VacationReducer,
-      location:LocationReducer
+      location:LocationReducer,
+      token:TokenReducer
    },
    middleware: [epicMiddleware]
 });

@@ -163,10 +163,11 @@ export function ajaxForLogout(token: string) {
 
 type navigateType = ReturnType<typeof useNavigate>;
 
-export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, commitNavigate: navigateType, path: string): Observer<any> => {
+export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void,setLoginByToken:()=>void, commitNavigate: navigateType, path: string): Observer<any> => {
   return {
     next: () => {
       commitNavigate(path);
+      setLoginByToken();
     },
     error: (value) => { value == "User was disabled" ? setError(value) : setError("Wrong login/email or password"); setShowError(true); },
     complete: () => { }

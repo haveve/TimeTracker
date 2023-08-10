@@ -4,7 +4,6 @@ import { itemsInPage } from "../../Components/TimeStatistic";
 import { LocationSlicer } from "./LocationSlice";
 import { locationOffset } from "./LocationSlice";
 import { ChangeLocationPayload, Location, officeTimeZone } from "./LocationSlice";
-import { act } from "@testing-library/react";
 import { LocationPayload } from "./LocationSlice";
 
 export type ErrorGraphql = [

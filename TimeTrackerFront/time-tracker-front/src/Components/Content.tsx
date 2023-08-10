@@ -23,6 +23,10 @@ import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow'
 import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSlice';
 import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
 import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
+import { setErrorStatusAndError as setErroMassageToken,setSuccessStatus as setSuccessStatusToken, clearErroMassage as clearErroMassageToken, setloadingStatus as setloadingStatusToken } from '../Redux/Slices/TokenSlicer';
+import { Subscription,timer } from 'rxjs';
+import { accessTokenLiveTime } from '../Login/Api/login-logout';
+import { ajaxForRefresh } from '../Login/Api/login-logout';
 
 const checkPermissions = (Permission: string, user: User) => {
   if (Permission === "ViewUsers" && user.viewUsers === false) {
@@ -98,11 +102,10 @@ function AppContent() {
 
   const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
   const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
-
   const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
+  const errorToken = useSelector((state:RootState)=> state.token.error ? state.token.error : "")
 
   const dispatch = useDispatch();
-
   let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
@@ -111,6 +114,7 @@ function AppContent() {
       <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
       <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
       <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorToken !== ""} dropMassege={() => dispatch(clearErroMassageToken())} messegeType={MasssgeType.Error}>{errorToken}</NotificationModalWindow>
     </div>
   );
 }
