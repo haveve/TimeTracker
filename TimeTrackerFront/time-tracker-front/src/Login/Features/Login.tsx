@@ -28,7 +28,7 @@ export default function Login() {
   const handleSubmit = () => {
     if (!loginOrEmail || !password) { setShowError(true); setErrorMessage("Fill all fields"); return; }
     ajaxForLogin({ "login": { loginOrEmail, password } }).subscribe(getQueryObserver(setErrorMessage, setShowError,()=>{
-      dispatch(setLoginByToken())
+      dispatch(setLoginByToken(true))
     }, navigate, "/"))
   }
   return (

@@ -41,8 +41,8 @@ export const TokenSlicer = createSlice({
         clearErroMassage: (state) => {
             state.error = ""
         },
-        setLoginByToken: (state) => {
-            state.loginByToken = !state.loginByToken
+        setLoginByToken: (state,action:PayloadAction<boolean>) => {
+            state.loginByToken = action.payload
         },
     }
 })

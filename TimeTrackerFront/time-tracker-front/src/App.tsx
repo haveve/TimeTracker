@@ -14,7 +14,7 @@ import { setLogout } from './Redux/Slices/UserSlice';
 
 function App() {
 
-  const [refreshInterval, setRefreshInterval] = useState(new Subscription());
+  const [refreshInterval, setRefreshInterval] = useState<Subscription|null>(null);
   const dispatch = useDispatch();
   const isLogin = useSelector((state: RootState) => state.users.isLogin)
   const refresh_token = getCookie("refresh_token")
@@ -23,20 +23,20 @@ function App() {
   })
 
   useEffect(() => {
-    refreshInterval.unsubscribe();
-    if (isLogin||refresh_token) {
+    if ((isLogin||refresh_token)&&refreshInterval == null) {
       setRefreshInterval(timer(0, (accessTokenLiveTime - 5) * 1000).subscribe({
         next: () => {
           dispatch(setloadingStatusToken())
           ajaxForRefresh({}).subscribe({
             next: () => {              
               if(!loginByToken)
-              dispatch(setLoginByToken())
+              dispatch(setLoginByToken(true))
               dispatch(setSuccessStatusToken())
             },
             error: (error: string) => {
-              dispatch(setLoginByToken())
-              refreshInterval.unsubscribe();
+              dispatch(setLoginByToken(false))
+              const toUnsubscribe = refreshInterval??new Subscription()
+              toUnsubscribe.unsubscribe();
               dispatch(setLogout())
               dispatch(setErroMassageToken(error))
             }

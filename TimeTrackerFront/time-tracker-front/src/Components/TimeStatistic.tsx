@@ -7,6 +7,7 @@ import picture from '../Pictures/clock-picture-very-awsome.png'
 import dayImg from '../Pictures/day-session-img.png'
 import weekImg from '../Pictures/week-session-img.png'
 import monthImg from '../Pictures/month-session-img.png'
+import yearImg from '../Pictures/year-session-img.png'
 import { Link, Outlet } from 'react-router-dom';
 import { Subscription, timer } from 'rxjs';
 import Clock from 'react-clock';
@@ -136,6 +137,12 @@ export default function TimeStatistic() {
                                                 else
                                                     setTimeMarks(t => [...t, TimeMark.Month])
                                             }}>Current Month<Form.Check></Form.Check></div>
+                                            <div className='d-flex flex-row justify-content-start gap-2 ps-3' onChange={() => {
+                                                if (timeMarks.some(t => t === TimeMark.Year))
+                                                    setTimeMarks(t => t.filter(t => t !== TimeMark.Year))
+                                                else
+                                                    setTimeMarks(t => [...t, TimeMark.Year])
+                                            }}>Current Year<Form.Check></Form.Check></div>
                                         </Dropdown.Menu>
                                     </Dropdown>
                                 </Col>
@@ -146,7 +153,7 @@ export default function TimeStatistic() {
                             </Col>
                         </Pagination>
                         {time.time.sessions.map(s => {
-                            const image = <Image height={45} src={s.timeMark === TimeMark.Day ? dayImg : s.timeMark === TimeMark.Week ? weekImg : monthImg}></Image>
+                            const image = <Image height={45} src={s.timeMark === TimeMark.Day ? dayImg : s.timeMark === TimeMark.Week ? weekImg :s.timeMark == TimeMark.Month? monthImg:yearImg}></Image>
                             const bgColor = s.endTimeTrackDate ? "primary" : "danger";
                             const endDate = s.endTimeTrackDate ? s.endTimeTrackDate.toLocaleString() : "----------"
                             return <Col className={`m-0 `} key={s.startTimeTrackDate.toISOString()} ><Alert className={`pt-3 ps-2 mb-2 m-0 p-2`} variant={bgColor}>

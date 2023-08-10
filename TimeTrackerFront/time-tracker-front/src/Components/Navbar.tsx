@@ -10,7 +10,8 @@ import {
   Offcanvas,
   Form,
   ListGroup,
-  ListGroupItem
+  ListGroupItem,
+  Spinner
 } from "react-bootstrap";
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
@@ -36,6 +37,8 @@ import { ErrorMassagePattern } from '../Redux/epics';
 import { boolean } from 'yup';
 import { Subscriber } from 'rxjs';
 import { ajaxForRefresh } from '../Login/Api/login-logout';
+import { ColorRing } from 'react-loader-spinner';
+
 
 function AppNavbar() {
   const listOfTimeZones = useSelector((state: RootState) => {
@@ -150,7 +153,7 @@ function AppNavbar() {
                         deleteCookie("access_token");
                         deleteCookie("user_id");
                         deleteCookie("canUseUserIp");
-                        dispatch(setLoginByToken());
+                        dispatch(setLoginByToken(false));
                       },
                       error: () => dispatch(setErroMassageLocation(ErrorMassagePattern))
                     });
@@ -165,10 +168,18 @@ function AppNavbar() {
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
-      <Row className='justify-content-end p-0 m-0 height-main h-100 '>
-        <Col className='p-0 m-0 h-100 '>
+      <Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
+        <Col className={`p-0 m-0 h-100 ${tokenStatus?"":"w-100 justify-content-center d-flex align-items-center"}`}>
           {tokenStatus ?
-            <Outlet /> : ""}
+            <Outlet /> :<ColorRing
+            visible={true}
+            height="50%"
+            width="50%"
+            ariaLabel="blocks-loading"
+            wrapperStyle={{}}
+            wrapperClass="blocks-wrapper"
+            colors={['#231942', '#5e548e', '#9f86c0', '#be95c4', '#e0b1cb']}
+          />}
         </Col>
       </Row >
       <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {
