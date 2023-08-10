@@ -29,7 +29,7 @@ namespace TimeTracker.Repositories
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 if (orderfield == null) orderfield = "Id";
-                return db.Query<User>($"SELECT * FROM Users WHERE (Login LIKE '%{search}%' OR FullName LIKE '%{search}%') AND (Enabled LIKE {enabled}) ORDER BY {orderfield} {order}").ToList();
+                return db.Query<User>($"SELECT * FROM Users WHERE (Login LIKE '%{search}%' OR FullName LIKE '%{search}%') AND (Enabled LIKE '{enabled}') ORDER BY {orderfield} {order}").ToList();
             }
         }
         public List<User> GetUsersByFullName(string FullName)

@@ -115,17 +115,15 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
         },
         body: JSON.stringify({
             query: `
-                query GetUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $enabled: String){
+                query GetPagedUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $enabled: String){
                     user{
                         pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order, enabled: $enabled){
                             userList{
                                 id
                                 login
                                 fullName
-                                daySeconds
-                                weekSeconds
-                                monthSeconds
-                                timeManagedBy
+                                email
+                                enabled
                               }
                               totalCount
                               pageIndex
@@ -176,16 +174,6 @@ export function RequestUser(Id: Number): Observable<User> {
                         login
                         fullName
                         email
-                        cRUDUsers
-                        viewUsers
-                        editWorkHours
-                        editPermiters
-                        importExcel
-                        controlPresence
-                        controlDayOffs
-                        daySeconds
-                        weekSeconds
-                        monthSeconds
                         enabled
                       }
                     }
@@ -229,9 +217,6 @@ export function RequestCurrentUser(): Observable<User> {
                         login
                         fullName
                         email
-                        daySeconds
-                        weekSeconds
-                        monthSeconds
                         enabled
                       }
                     }
@@ -265,7 +250,7 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
         },
         body: JSON.stringify({
             query: `
-                query GetUser($Id: Int!){
+                query GetUserPermissions($Id: Int!){
                     user{
                         userPermissions(id: $Id){
                         userId

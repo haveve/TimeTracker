@@ -17,6 +17,14 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
         {
             _timeRepository = timeRepository;
 
+            Field<TimeWithFlagOutPutGraphql>("getUserTime")
+                .Argument<NonNullGraphType<IntGraphType>>("id")
+                .Resolve(context =>
+                {
+                    var id = context.GetArgument<int>("id");
+                    var time = _timeRepository.GetTime(id);
+                    return GetTimeFromSession(time, new List<TimeMark>(), 1);
+                });
             Field<TimeWithFlagOutPutGraphql>("getTime")
                 .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")
                 .Argument<NonNullGraphType<IntGraphType>>("pageNumber")

@@ -3,7 +3,7 @@ import { Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup } from "re
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { User } from '../Redux/Types/User';
-import { RequestUpdateUser, RequestUpdatePassword, RequestUser } from '../Redux/Requests/UserRequests';
+import { RequestUpdateUser, RequestUpdatePassword, RequestUser, RequestCurrentUser } from '../Redux/Requests/UserRequests';
 import { RootState } from '../Redux/store';
 import { getCurrentUser, getUsers } from '../Redux/epics';
 import { Error } from './Error';
@@ -50,7 +50,7 @@ function UserProfile() {
     const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
 
     useEffect(() => {
-        RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
+        RequestCurrentUser().subscribe((x) => {
             setUser(x);
         })
         RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {

@@ -15,6 +15,12 @@ interface GraphqlTime {
     }
 }
 
+interface GraphqlUserTime {
+    time: {
+        getUserTime: TimeResponse
+    }
+}
+
 const url = "https://localhost:7226/graphql";
 
 
@@ -34,6 +40,42 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
         }),
         withCredentials: withCredentials
     })
+}
+
+export function RequestUserTime(id: number): Observable<TimeResponse> {
+    return GetAjaxObservable<GraphqlUserTime>(`
+    query($id: Int!){
+        time{
+          getUserTime(id: $id){
+            itemsCount,
+            isStarted,
+          time{
+          daySeconds
+          weekSeconds
+          monthSeconds
+          sessions {
+            startTimeTrackDate
+            endTimeTrackDate
+            timeMark
+          }
+        }
+      }
+        }
+      }
+    `, { id }).pipe(
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+            let time = res.response.data.time.getUserTime;
+            time.time.sessions.forEach(v => {
+                v.endTimeTrackDate = v.endTimeTrackDate ? new Date(new Date(v.endTimeTrackDate).getTime() + 1 * 60000) : v.endTimeTrackDate
+                v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + 1 * 60000)
+            })
+            return time;
+        })
+    );
 }
 
 export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number): Observable<TimeResponse> {
