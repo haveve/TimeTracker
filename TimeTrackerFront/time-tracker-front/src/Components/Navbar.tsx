@@ -37,7 +37,7 @@ import { ErrorMassagePattern } from '../Redux/epics';
 import { boolean } from 'yup';
 import { Subscriber } from 'rxjs';
 import { ajaxForRefresh } from '../Login/Api/login-logout';
-import { ColorRing } from 'react-loader-spinner';
+import { ColorRing,Vortex } from 'react-loader-spinner';
 
 
 function AppNavbar() {
@@ -171,14 +171,14 @@ function AppNavbar() {
       <Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
         <Col className={`p-0 m-0 h-100 ${tokenStatus?"":"w-100 justify-content-center d-flex align-items-center"}`}>
           {tokenStatus ?
-            <Outlet /> :<ColorRing
+            <Outlet /> :<Vortex
             visible={true}
             height="50%"
             width="50%"
-            ariaLabel="blocks-loading"
+            ariaLabel="vortex-loading"
             wrapperStyle={{}}
-            wrapperClass="blocks-wrapper"
-            colors={['#231942', '#5e548e', '#9f86c0', '#be95c4', '#e0b1cb']}
+            wrapperClass="vortex-wrapper"
+            colors={['#f1faee','#231942', '#5e548e', '#9f86c0', '#be95c4', '#e0b1cb',]}
           />}
         </Col>
       </Row >
