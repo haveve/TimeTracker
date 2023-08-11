@@ -63,8 +63,8 @@ namespace TimeTracker.Services
 
             if (vacationRequest.Status == "Approved")
             {
-                mail.Body = $"Congratuations! Your vacation request \"{vacationRequest.InfoAboutRequest}\" " +
-                    $"for dates \"{vacationRequest.StartDate} - {vacationRequest.EndDate}\" was approved!";
+                mail.Body = $"Congratulation! Your vacation request \"{vacationRequest.InfoAboutRequest}\" " +
+                    $"for dates \"{vacationRequest.StartDate.ToShortDateString()} - {vacationRequest.EndDate.ToShortDateString()}\" was approved!";
             }
             else
             {
@@ -82,7 +82,8 @@ namespace TimeTracker.Services
 
 
                 mail.Body = $"Unfortunately, your vacation request \"{vacationRequest.InfoAboutRequest}\" " +
-                    $"for dates \"{vacationRequest.StartDate} - {vacationRequest.EndDate}\" was declined. Here is some information from approvers:\n" +
+                    $"for dates \"{vacationRequest.StartDate.ToShortDateString()} - {vacationRequest.EndDate.ToShortDateString()}\" " +
+                    $"was declined. Here is some information from approvers:\n" +
                     $"{stringBuilder}";
             }
 

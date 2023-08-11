@@ -48,6 +48,7 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
+
                 if (GetSetupNodes(userRequestId, userApproverId).Count != 0)
                     return;
                 if (userApproverId == userRequestId)
@@ -56,6 +57,7 @@ namespace TimeTracker.Repositories
                 string query = $"INSERT INTO ApproversSetup (UserIdApprover, UserIdRequester) " +
                     $"VALUES ({userApproverId},{userRequestId})";
                 db.Execute(query);
+
             }
         }
         public void DeleteApprover(int userApproverId, int userRequesterId)
@@ -100,17 +102,24 @@ namespace TimeTracker.Repositories
                 return request;
             }
         }
-        public List<VacationRequest> GetVacationRequestsByRequesterId(int requesterId)
+        public List<VacationRequest> GetVacationRequestsByRequesterId(int requesterId, string requestType)
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
-                string query = $"Select * FROM VacationRequests " +
-                    $"WHERE RequesterId = {requesterId}";
+                string query;
+                if(requestType=="All"){
+                    query = $"Select * FROM VacationRequests " +
+                        $"WHERE RequesterId = {requesterId}";
+                }
+                else { query = $"Select * FROM VacationRequests " +
+                    $"WHERE RequesterId = {requesterId} AND Status = '{requestType}'";
+                }
+                
                 var temp = db.Query<VacationRequest>(query).ToList();
                 return temp;
             }
         }
-        public List<VacationRequest> GetVacationRequestsByApproverId(int UserApproverId)
+        public List<VacationRequest> GetVacationRequestsByApproverId(int UserApproverId, string requestType)
         {
             using (IDbConnection db = new SqlConnection(conectionString))
             {
@@ -120,6 +129,8 @@ namespace TimeTracker.Repositories
                     $"on ApproversReaction.RequestId = VacationRequests.Id " +
                     $"where ApproversReaction.UserIdApprover = {UserApproverId}";
                 var temp = db.Query<VacationRequest>(query).ToList();
+                if (requestType!="All")
+                    temp.RemoveAll((vacationRequest) => vacationRequest.Status != requestType);
                 return temp;
             }
         }

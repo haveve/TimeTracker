@@ -118,12 +118,12 @@ function UserDetails() {
     setShowApprovers(true);
   }
   const AddApproverClickHandler = (event: React.MouseEvent, inputUser: User) => {
-    const approverNode = {approverId: inputUser.id, requesterId: user.id} as ApproverNode;
+    const approverNode = {userIdApprover: inputUser.id, userIdRequester: user.id} as ApproverNode;
     console.log(approverNode)
     dispatch(addApprover(approverNode));
   }
   const RemoveClickHandler = (event: React.MouseEvent, inputUser: User) => {
-    const approverNode = {approverId: inputUser.id, requesterId: user.id} as ApproverNode;
+    const approverNode = {userIdApprover: inputUser.id, userIdRequester: user.id} as ApproverNode;
     dispatch(deleteApprover(approverNode));
   }
 

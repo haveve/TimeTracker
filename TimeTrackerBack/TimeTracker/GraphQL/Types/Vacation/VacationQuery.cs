@@ -35,12 +35,14 @@ namespace TimeTracker.GraphQL.Types.Vacation
                 .Argument<IntGraphType>("requesterId")
                 .Argument<IntGraphType>("approverId")
                 .Argument<IntGraphType>("requestId")
+                .Argument<StringGraphType>("requestStatus")
                 .Resolve(context =>
                 {
                     int requesterId = context.GetArgument<int>("requesterId");
                     int id = context.GetArgument<int>("requestId");
                     int approverId = context.GetArgument<int>("approverId");
-
+                    string requestStatus = context.GetArgument<string>("requestStatus");
+                    
                     if (id != 0)
                     {
                         var request = vacRepo.GetVacationRequest(id);
@@ -54,7 +56,8 @@ namespace TimeTracker.GraphQL.Types.Vacation
                     }
                     else if (requesterId != 0)
                     {
-                        var requests = vacRepo.GetVacationRequestsByRequesterId(requesterId);
+                        if (requestStatus == "") return new List<VacationRequest>(){};
+                        var requests = vacRepo.GetVacationRequestsByRequesterId(requesterId, requestStatus);
                         foreach (var request in requests)
                         {
                             request.ApproversNodes = vacRepo.GetApproverNodesByRequesterId(requesterId);
@@ -66,14 +69,17 @@ namespace TimeTracker.GraphQL.Types.Vacation
                         return requests;
                     }
                     else if (approverId != 0)
-                    {
-                        var requests = vacRepo.GetVacationRequestsByApproverId(approverId);
+                    {                       
+                        if (requestStatus == "") return new List<VacationRequest>(){};
+
+                        var requests = vacRepo.GetVacationRequestsByApproverId(approverId,requestStatus);
 
                         for (int j = 0; j < requests.Count; j++)
                         {
                             var request = requests[j];
 
                             request.ApproversNodes = vacRepo.GetApproversNodes(request.Id);
+                            /*
                             for (int i = 0; i < request.ApproversNodes.Count; i++)
                             {
                                 if (request.ApproversNodes[i].IsRequestApproved != null && request.ApproversNodes[i].UserIdApprover == approverId)
@@ -84,6 +90,7 @@ namespace TimeTracker.GraphQL.Types.Vacation
                                 }
                                 //request.ApproversNodes[i].Requester = userRepo.GetUser(request.ApproversNodes[i].UserIdRequester);
                             }
+                            */
                             request.Requester = userRepo.GetUser(request.RequesterId);
                         }
 
