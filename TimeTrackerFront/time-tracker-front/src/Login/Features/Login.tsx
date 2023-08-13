@@ -17,6 +17,8 @@ export default function Login() {
   const initialValues: Login = { password: "", loginOrEmail: "" };
   const [WrongMessage, setWrongMessage] = useState("");
 
+  const [rememberMe,setRememberMe] = useState(false);
+
   const [loginOrEmail, setLoginOrEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -27,7 +29,7 @@ export default function Login() {
 
   const handleSubmit = () => {
     if (!loginOrEmail || !password) { setShowError(true); setErrorMessage("Fill all fields"); return; }
-    ajaxForLogin({ "login": { loginOrEmail, password } }).subscribe(getQueryObserver(setErrorMessage, setShowError,()=>{
+    ajaxForLogin({ "login": { loginOrEmail, password },rememberMe}).subscribe(getQueryObserver(setErrorMessage, setShowError,()=>{
       dispatch(setLoginByToken(true))
     }, navigate, "/"))
   }
@@ -45,10 +47,13 @@ export default function Login() {
                 <Form.Label>Username or email adress</Form.Label>
                 <Form.Control type="text" onChange={e => setLoginOrEmail(e.target.value)} />
               </Form.Group>
-              <Form.Group className="mb-3 w-100">
+              <Form.Group className="w-100">
                 <Form.Label>Password</Form.Label>
                 <Form.Control type="password" onChange={e => setPassword(e.target.value)} />
                 <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
+              </Form.Group>
+              <Form.Group className="w-100 my-2">
+                  <Form.Check label = {"Remember me"} checked = {rememberMe} onChange={()=>setRememberMe(n=>!n)}></Form.Check>
               </Form.Group>
               <Button type="submit" className="btn-success w-100">Sign in</Button>
             </Form >
