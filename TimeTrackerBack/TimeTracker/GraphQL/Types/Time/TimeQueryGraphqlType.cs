@@ -2,7 +2,9 @@
 using GraphQL.MicrosoftDI;
 using GraphQL.Types;
 using System;
+using System.Linq;
 using System.Security.Claims;
+using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.Time;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
@@ -13,10 +15,20 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
     public class TimeQueryGraphqlType : ObjectGraphType
     {
         private readonly ITimeRepository _timeRepository;
-        public TimeQueryGraphqlType(ITimeRepository timeRepository, IUserRepository userRepository)
+        private readonly ICalendarRepository _calendarRepository;
+        public TimeQueryGraphqlType(ITimeRepository timeRepository, IUserRepository userRepository, ICalendarRepository calendarRepository)
         {
             _timeRepository = timeRepository;
+            _calendarRepository = calendarRepository;
 
+            Field<TimeWithFlagOutPutGraphql>("getUserTime")
+                .Argument<NonNullGraphType<IntGraphType>>("id")
+                .Resolve(context =>
+                {
+                    var id = context.GetArgument<int>("id");
+                    var time = _timeRepository.GetTime(id);
+                    return GetTimeFromSession(time, new List<TimeMark>(), 1);
+                });
             Field<TimeWithFlagOutPutGraphql>("getTime")
                 .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")
                 .Argument<NonNullGraphType<IntGraphType>>("pageNumber")
@@ -37,7 +49,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 .Resolve(context =>
                 {
                     int id = context.GetArgument<int>("id");
-                    return GetMonthWorkTime(id, userRepository);
+                    return GetMonthWorkTime(id, userRepository, _calendarRepository);
                 });
         }
 
@@ -116,45 +128,45 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             return dateTime;
         }
 
-        public int GetMonthWorkTime(int id, IUserRepository userRepository)
+        public int GetMonthWorkTime(int id, IUserRepository userRepository, ICalendarRepository calendarRepository)
         {
             User user = userRepository.GetUser(id);
             DateTime d = DateTime.Now.AddDays(1 - DateTime.Now.Day);
             DateTime nd = new DateTime(d.AddMonths(1).Year, d.AddMonths(1).Month, 1);
-            int[] days = new int[DateTime.DaysInMonth(d.Year, d.Month)];
+            int[] days = new int[DateTime.DaysInMonth(d.Year, d.Month) + 1];
+            var globalCalendar = _calendarRepository.GetAllGlobalEvents();
+            globalCalendar.AddRange(CalendarQueryGraphqlType.ukraineGovernmentCelebrations);
+            globalCalendar = globalCalendar.FindAll(e => e.Date.Month == DateTime.Now.Month || (e.Date.Month == DateTime.Now.AddMonths(1).Month && e.Date.Day == 1));
             Array.Fill(days, 8);
             int MonthWorkTime = 0;
-            if (d.AddDays(days.Length).DayOfWeek == DayOfWeek.Sunday || d.AddDays(days.Length).DayOfWeek == DayOfWeek.Saturday)
+            for (int i = 0; i < days.Length; i++)
             {
-                days[days.Length - 1] = 0;
-            }
-            else
-            {
-
-                if (nd.DayOfWeek == DayOfWeek.Sunday || nd.DayOfWeek == DayOfWeek.Saturday)
-                {
-                    days[days.Length - 1] = 7;
-                }
-                else
-                {
-                    days[days.Length - 1] = 8;
-                }
-            }
-
-            for (int i = days.Length - 1; i > 0; i--)
-            {
-                if (d.AddDays(i - 1).DayOfWeek == DayOfWeek.Sunday || d.AddDays(i - 1).DayOfWeek == DayOfWeek.Saturday)
+                if (d.AddDays(i).DayOfWeek == DayOfWeek.Sunday || d.AddDays(i).DayOfWeek == DayOfWeek.Saturday)
                 {
                     days[i] = 0;
                 }
             }
-            for (int i = 0; i < days.Length - 1; i++)
-            {
-                if (days[i + 1] == 0 && days[i] == 8)
+            globalCalendar.ForEach(e => {
+                //Console.WriteLine(e.Date + " - " + e.TypeOfGlobalEvent);
+                int day = e.Date.Month == DateTime.Now.Month ? e.Date.Day - 1 : days.Length - 1;
+                if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Holiday) days[day] = 0;
+                if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.ShortDay) days[day] = 7;
+                if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Celebrate)
                 {
-                    days[i] = 7;
+                    days[day] = 0;
+                    if (e.Date.Day != 1 || e.Date.Month == DateTime.Now.AddMonths(1).Month)
+                    {
+                        if (days[day - 1] != 0)
+                        {
+                            days[day - 1] = 7;
+                        }
+                    }
                 }
+            });
+            for (int i = 0; i < days.Length; i++)
+            {
                 MonthWorkTime += days[i];
+                //Console.WriteLine(d.AddDays(i) + "-" + days[i]);
             }
             return MonthWorkTime * 36 * user.WorkHours;
         }

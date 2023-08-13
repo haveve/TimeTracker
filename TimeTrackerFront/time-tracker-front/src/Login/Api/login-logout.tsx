@@ -21,6 +21,7 @@ export function ajaxForLoginLogout(variables: {}) {
         login(login:$login){
           access_token
           user_id
+          is_fulltimer
         }
       }`,
       variables
@@ -29,13 +30,14 @@ export function ajaxForLoginLogout(variables: {}) {
   }).pipe(
     map((value): void => {
 
-      let fullResponse = value.response as { data:{login:{access_token: string, user_id: string}}, errors: {message: string}[]}
+      let fullResponse = value.response as { data:{login:{access_token: string, user_id: string, is_fulltimer: string}}, errors: {message: string}[]}
       let response = fullResponse.data.login;
       if ((200 > value.status && value.status > 300) || !response || !response.access_token)
         throw fullResponse.errors[0].message;
 
       setCookie({ name: "access_token", value: response.access_token, expires_second: 365 * 24 * 60 * 60, path: "/" });
       setCookie({ name: "user_id", value: response.user_id, expires_second: 365 * 24 * 60 * 60, path: "/" });
+      setCookie({ name: "is_fulltimer", value: response.is_fulltimer, expires_second: 365 * 24 * 60 * 60, path: "/" });
     }),
     catchError((error) => {
       throw error

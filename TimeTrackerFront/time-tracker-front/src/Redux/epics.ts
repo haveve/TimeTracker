@@ -7,13 +7,14 @@ import {
     RequestUser,
     RequestPagedUsers,
     RequestUsersBySearch,
-    RequestCurrentUser
+    RequestCurrentUser,
+    RequestCurrentUserPermissions
 } from "./Requests/UserRequests";
 import {User} from "./Types/User";
 import {Permissions} from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
 import {getUsersPage, getUsersList, getUsersListBySearch} from "./Slices/UserSlice";
-import {getTheCurrentUser} from "./Slices/CurrentUserSlice";
+import {getTheCurrentPermissions, getTheCurrentUser} from "./Slices/CurrentUserSlice";
 import {RequestGetTime,RequestSetStartDate,RequestSetEndDate} from "./Requests/TimeRequests";
 import {Time, TimeResponse, TimeRequest,TimeMark} from "./Types/Time";
 import {setTime, setErrorStatusAndError as setErrorStatusAndErrorTime, setStartTime,setEndTime} from "./Slices/TimeSlice"
@@ -72,6 +73,14 @@ export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<numbe
     ofType("getCurrentUser"),
     mergeMap(() => RequestCurrentUser().pipe(
         map((res: User) => getTheCurrentUser(res))
+    ))
+);
+
+export const getCurrentUserPermissions = () => ({ type: "getCurrentUserPermissions" });
+export const getCurrentUserPermissionsEpic: Epic = action$ => action$.pipe(
+    ofType("getCurrentUserPermissions"),
+    mergeMap(() => RequestCurrentUserPermissions().pipe(
+        map((res: Permissions) => getTheCurrentPermissions(res))
     ))
 );
 

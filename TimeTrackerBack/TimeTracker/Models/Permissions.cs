@@ -2,7 +2,7 @@
 {
     public class Permissions
     {
-        public int Id { get; set; }
+        public int userId { get; set; }
         public bool CRUDUsers { get; set; } = false;
         public bool EditPermiters { get; set; } = false;
         public bool ViewUsers { get; set; } = false;

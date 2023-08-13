@@ -11979,6 +11979,10 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+a:link {
+  text-decoration: none;
+}
+
 td, th {
   text-align: center;
   vertical-align: middle;
@@ -11986,6 +11990,10 @@ td, th {
 
 .bg-darkgray {
   background-color: rgb(13, 17, 23);
+}
+
+.text-darkred {
+  color: rgb(153, 0, 0);
 }
 
 body {
@@ -12040,10 +12048,14 @@ body {
   text-decoration: none;
 }
 
-.calendar-head-color{
+.calendar-head-color {
   background: #005f73 !important;
-}/*# sourceMappingURL=Custom.css.map */
-.dropdown-toggle::after {
-  display: none !important; 
 }
 
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+.full-width-content {
+  width: 100%;
+}/*# sourceMappingURL=Custom.css.map */
