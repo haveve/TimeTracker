@@ -8,7 +8,7 @@ import AppNavbar from './Navbar';
 import UserDetails from './UserDetails';
 import CreateUser from './CreateUser';
 import UserProfile from './UserProfile';
-import {getTokenOrNavigate} from '../Login/Api/login-logout';
+import {getCookie, getTokenOrNavigate} from '../Login/Api/login-logout';
 import TimeStatistic from "./TimeStatistic"
 import RequestResetPassword from "./RequestResetPassword";
 import UserRegistration from './UserRegistration';
@@ -20,6 +20,7 @@ import PermissionError from './PermissionError';
 import {RequestCurrentUser} from '../Redux/Requests/UserRequests';
 import {User} from '../Redux/Types/User';
 import { Permissions } from '../Redux/Types/Permissions';
+import MainMenu from './MainMenu';
 
 const checkPermissions = (Permission: string, permissions: Permissions) => {
   if (Permission === "ViewUsers" && permissions.viewUsers === false) {
@@ -31,6 +32,9 @@ const checkPermissions = (Permission: string, permissions: Permissions) => {
   if (Permission === "UserDetails" && permissions.viewUsers === false) {
     return redirect("/PermissionError");
   }
+  if (Permission === "Time" && getCookie("is_fulltimer") === "true") {
+    return redirect("/PermissionError");
+  }
   return null;
 }
 const router = (permissions: Permissions) => createBrowserRouter([
@@ -40,7 +44,7 @@ const router = (permissions: Permissions) => createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <TimeStatistic/>
+        element: <MainMenu/>
       },
       {
         path: "/Users",
@@ -66,9 +70,14 @@ const router = (permissions: Permissions) => createBrowserRouter([
         element: <Calendar/>
       },
       {
+        path: "/Time",
+        loader: async () => checkPermissions("Time", permissions),
+        element: <TimeStatistic/>
+      },
+      {
         path: "/PermissionError",
         element: <PermissionError/>
-      }
+      },
     ]
   },
   {

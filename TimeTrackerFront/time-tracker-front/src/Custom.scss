@@ -6,6 +6,8 @@ $card-bg: black;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
+a:link{text-decoration:none}
+
 td, th{
   text-align: center;
   vertical-align: middle;

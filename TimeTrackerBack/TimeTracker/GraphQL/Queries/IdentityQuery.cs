@@ -58,7 +58,8 @@ namespace TimeTracker.GraphQL.Queries
                 var response = new LoginOutput()
                 {
                     access_token = encodedJwt,
-                    user_id = user.Id
+                    user_id = user.Id,
+                    is_fulltimer = (user.WorkHours == 100)
                 };
 
                 //HttpContext.Response.Cookies.Append("gdfg", "gdfdgdf", new()

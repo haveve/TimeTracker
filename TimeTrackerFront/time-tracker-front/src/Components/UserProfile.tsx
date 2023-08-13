@@ -8,10 +8,11 @@ import { RootState } from '../Redux/store';
 import { getCurrentUser, getUsers } from '../Redux/epics';
 import { Error } from './Error';
 import '../Custom.css';
-import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
+import { RequestGetTotalWorkTime, RequestUserTime } from '../Redux/Requests/TimeRequests';
 import { getCookie } from '../Login/Api/login-logout';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
 import VacationRequests from "./VacationRequests";
+import { Time } from '../Redux/Types/Time';
 
 
 function UserProfile() {
@@ -38,6 +39,7 @@ function UserProfile() {
 
 
     const [user, setUser] = useState({} as User);
+    const [time, setTime] = useState({} as Time);
     const [totalWorkTime, setTotalWorkTime] = useState(0);
 
     const [id, setId] = useState(0);
@@ -55,6 +57,9 @@ function UserProfile() {
         })
         RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
             setTotalWorkTime(x);
+        })
+        RequestUserTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
+            setTime(x.time);
         })
     }, []);
 
@@ -141,27 +146,24 @@ function UserProfile() {
                                     <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                                             <p className='m-0'>Worked today</p>
-                                            {TimeForStatisticFromSeconds(user.daySeconds!)}
+                                            {TimeForStatisticFromSeconds(time.daySeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                                             <p className='m-0'>Worked this week</p>
-                                            {TimeForStatisticFromSeconds(user.weekSeconds!)}
+                                            {TimeForStatisticFromSeconds(time.weekSeconds!)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                                             <p className='m-0'>Worked this month</p>
-                                            {TimeForStatisticFromSeconds(user.monthSeconds!)}
+                                            {TimeForStatisticFromSeconds(time.monthSeconds!)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1' variant='success' />
+                                            <ProgressBar now={(time.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'
+                                                variant='success' />
                                             {TimeForStatisticFromSeconds(totalWorkTime)}
                                         </div>
                                     </span>
                                 </Col>
                             </Row>
-                            <div className='flex flex-column'>
-                                <Button variant='outline-secondary mb-2 mx-2' onClick={handleShowEdit}>Edit</Button>
-                                <Button variant='outline-secondary mb-2' onClick={handleShowPassword}>Change Password</Button>
-                            </div>
                             <VacationRequests user={user}></VacationRequests>
                         </Card.Body>
                     </Card>

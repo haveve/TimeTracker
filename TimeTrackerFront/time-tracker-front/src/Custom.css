@@ -11979,6 +11979,10 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+a:link {
+  text-decoration: none;
+}
+
 td, th {
   text-align: center;
   vertical-align: middle;
