@@ -13,13 +13,24 @@ import TimeStatistic from "./TimeStatistic"
 import RequestResetPassword from "./RequestResetPassword";
 import UserRegistration from './UserRegistration';
 import Calendar from './Calendar';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../Redux/store';
 import PermissionError from './PermissionError';
 import {RequestCurrentUser} from '../Redux/Requests/UserRequests';
 import {User} from '../Redux/Types/User';
+
+import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
+import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSlice';
+import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
+import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
+import { setErrorStatusAndError as setErroMassageToken,setSuccessStatus as setSuccessStatusToken, clearErroMassage as clearErroMassageToken, setloadingStatus as setloadingStatusToken } from '../Redux/Slices/TokenSlicer';
+import { Subscription,timer } from 'rxjs';
+import { accessTokenLiveTime } from '../Login/Api/login-logout';
+import { ajaxForRefresh } from '../Login/Api/login-logout';
+
 import { Permissions } from '../Redux/Types/Permissions';
 import MainMenu from './MainMenu';
+
 
 const checkPermissions = (Permission: string, permissions: Permissions) => {
   if (Permission === "ViewUsers" && permissions.viewUsers === false) {
@@ -100,11 +111,23 @@ const router = (permissions: Permissions) => createBrowserRouter([
 
 
 function AppContent() {
-  let permissions = useSelector((state: RootState) => state.currentUser.Permissions);
 
+
+  const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
+  const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
+  const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
+  const errorToken = useSelector((state:RootState)=> state.token.error ? state.token.error : "")
+
+  const dispatch = useDispatch();
+  let user = useSelector((state: RootState) => state.currentUser.User);
+  let permissions = useSelector((state: RootState) => state.currentUser.Permissions);
   return (
     <div className='Content container-fluid p-0 h-100'>
       <RouterProvider router={router(permissions)}/>
+      <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>
+      <NotificationModalWindow isShowed={errorToken !== ""} dropMassege={() => dispatch(clearErroMassageToken())} messegeType={MasssgeType.Error}>{errorToken}</NotificationModalWindow>
     </div>
   );
 }

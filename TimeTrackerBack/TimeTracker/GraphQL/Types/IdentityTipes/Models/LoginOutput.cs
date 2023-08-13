@@ -6,6 +6,8 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.Models
     {
         public int user_id { get; set; }
         public string access_token { get; set; } = null!;
+        public string refresh_token { get; set; } = null!;
         public bool is_fulltimer { get; set; }
+
     }
 }

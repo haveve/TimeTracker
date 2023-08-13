@@ -6,8 +6,10 @@ import { Container, Nav, Navbar, NavDropdown, Button, Card, Table, Form } from "
 import {
   useNavigate,
 } from "react-router-dom";
-import { ajaxForLoginLogout, getQueryObserver } from "../Api/login-logout";
+import { ajaxForLogin, getQueryObserver } from "../Api/login-logout";
 import { Error } from '../../Components/Error';
+import { useDispatch } from 'react-redux';
+import { setLoginByToken } from '../../Redux/Slices/TokenSlicer';
 
 export default function Login() {
 
@@ -21,10 +23,13 @@ export default function Login() {
 
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const dispatch = useDispatch()
 
   const handleSubmit = () => {
     if (!loginOrEmail || !password) { setShowError(true); setErrorMessage("Fill all fields"); return; }
-    ajaxForLoginLogout({ "login": { loginOrEmail, password } }).subscribe(getQueryObserver(setErrorMessage, setShowError, navigate, "/"))
+    ajaxForLogin({ "login": { loginOrEmail, password } }).subscribe(getQueryObserver(setErrorMessage, setShowError,()=>{
+      dispatch(setLoginByToken(true))
+    }, navigate, "/"))
   }
   return (
     <div className="div-login-form container-fluid p-0 h-100 d-flex  justify-content-center">

@@ -1,10 +1,19 @@
+using Azure;
 using GraphQL;
 using GraphQL.MicrosoftDI;
 using GraphQL.Types;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
+using System.Text.Encodings.Web;
 using TimeTracker.GraphQL.Schemas;
+using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
@@ -15,29 +24,33 @@ var builder = WebApplication.CreateBuilder(args);
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 
-builder.Services.AddSingleton<IEmailSender,EmailSender>();
+builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<ITimeRepository, TimeRepository>();
 builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
 builder.Services.AddSingleton<IVacationRepository, VacationRepository>();
+builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>();
 
+builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
 
 //Token
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = builder.Configuration["JWT:Author"],
-                ValidateAudience = true,
-                ValidAudience = builder.Configuration["JWT:Audience"],
-                ValidateLifetime = false,
-                IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(builder.Configuration["JWT:Key"]),
-                ValidateIssuerSigningKey = true,
-            };
-        });
-builder.Services.AddAuthorization();
+    .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { });
+    //.AddJwtBearer(options =>
+    //{
+    //    options.TokenValidationParameters = new TokenValidationParameters
+    //    {
+    //        ValidateIssuer = true,
+    //        ValidateAudience = true,
+    //        ValidateLifetime = true,
+    //        ValidateIssuerSigningKey = true,
+
+    //        ValidIssuer = builder.Configuration["JWT:Author"],
+    //        ValidAudience = builder.Configuration["JWT:Audience"],
+    //        IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(builder.Configuration["JWT:Key"]),
+    //        ClockSkew = TimeSpan.Zero
+    //    };
+    //});
 
 builder.Services.AddControllers();
 
@@ -49,7 +62,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ISchema, UserShema>(services =>
 {
     var scheme = new UserShema(new SelfActivatingServiceProvider(services));
-    scheme.AuthorizeWithPolicy("Authorized");
     return scheme;
 });
 
@@ -122,4 +134,65 @@ public class AuthOptions
 {
     public static SymmetricSecurityKey GetSymmetricSecurityKey(string KEY) =>
         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
+}
+
+public class CustomJwtBearerHandler : JwtBearerHandler
+{
+    private readonly IConfiguration _configuration;
+    private readonly IAuthorizationManager _authorizationManager;
+
+    public CustomJwtBearerHandler(IAuthorizationManager authorizationManager, IConfiguration configuration, IOptionsMonitor<JwtBearerOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
+        : base(options, logger, encoder, clock)
+    {
+        _configuration = configuration;
+        _authorizationManager = authorizationManager;
+    }
+
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        // Get the token from the Authorization header
+
+        if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
+        {
+            return AuthenticateResult.Fail("Authorization header not found.");
+        }
+
+        var authorizationHeader = authorizationHeaderValues.FirstOrDefault();
+        if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
+        {
+            return AuthenticateResult.Fail("Bearer token not found in Authorization header.");
+        }
+
+        var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+
+        var tokenValidate = new JwtSecurityTokenHandler();
+        try
+        {
+            tokenValidate.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = _configuration["JWT:Author"],
+                ValidateAudience = true,
+                ValidAudience = _configuration["JWT:Audience"],
+                ValidateLifetime = true,
+                IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]!),
+                ValidateIssuerSigningKey = true,
+                ClockSkew = TimeSpan.Zero
+            }, out SecurityToken securityToken);
+
+            var a = _authorizationManager.ReadJwtToken(token);
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(a.Claims, "Token"));
+
+            if (_authorizationManager.isValidAccessToken(token))
+            {
+                return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
+            }
+
+            return AuthenticateResult.Fail("Token validation failed.");
+        }
+        catch
+        {
+            return AuthenticateResult.Fail("Token validation failed.");
+        }
+    }
 }

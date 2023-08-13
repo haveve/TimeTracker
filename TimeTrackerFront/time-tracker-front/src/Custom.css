@@ -12053,9 +12053,11 @@ body {
 }
 
 .dropdown-toggle::after {
-  display: none !important;
+  display: none !important; 
 }
+
 
 .full-width-content {
   width: 100%;
 }/*# sourceMappingURL=Custom.css.map */
+

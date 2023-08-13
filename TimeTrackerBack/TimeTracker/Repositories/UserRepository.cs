@@ -10,12 +10,14 @@ namespace TimeTracker.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly IConfiguration _configuration;
+        private readonly IAuthorizationRepository _authorizationRepository;
 
         string connectionString = null;
-        public UserRepository(DapperContext context, IConfiguration configuration)
+        public UserRepository(DapperContext context, IConfiguration configuration,IAuthorizationRepository authorizationRepository)
         {
             connectionString = context.CreateConnection().ConnectionString;
             _configuration = configuration;
+            _authorizationRepository = authorizationRepository;
         }
         public List<User> GetUsers()
         {
@@ -90,15 +92,19 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName WHERE Id = @Id";
-                db.Execute(sqlQuery, user);
+                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, LastChanged = @LastChanged WHERE Id = @Id";
+                var LastChanged = DateTime.UtcNow;
+                db.Execute(sqlQuery, new{user.Login,user.FullName, LastChanged });
+                _authorizationRepository.DeleteAllRefreshTokens(user.Id);
             }
         }
         public void UpdateUserResetCodeById(int id, string code)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                db.Query("UPDATE Users SET ResetCode = @code WHERE Id = @id", new { id, code });
+                var LastChanged = DateTime.UtcNow;
+                db.Execute("UPDATE Users SET ResetCode = @code, LastChanged = @LastChange WHERE Id = @id", new { id, code, LastChanged });
+                _authorizationRepository.DeleteAllRefreshTokens(id);
             }
         }
         public void UpdateRegisteredUserAndCode(User user)
@@ -121,8 +127,10 @@ namespace TimeTracker.Repositories
             Password = PasswordHasher.ComputeHash(Password, salt, papper, iteration);
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = $"UPDATE Users SET Password = @Password, Salt = @salt WHERE Id = @Id";
-                db.Execute(sqlQuery, new { Id, salt, Password });
+                var sqlQuery = $"UPDATE Users SET Password = @Password, Salt = @salt, LastChanged = @LastChange WHERE Id = @Id";
+                var LastChanged = DateTime.UtcNow;
+                db.Execute(sqlQuery, new { Id, salt, Password,LastChanged });
+                _authorizationRepository.DeleteAllRefreshTokens(Id);
             }
         }
         public void UpdateUserPasswordAndCode(int id, string code, string password)
@@ -131,24 +139,25 @@ namespace TimeTracker.Repositories
             var papper = _configuration.GetSection("Hash:Papper").Value;
             var iteration = int.Parse(_configuration.GetSection("Hash:Iteration").Value);
             password = PasswordHasher.ComputeHash(password, salt, papper, iteration);
+            var LastChanged = DateTime.UtcNow;
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 string sqlQuery;
                 if (code == null)
                 {
-                    sqlQuery = $"UPDATE Users SET ResetCode = NULL, Password = '{password}', Salt = {salt} WHERE Id = {id}";
-                    db.Execute(sqlQuery, new { id, password });
+                    sqlQuery = $"UPDATE Users SET ResetCode = NULL, Password = '{password}', Salt = {salt}, LastChanged = @LastChange WHERE Id = {id}";
+                    db.Execute(sqlQuery, new { id, password, LastChanged });
 
                 }
 
                 else
                 {
-                    sqlQuery = $"UPDATE Users SET ResetCode = @code, Password = @password, Salt = {salt} WHERE Id = @id";
-                    db.Execute(sqlQuery, new { id, code, password });
+                    sqlQuery = $"UPDATE Users SET ResetCode = @code, Password = @password, Salt = {salt}, LastChanged = @LastChange WHERE Id = @id";
+                    db.Execute(sqlQuery, new { id, code, password,LastChanged });
 
                 }
 
-
+                _authorizationRepository.DeleteAllRefreshTokens(id);
             }
 
 
@@ -166,8 +175,10 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "UPDATE Users SET Enabled = 0 WHERE Id = @id";
-                db.Execute(sqlQuery, new { id });
+                var LastChanged = DateTime.UtcNow;
+                var sqlQuery = "UPDATE Users SET Enabled = 0, LastChanged = @LastChanged WHERE Id = @id";
+                db.Execute(sqlQuery, new { id, LastChanged });
+                _authorizationRepository.DeleteAllRefreshTokens(id);
             }
         }
         public void DeleteUser(int id)

@@ -10,12 +10,15 @@ import {
   Offcanvas,
   Form,
   ListGroup,
-  ListGroupItem
+  ListGroupItem,
+  Spinner
 } from "react-bootstrap";
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
-import TimeTracker from './TimeTracker';
-
+import TimeTracker, { IsSuccessOrIdle } from './TimeTracker';
+import { accessTokenLiveTime } from '../Login/Api/login-logout';
+import { Subscription, timer } from 'rxjs';
+import { ajaxForLogout } from '../Login/Api/login-logout';
 
 import { GetLocation } from '../Redux/Requests/CalendarRequest';
 import CheckModalWindow from './CheckModalWindow';
@@ -24,19 +27,21 @@ import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSl
 import { deleteCookie, getCookie, setCookie } from '../Login/Api/login-logout';
 import { getCurrentUser, getCurrentUserPermissions } from '../Redux/epics';
 import { RootState } from '../Redux/store';
-import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
+import { clearErroMassage as clearErroMassageUserList, setLogout } from '../Redux/Slices/UserSlice';
 import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
+import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
 
 import '../Custom.css';
 import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
 import { boolean } from 'yup';
+import { Subscriber } from 'rxjs';
+import { ajaxForRefresh } from '../Login/Api/login-logout';
+import { ColorRing,Vortex } from 'react-loader-spinner';
+
+
 
 function AppNavbar() {
-  const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
-  const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
-
-  const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
 
   const listOfTimeZones = useSelector((state: RootState) => {
     return state.location.listOfTimeZones
@@ -45,12 +50,16 @@ function AppNavbar() {
     return state.location.userOffset
   })
 
-  const [canUserApi, setCanUserApi] = useState("")
+  const tokenStatus = useSelector((state: RootState) => state.token.loginByToken)
 
+  const [canUserApi, setCanUserApi] = useState("")
 
   const dispatch = useDispatch();
   useEffect(() => {
-    const canUseUserIp = getCookie("canUseUserIp")
+
+
+    if (tokenStatus) {
+      const canUseUserIp = getCookie("canUseUserIp")
 
     if (canUseUserIp && canUseUserIp === "true") {
       GetLocation().subscribe({
@@ -76,7 +85,8 @@ function AppNavbar() {
     var id = getCookie("user_id");
     dispatch(getCurrentUser());
     dispatch(getCurrentUserPermissions());
-  }, []);
+  }, [tokenStatus]);
+
   let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
@@ -147,8 +157,17 @@ function AppNavbar() {
               <ListGroup className="justify-content-end flex flex-grow-1 pe-3 ">
                 <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Login"} className='m-0'
                   onClick={() => {
-                    deleteCookie("access_token");
-                    deleteCookie("canUseUserIp");
+                    ajaxForLogout(getCookie("refresh_token")!).subscribe({
+                      next: () => {
+                        dispatch(setLogout());
+                        deleteCookie("refresh_token");
+                        deleteCookie("access_token");
+                        deleteCookie("user_id");
+                        deleteCookie("canUseUserIp");
+                        dispatch(setLoginByToken(false));
+                      },
+                      error: () => dispatch(setErroMassageLocation(ErrorMassagePattern))
+                    });
                   }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-left me-1 mb-1" viewBox="0 0 16 16">
                     <path fillRule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z" />
@@ -160,9 +179,24 @@ function AppNavbar() {
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
+
+      <Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
+        <Col className={`p-0 m-0 h-100 ${tokenStatus?"":"w-100 justify-content-center d-flex align-items-center"}`}>
+          {tokenStatus ?
+            <Outlet /> :<Vortex
+            visible={true}
+            height="50%"
+            width="50%"
+            ariaLabel="vortex-loading"
+            wrapperStyle={{}}
+            wrapperClass="vortex-wrapper"
+            colors={['#f1faee','#231942', '#5e548e', '#9f86c0', '#be95c4', '#e0b1cb',]}
+          />}
+
       <Row className='justify-content-end p-0 m-0 height-main h-100 '>
         <Col className='p-0 m-0 h-100 '>
           <Outlet />
+
         </Col>
       </Row >
       <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {
@@ -174,8 +208,10 @@ function AppNavbar() {
               userOffset: value.timezone.gmt_offset * 60,
               timeZone: {
                 name: `${value.city} (${value.country_code})`,
-                value: value.timezone.gmt_offset * 60
+                value: value.timezone.gmt_offset * 60,
+                country:value.country
               }
+
             }))
             setCookie({ name: "canUseUserIp", value: 'true' })
           },
@@ -187,7 +223,6 @@ function AppNavbar() {
       <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
       <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
       <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>
-
     </Container>
   );
 }

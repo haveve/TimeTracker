@@ -9,5 +9,6 @@
         Day,
         Week,
         Month,
+        Year,
     }
 }

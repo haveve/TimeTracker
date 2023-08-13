@@ -5,9 +5,10 @@ import { getCookie } from "../../Login/Api/login-logout";
 import { Time, TimeResponse, TimeRequest, TimeMark } from "../Types/Time";
 import { response } from "../Types/ResponseType";
 import { Alert } from "react-bootstrap";
-import { locationOffset } from "../Slices/LocationSlice";
+import { locationOffset, startOfWeek } from "../Slices/LocationSlice";
 import { Session } from "../Types/Time";
 import { ErrorGraphql } from "../Slices/TimeSlice";
+import { number } from "yup";
 
 interface GraphqlTime {
     time: {
@@ -41,6 +42,7 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
         withCredentials: withCredentials
     })
 }
+
 
 export function RequestUserTime(id: number): Observable<TimeResponse> {
     return GetAjaxObservable<GraphqlUserTime>(`
@@ -78,11 +80,12 @@ export function RequestUserTime(id: number): Observable<TimeResponse> {
     );
 }
 
-export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number): Observable<TimeResponse> {
+export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number, startOfWeek: startOfWeek): Observable<TimeResponse> {
+
     return GetAjaxObservable<GraphqlTime>(`
-    query($offset:Int,$timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
+    query($startOfWeek:StartOfWeek!,$offset:Int,$timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
         time{
-          getTime(timeMark:$timeMark,pageNumber:$pageNumber,itemsInPage:$itemsInPage,offSet:$offset){
+          getTime(timeMark:$timeMark,pageNumber:$pageNumber,itemsInPage:$itemsInPage,offSet:$offset,startOfWeek:$startOfWeek){
             itemsCount,
             isStarted,
           time{
@@ -98,7 +101,7 @@ export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsIn
       }
         }
       }
-    `, { offset: offset / 60, timeMark, pageNumber, itemsInPage }).pipe(
+    `, { offset: offset / 60, timeMark, pageNumber, itemsInPage, startOfWeek }).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
@@ -188,27 +191,61 @@ export function RequestSetEndDate(offset: number): Observable<Date> {
     );
 }
 
-export function RequestUpdateDate(oldTime:Date,time: Session, offset: number) {
+export interface UpdateTimeResult {
+    time: {
+        manageTime: {
+            updateTime: {
+                oldSeconds: number,
+                newSeconds: number
+            }
+        }
+    }
+}
+
+export interface UpdateTimeReturnType {
+    oldSeconds: number,
+    newSeconds: number,
+    time: Session,
+    oldTime:Date
+}
+
+export function RequestUpdateDate(oldTime: Session, time: Session, offset: number, startOfWeek: startOfWeek):Observable<UpdateTimeReturnType>{
 
     time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
     time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
 
-    return GetAjaxObservable<string>(`
-    mutation($oldTime:DateTime!,$time:ManageTimeInputGrpahqType!){
+    const oldStartTime = oldTime.startTimeTrackDate;
+    const timeBeforeSent = {...time};
+
+    oldTime.endTimeTrackDate = new Date(oldTime.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    oldTime.startTimeTrackDate = new Date(oldTime.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+
+
+    return GetAjaxObservable<UpdateTimeResult>(`
+    mutation($oldTime:ManageTimeInputGrpahqType!,$time:ManageTimeInputGrpahqType!,$offset:Int,$startOfWeek:StartOfWeek!){
         time{
           manageTime{
-            updateTime(oldStartTime:$oldTime,userTime:$time)
+            updateTime(oldTime:$oldTime,userTime:$time,offSet:$offset,startOfWeek:$startOfWeek){
+                oldSeconds,
+                newSeconds
+            }
           }
         }
     }
-    `, {oldTime,time:{
-        endTimeTrackDate:time.endTimeTrackDate,
-        startTimeTrackDate:time.startTimeTrackDate 
-    }}, true).pipe(
+    `, {
+        oldTime: {
+            endTimeTrackDate: oldTime.endTimeTrackDate,
+            startTimeTrackDate: oldTime.startTimeTrackDate,
+        }, time: {
+            endTimeTrackDate: time.endTimeTrackDate,
+            startTimeTrackDate: time.startTimeTrackDate,
+        }, offset:offset/60,
+        startOfWeek
+    }, true).pipe(
         map(res => {
-            
-            const sqlErro:ErrorGraphql = res.response.errors;
-            if(sqlErro&&sqlErro[0].extensions.code === "SQL"){
+
+            const sqlErro: ErrorGraphql = res.response.errors;
+            if (sqlErro && sqlErro[0].extensions.code === "SQL") {
                 console.error(JSON.stringify(res.response.errors))
                 throw "SQL"
             }
@@ -216,7 +253,15 @@ export function RequestUpdateDate(oldTime:Date,time: Session, offset: number) {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return time
+
+            const timeReturn:UpdateTimeReturnType = {
+                oldTime:oldStartTime,
+                time:timeBeforeSent,
+                oldSeconds:res.response.data.time.manageTime.updateTime.oldSeconds,
+                newSeconds:res.response.data.time.manageTime.updateTime.newSeconds
+            }
+
+            return timeReturn;
         })
     );
 }
