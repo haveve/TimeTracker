@@ -37,8 +37,7 @@ import {ApproverNode} from "./Types/ApproverNode";
 import {VacationRequest} from "./Types/VacationRequest";
 import {InputVacationRequest} from "./Types/InputVacationRequest";
 import {InputApproverReaction} from "./Types/InputApproverReaction";
-import { startWeekOfCountry } from "./Slices/LocationSlice";
-import { convertStartOfWeekToEnum } from "./Slices/LocationSlice";
+import { getStartOfWeekByCountry } from "./Slices/LocationSlice";
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
@@ -95,7 +94,7 @@ export const setTimeEpic: Epic = (action$:Observable<PayloadAction<TimePayloadTy
     return action$.pipe(
         ofType("setTime"),
         map(a=>a.payload),
-        mergeMap((p) => RequestGetTime(p.timeMark,p.pageNumber,p.itemsInPage,p.offset,convertStartOfWeekToEnum(startWeekOfCountry.filter(c=>c.country === p.country)[0].day)).pipe(
+        mergeMap((p) => RequestGetTime(p.timeMark,p.pageNumber,p.itemsInPage,p.offset,getStartOfWeekByCountry(p.country)).pipe(
             map((res: TimeResponse) => setTime(res)),
             catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
         )),

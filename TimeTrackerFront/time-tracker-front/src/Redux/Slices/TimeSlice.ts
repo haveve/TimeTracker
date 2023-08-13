@@ -5,6 +5,7 @@ import { LocationSlicer } from "./LocationSlice";
 import { locationOffset } from "./LocationSlice";
 import { ChangeLocationPayload, Location, officeTimeZone } from "./LocationSlice";
 import { LocationPayload } from "./LocationSlice";
+import { UpdateTimeReturnType } from "../Requests/TimeRequests";
 
 export type ErrorGraphql = [
     {
@@ -67,24 +68,21 @@ export const timeSlicer = createSlice({
             state.time.time.weekSeconds += differenceInSeconds;
             state.time.time.monthSeconds += differenceInSeconds;
         },
-        updateTime: (state, action: PayloadAction<UpdateTime>) => {
+        updateTime: (state, action: PayloadAction<UpdateTimeReturnType>) => {
             state.time.time.sessions = state.time.time.sessions.map((up) => {
-                if (up.startTimeTrackDate.toISOString() === action.payload.oldSDate.toISOString()) {
-
-                    const olddifferenceInSeconds = Math.floor((up.endTimeTrackDate!.getTime() - up.startTimeTrackDate.getTime()) / 1000)
-                    const newdifferenceInSeconds = Math.floor((action.payload.time.endTimeTrackDate!.getTime() - action.payload.time.startTimeTrackDate.getTime()) / 1000)
+                if (up.startTimeTrackDate.toISOString() === action.payload.oldTime.toISOString()) {
                     switch (up.timeMark) {
                         case TimeMark.Day:
-                            state.time.time.daySeconds += newdifferenceInSeconds - olddifferenceInSeconds
-                            state.time.time.weekSeconds += newdifferenceInSeconds - olddifferenceInSeconds
-                            state.time.time.monthSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            state.time.time.daySeconds += action.payload.newSeconds - action.payload.oldSeconds
+                            state.time.time.weekSeconds += action.payload.newSeconds - action.payload.oldSeconds
+                            state.time.time.monthSeconds += action.payload.newSeconds - action.payload.oldSeconds
                             break;
                         case TimeMark.Week:
-                            state.time.time.weekSeconds += newdifferenceInSeconds - olddifferenceInSeconds
-                            state.time.time.monthSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            state.time.time.weekSeconds += action.payload.newSeconds - action.payload.oldSeconds
+                            state.time.time.monthSeconds += action.payload.newSeconds - action.payload.oldSeconds
                             break;
                         case TimeMark.Month:
-                            state.time.time.monthSeconds += newdifferenceInSeconds - olddifferenceInSeconds
+                            state.time.time.monthSeconds += action.payload.newSeconds - action.payload.oldSeconds
                             break;
                     }
                     return action.payload.time

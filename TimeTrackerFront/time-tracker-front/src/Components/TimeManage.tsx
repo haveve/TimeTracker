@@ -18,6 +18,7 @@ import { updateTime, setErrorStatusAndError, setIdleStatus } from '../Redux/Slic
 import { RequestUpdateDate } from '../Redux/Requests/TimeRequests';
 import { ErrorMassagePattern } from '../Redux/epics';
 import { locationOffset } from '../Redux/Slices/LocationSlice';
+import { getStartOfWeekByCountry } from '../Redux/Slices/LocationSlice';
 
 export const startLessEnd = "Start date of time period must be less then End"
 export const existedStartDate = "There is occured error. Maybe you chose start date of session that already exist. If you could not resolved issue, turn to colsole and administrator"
@@ -38,6 +39,11 @@ export default function TimeManage(props: { isShowed: boolean, setShow: (show: b
     const offSet = useSelector((state: RootState) => {
         return state.location.userOffset
     })
+
+    const coutry = useSelector((state: RootState) => {
+        return state.location.country
+    })
+
     const dispatch = useDispatch()
 
     return <Modal show={props.isShowed}
@@ -102,12 +108,11 @@ export default function TimeManage(props: { isShowed: boolean, setShow: (show: b
                         setError(startLessEnd)
                         return;
                     }
-                    RequestUpdateDate(props.selected.startTimeTrackDate, {...toUpdate}, offSet).subscribe({
-                        next: () => {
+                    RequestUpdateDate({...props.selected}, {...toUpdate}, offSet,getStartOfWeekByCountry(coutry)).subscribe({
+                        next: (value) => {
                             SetSuccess('Session was succesfully updated')
                             dispatch(updateTime({
-                                oldSDate: props.selected.startTimeTrackDate,
-                                time: toUpdate
+                                ...value
                             }))
                         },
                         error: (error: string) => {

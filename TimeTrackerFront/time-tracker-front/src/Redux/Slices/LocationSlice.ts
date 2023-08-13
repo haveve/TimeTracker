@@ -158,6 +158,10 @@ export const officeTimeZone = [
 ];
 export const locationOffset = moment().utcOffset();
 
+export function getStartOfWeekByCountry(country:string){
+    return convertStartOfWeekToEnum(startWeekOfCountry.filter(c=>c.country === country)[0].day)
+}
+
 export interface TimeZone {
     name: string,
     value: number
