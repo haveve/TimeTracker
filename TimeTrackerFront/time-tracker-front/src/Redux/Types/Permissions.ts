@@ -1,5 +1,5 @@
 export interface Permissions {
-    id: number,
+    userId?: number,
     cRUDUsers: boolean,
     editPermiters: boolean,
     viewUsers: boolean,

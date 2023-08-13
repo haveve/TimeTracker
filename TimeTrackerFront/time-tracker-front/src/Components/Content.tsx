@@ -8,17 +8,17 @@ import AppNavbar from './Navbar';
 import UserDetails from './UserDetails';
 import CreateUser from './CreateUser';
 import UserProfile from './UserProfile';
-import {getTokenOrNavigate} from '../Login/Api/login-logout';
+import {getCookie, getTokenOrNavigate} from '../Login/Api/login-logout';
 import TimeStatistic from "./TimeStatistic"
 import RequestResetPassword from "./RequestResetPassword";
 import UserRegistration from './UserRegistration';
 import Calendar from './Calendar';
-import ApproversSetup from "./ApproversSetup";
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../Redux/store';
 import PermissionError from './PermissionError';
 import {RequestCurrentUser} from '../Redux/Requests/UserRequests';
 import {User} from '../Redux/Types/User';
+
 import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
 import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSlice';
 import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/UserSlice';
@@ -28,40 +28,47 @@ import { Subscription,timer } from 'rxjs';
 import { accessTokenLiveTime } from '../Login/Api/login-logout';
 import { ajaxForRefresh } from '../Login/Api/login-logout';
 
-const checkPermissions = (Permission: string, user: User) => {
-  if (Permission === "ViewUsers" && user.viewUsers === false) {
+import { Permissions } from '../Redux/Types/Permissions';
+import MainMenu from './MainMenu';
+
+
+const checkPermissions = (Permission: string, permissions: Permissions) => {
+  if (Permission === "ViewUsers" && permissions.viewUsers === false) {
     return redirect("/PermissionError");
   }
-  if (Permission === "CreateUsers" && user.cRUDUsers === false) {
+  if (Permission === "CreateUsers" && permissions.cRUDUsers === false) {
     return redirect("/PermissionError");
   }
-  if (Permission === "UserDetails" && user.viewUsers === false) {
+  if (Permission === "UserDetails" && permissions.viewUsers === false) {
+    return redirect("/PermissionError");
+  }
+  if (Permission === "Time" && getCookie("is_fulltimer") === "true") {
     return redirect("/PermissionError");
   }
   return null;
 }
-const router = (user: User) => createBrowserRouter([
+const router = (permissions: Permissions) => createBrowserRouter([
   {
     element: <AppNavbar/>,
     loader: async () => getTokenOrNavigate(),
     children: [
       {
         path: "/",
-        element: <TimeStatistic/>
+        element: <MainMenu/>
       },
       {
         path: "/Users",
-        loader: async () => checkPermissions("ViewUsers", user),
+        loader: async () => checkPermissions("ViewUsers", permissions),
         element: <Userslist/>,
       },
       {
         path: "/Users/:userId",
-        loader: async () => checkPermissions("UserDetails", user),
+        loader: async () => checkPermissions("UserDetails", permissions),
         element: <UserDetails/>
       },
       {
         path: "/CreateUser",
-        loader: async () => checkPermissions("CreateUsers", user),
+        loader: async () => checkPermissions("CreateUsers", permissions),
         element: <CreateUser/>
       },
       {
@@ -73,9 +80,14 @@ const router = (user: User) => createBrowserRouter([
         element: <Calendar/>
       },
       {
+        path: "/Time",
+        loader: async () => checkPermissions("Time", permissions),
+        element: <TimeStatistic/>
+      },
+      {
         path: "/PermissionError",
         element: <PermissionError/>
-      }
+      },
     ]
   },
   {
@@ -100,6 +112,7 @@ const router = (user: User) => createBrowserRouter([
 
 function AppContent() {
 
+
   const errorTime = useSelector((state: RootState) => state.time.error ? state.time.error : "");
   const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
   const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
@@ -107,10 +120,10 @@ function AppContent() {
 
   const dispatch = useDispatch();
   let user = useSelector((state: RootState) => state.currentUser.User);
-
+  let permissions = useSelector((state: RootState) => state.currentUser.Permissions);
   return (
     <div className='Content container-fluid p-0 h-100'>
-      <RouterProvider router={router(user)}/>
+      <RouterProvider router={router(permissions)}/>
       <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
       <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
       <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>

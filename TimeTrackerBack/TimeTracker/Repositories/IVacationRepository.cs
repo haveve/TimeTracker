@@ -21,8 +21,8 @@ namespace TimeTracker.Repositories
         List<ApproverSetupNode> GetSetupNodesByApproverId(int approverId);
         List<ApproverSetupNode> GetSetupNodesByRequesterId(int requesterId);
         VacationRequest GetVacationRequest(int id);
-        List<VacationRequest> GetVacationRequestsByApproverId(int approverId);
-        List<VacationRequest> GetVacationRequestsByRequesterId(int requesterId);
+        List<VacationRequest> GetVacationRequestsByApproverId(int approverId,string requestType);
+        List<VacationRequest> GetVacationRequestsByRequesterId(int requesterId, string requestType);
         void UpdateApproverReaction(int approverUserId, int requestId, bool reaction, string reactionMessage);
         void UpdateRequestDetailsToApprovers(int userRequesterId, int requestId);
         void UpdateVacationRequestStatus(int requestId, string status);

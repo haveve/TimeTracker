@@ -15,7 +15,7 @@ function Userslist() {
     const [after, setAfter] = useState(0);
     const [search, setSearch] = useState('');
     const [orderfield, setOrderfield] = useState('');
-    const [enabled, setEnabled] = useState('1');
+    const [enabled, setEnabled] = useState('%');
     const [order, setOrder] = useState("ASC");
     const page = useSelector((state: RootState) => state.users.UsersPage);
     const dispatch = useDispatch();
@@ -30,7 +30,7 @@ function Userslist() {
             enabled: enabled
         }
         dispatch(getPagedUsers(page));
-    }, [after, orderfield, order]);
+    }, [after, orderfield, order, enabled]);
 
     const handleKeyDown = (event: React.KeyboardEvent) => {
         if (event.key === 'Enter') {
@@ -74,11 +74,9 @@ function Userslist() {
                         <InputGroup>
                             <Form.Select onChange={e => setOrderfield(e.target.value)}>
                                 <option value="">Sort by</option>
-                                <option value="Login">Login</option>
+                                <option value="Email">Email</option>
                                 <option value="FullName">Name</option>
-                                <option value="DaySeconds">Day work time</option>
-                                <option value="WeekSeconds">Week work time</option>
-                                <option value="MonthSeconds">Month work time</option>
+                                <option value="Enabled">Enabled</option>
                             </Form.Select>
                             <Button variant="outline-secondary" onClick={() => { order === "ASC" ? setOrder("DESC") : setOrder("ASC") }}>
                                 {order === "ASC" ?
@@ -98,13 +96,13 @@ function Userslist() {
                             <Overlay target={target.current} show={show} placement="bottom">
                                 <div className='bg-black p-2 rounded-2' data-bs-theme="dark">
                                     <Form onSubmit={(e) => { e.preventDefault(); HandleSearch() }}>
-                                        <InputGroup className='mb-2'>
+                                        <InputGroup>
                                             <Form.Select onChange={e => setEnabled(e.target.value)} defaultValue={enabled}>
+                                                <option value="%">All users</option>
                                                 <option value="1">Enabled users</option>
                                                 <option value="0">Disabled users</option>
                                             </Form.Select>
                                         </InputGroup>
-                                        <Button className='w-100' variant='dark' type='submit'>Submit</Button>
                                     </Form>
                                 </div>
                             </Overlay>
@@ -119,33 +117,28 @@ function Userslist() {
                     page.userList?.map((user) =>
                         <ListGroup.Item key={user.id} className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
                             <Row className='w-100'>
-                                <Col sm={4}>
-                                    <p className='m-0 fs-5'>{user.fullName}</p>
-                                    <Link to={"/Users/" + user.id} className="link-offset-2 link-underline link-underline-opacity-0 fs-6">@{user.login}</Link>
+                                <Col sm={6}>
+                                    {user.enabled ?
+                                        <>
+                                            <p className='m-0 fs-5'>{user.fullName}</p>
+                                            <p className="m-0 fs-8">{user.email}</p>
+                                        </>
+                                        :
+                                        <>
+                                            <p className='m-0 fs-5'>{user.fullName}</p>
+                                            <p className="m-0 fs-8">{user.email}</p>
+                                        </>
+                                    }
                                 </Col>
-                                <Col>
-                                    <div className='text-center'>
-                                        <p className='m-0'>Day</p>
-                                        {TimeForStatisticFromSeconds(user.daySeconds!)}
-                                    </div>
-                                </Col>
-                                <Col>
-                                    <div className='text-center'>
-                                        <p className='m-0'>Week</p>
-                                        {TimeForStatisticFromSeconds(user.weekSeconds!)}
-                                    </div>
-                                </Col>
-                                <Col>
-                                    <div className='text-center'>
-                                        <p className='m-0'>Month</p>
-                                        {TimeForStatisticFromSeconds(user.monthSeconds!)}
-                                    </div>
-                                </Col>
-                                <Col>
-                                    <div className='text-center'>
-                                        <p className='m-0'>Manage Time</p>
-                                        {user.timeManagedBy}
-                                    </div>
+                                <Col className='d-flex align-items-center'>
+                                    <p className='m-0 me-2 ms-auto text-darkred'>{user.enabled ? "" : "disabled"}</p>
+                                    <Link to={"/Users/" + user.id}>
+                                        <Button variant="outline-secondary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-person mb-1" viewBox="0 0 16 16">
+                                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z" />
+                                            </svg>
+                                        </Button>
+                                    </Link>
                                 </Col>
                             </Row>
                         </ListGroup.Item>
