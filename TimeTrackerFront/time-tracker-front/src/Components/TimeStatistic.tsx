@@ -41,13 +41,17 @@ export default function TimeStatistic() {
         return state.location.userOffset;
     })
 
+    const country = useSelector((state: RootState) => {
+        return state.location.country;
+    })
+
     useEffect(() => {
         dispatch(setloadingStatus());
-        dispatch(setTimeE(timeMarks, page, itemsInPage, offset));
+        dispatch(setTimeE(timeMarks, page, itemsInPage, offset,country));
     }, [])
 
     useEffect(() => {
-        dispatch(setTimeE(timeMarks, page, itemsInPage, offset));
+        dispatch(setTimeE(timeMarks, page, itemsInPage, offset,country));
     }, [page, timeMarks])
 
     useEffect(() => {

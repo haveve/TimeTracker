@@ -23,16 +23,18 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")
                 .Argument<NonNullGraphType<IntGraphType>>("pageNumber")
                 .Argument<IntGraphType>("offSet")
+                .Argument<NonNullGraphType<EnumerationGraphType<startOfWeek>>>("startOfWeek")
                 .Argument<NonNullGraphType<IntGraphType>>("itemsInPage")
                 .Resolve(context =>
                 {
                     int pageNumber = context.GetArgument<int>("pageNumber");
                     int itemsInPage = context.GetArgument<int>("itemsInPage");
                     var timeMark = context.GetArgument<List<TimeMark>>("timeMark");
+                    var startOfWeek = context.GetArgument<startOfWeek>("startOfWeek");
                     var offSet = context.GetArgument<int?>("offSet")??0;
                     var userId = GetUserIdFromClaims(context.User!);
                     var time = _timeRepository.GetTime(userId);
-                    return GetTimeFromSession(time, timeMark, offSet, itemsInPage, pageNumber);
+                    return GetTimeFromSession(time, timeMark, offSet, startOfWeek, itemsInPage, pageNumber);
                 });
             Field<IntGraphType>("getTotalWorkTime")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
@@ -43,11 +45,13 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 });
         }
 
-        public static TimeWithFlagViewModel GetTimeFromSession(List<Models.Time>? sessions, List<TimeMark> timeMarks,int offSet ,int itemsInPage = int.MaxValue, int pageNumber = 0)
+        public static TimeWithFlagViewModel GetTimeFromSession(List<Models.Time>? sessions, List<TimeMark> timeMarks,int offSet, startOfWeek startOfWeek, int itemsInPage = int.MaxValue, int pageNumber = 0)
         {
             var time = new TimeWithFlagViewModel();
             time.Time = new();
             time.Time.Sessions = new();
+
+            var startNetOfWeek = getNetStartOfWeek(startOfWeek);
 
             if (sessions == null)
                 return time;
@@ -63,9 +67,14 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 {
 
                     var seconds = (session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds;
+                    var dateStartOfWeek = DateTime.UtcNow.AddHours(offSet).StartOfWeek(startNetOfWeek);
+                    var dateEndOfWeek = DateTime.UtcNow.AddHours(offSet).StartOfWeek(startNetOfWeek).AddDays(6);
+
                     if (session.StartTimeTrackDate.AddHours(offSet).DayOfYear <= DateTime.UtcNow.AddHours(offSet).DayOfYear && DateTime.UtcNow.AddHours(offSet).DayOfYear <= ((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear)
                     {
-                        var dateNowUtc =  DateOnly.FromDateTime(DateTime.UtcNow.AddHours(offSet));
+                        var dateNowUtc = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(offSet));
+
+
                         if (session.EndTimeTrackDate!.Value.AddHours(offSet).DayOfYear != session.StartTimeTrackDate.AddHours(offSet).DayOfYear && new DateTime(dateNowUtc.Year, dateNowUtc.Month, dateNowUtc.Day).AddHours(offSet).DayOfYear == session.EndTimeTrackDate!.Value.AddHours(offSet).DayOfYear)
                             seconds = (session.EndTimeTrackDate!.Value - DateTime.UtcNow.Date).Add(TimeSpan.FromHours(offSet)).TotalSeconds;
                         else if (session.EndTimeTrackDate!.Value.AddHours(offSet).DayOfYear != session.StartTimeTrackDate.AddHours(offSet).DayOfYear && new DateTime(dateNowUtc.Year, dateNowUtc.Month, dateNowUtc.Day).AddHours(offSet).DayOfYear == session.StartTimeTrackDate.AddHours(offSet).DayOfYear)
@@ -79,14 +88,16 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                         time.Time.MonthSeconds += (int)seconds;
 
                     }
-                    else if (Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear/ 7) <= Math.Ceiling((decimal)DateTime.UtcNow.AddHours(offSet).DayOfYear / 7) && Math.Ceiling((decimal)DateTime.UtcNow.AddHours(offSet).DayOfYear / 7) <= Math.Ceiling((decimal)((DateTime)session.EndTimeTrackDate).AddHours(offSet).DayOfYear / 7))
+                    else if ((dateStartOfWeek <= session.StartTimeTrackDate.AddHours(offSet) && session.StartTimeTrackDate.AddHours(offSet) <= dateEndOfWeek) || (dateStartOfWeek <= session.EndTimeTrackDate.Value.AddHours(offSet) && session.EndTimeTrackDate.Value.AddHours(offSet) <= dateEndOfWeek))
                     {
                         var dateNowUtc = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(offSet));
-                        if (Math.Ceiling((decimal)session.EndTimeTrackDate!.Value.AddHours(offSet).DayOfYear/7) != Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear/7) &&  Math.Ceiling((decimal)new DateTime(dateNowUtc.Year,dateNowUtc.Month,dateNowUtc.Day).AddHours(offSet).DayOfYear / 7) == Math.Ceiling((decimal)session.EndTimeTrackDate!.Value.AddHours(offSet).DayOfYear / 7))
-                            seconds = (session.EndTimeTrackDate!.Value - DateTime.UtcNow.Date.StartOfWeek(DayOfWeek.Monday)).Add(TimeSpan.FromHours(offSet)).TotalSeconds;
-                        if (Math.Ceiling((decimal)session.EndTimeTrackDate!.Value.AddHours(offSet).DayOfYear / 7) != Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear / 7) && Math.Ceiling((decimal)new DateTime(dateNowUtc.Year, dateNowUtc.Month, dateNowUtc.Day).AddHours(offSet).DayOfYear / 7) == Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).DayOfYear / 7))
-                            seconds = (session.StartTimeTrackDate.AddDays(DateTime.UtcNow.StartOfWeek(DayOfWeek.Monday).AddDays(6).DayOfYear) - session.StartTimeTrackDate).Add(TimeSpan.FromHours(offSet)).TotalSeconds;
-
+                        if (!((dateStartOfWeek <= session.StartTimeTrackDate.AddHours(offSet) && session.StartTimeTrackDate.AddHours(offSet) <= dateEndOfWeek) && (dateStartOfWeek <= session.EndTimeTrackDate.Value.AddHours(offSet) && session.EndTimeTrackDate.Value.AddHours(offSet) <= dateEndOfWeek)))
+                        {
+                            if ((dateStartOfWeek <= session.EndTimeTrackDate.Value.AddHours(offSet) && session.EndTimeTrackDate.Value.AddHours(offSet) <= dateEndOfWeek))
+                                seconds = (session.EndTimeTrackDate!.Value - DateTime.UtcNow.Date.StartOfWeek(DayOfWeek.Monday)).Add(TimeSpan.FromHours(offSet)).TotalSeconds;
+                            if ((dateStartOfWeek <= session.StartTimeTrackDate.AddHours(offSet) && session.StartTimeTrackDate.AddHours(offSet) <= dateEndOfWeek))
+                                seconds = (session.StartTimeTrackDate.AddDays(DateTime.UtcNow.StartOfWeek(DayOfWeek.Monday).AddDays(6).DayOfYear) - session.StartTimeTrackDate).Add(TimeSpan.FromHours(offSet)).TotalSeconds;
+                        }
                         timeSession.TimeMark = TimeMark.Week;
                         time.Time.WeekSeconds += (int)seconds;
                         time.Time.MonthSeconds += (int)seconds;
@@ -101,7 +112,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
                         if (Math.Ceiling((decimal)session.EndTimeTrackDate!.Value.AddHours(offSet).Month) != Math.Ceiling((decimal)session.StartTimeTrackDate.AddHours(offSet).Month) && new DateTime(dateNowUtc.Year, dateNowUtc.Month, dateNowUtc.Day).AddHours(offSet).Month == session.EndTimeTrackDate!.Value.AddHours(offSet).Month)
                             seconds = (session.EndTimeTrackDate!.Value - firstDayOfMonth).Add(TimeSpan.FromHours(offSet)).TotalSeconds;
-                        else if (session.EndTimeTrackDate!.Value.AddHours(offSet).DayOfYear != session.StartTimeTrackDate.AddHours(offSet).DayOfYear && new DateTime(dateNowUtc.Year, dateNowUtc.Month, dateNowUtc.Day).AddHours(offSet).Month == session.StartTimeTrackDate.AddHours(offSet).Month)
+                        else if (session.EndTimeTrackDate!.Value.AddHours(offSet).Month != session.StartTimeTrackDate.AddHours(offSet).Month && new DateTime(dateNowUtc.Year, dateNowUtc.Month, dateNowUtc.Day).AddHours(offSet).Month == session.StartTimeTrackDate.AddHours(offSet).Month)
                             seconds = (lastDayOfMonth - session.StartTimeTrackDate).Add(TimeSpan.FromHours(offSet)).TotalSeconds;
 
 
@@ -189,6 +200,16 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             }
             return MonthWorkTime * 36 * user.WorkHours;
         }
+        public static DayOfWeek getNetStartOfWeek(startOfWeek startOfWeek)
+        {
+            switch (startOfWeek)
+            {
+                case startOfWeek.Sunday: return DayOfWeek.Sunday;
+                case startOfWeek.Saturday: return DayOfWeek.Saturday;
+                case startOfWeek.Monday: return DayOfWeek.Monday;
+            }
+            throw new InvalidCastException("Invalid start of week");
+        }
     }
     public static class DateTimeExtensions
     {
@@ -197,5 +218,12 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             int diff = (7 + (dt.DayOfWeek - startOfWeek)) % 7;
             return dt.AddDays(-1 * diff).Date;
         }
+    }
+
+    public enum startOfWeek
+    {
+        Sunday,
+        Saturday,
+        Monday
     }
 }

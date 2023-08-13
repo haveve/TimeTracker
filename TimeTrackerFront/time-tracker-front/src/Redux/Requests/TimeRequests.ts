@@ -5,7 +5,7 @@ import { getCookie } from "../../Login/Api/login-logout";
 import { Time, TimeResponse, TimeRequest, TimeMark } from "../Types/Time";
 import { response } from "../Types/ResponseType";
 import { Alert } from "react-bootstrap";
-import { locationOffset } from "../Slices/LocationSlice";
+import { locationOffset, startOfWeek } from "../Slices/LocationSlice";
 import { Session } from "../Types/Time";
 import { ErrorGraphql } from "../Slices/TimeSlice";
 
@@ -36,11 +36,11 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
     })
 }
 
-export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number): Observable<TimeResponse> {
+export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number, startOfWeek:startOfWeek): Observable<TimeResponse> {
     return GetAjaxObservable<GraphqlTime>(`
-    query($offset:Int,$timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
+    query($startOfWeek:StartOfWeek!,$offset:Int,$timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
         time{
-          getTime(timeMark:$timeMark,pageNumber:$pageNumber,itemsInPage:$itemsInPage,offSet:$offset){
+          getTime(timeMark:$timeMark,pageNumber:$pageNumber,itemsInPage:$itemsInPage,offSet:$offset,startOfWeek:$startOfWeek){
             itemsCount,
             isStarted,
           time{
@@ -56,7 +56,7 @@ export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsIn
       }
         }
       }
-    `, { offset: offset / 60, timeMark, pageNumber, itemsInPage }).pipe(
+    `, { offset: offset / 60, timeMark, pageNumber, itemsInPage,startOfWeek}).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))

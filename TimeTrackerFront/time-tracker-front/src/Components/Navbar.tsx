@@ -68,7 +68,8 @@ function AppNavbar() {
               timeZone: {
                 name: `${value.city} (${value.country_code})`,
                 value: value.timezone.gmt_offset * 60
-              }
+              },
+              country:value.country
             }))
             setCookie({ name: "canUseUserIp", value: 'true' })
           },
@@ -192,7 +193,8 @@ function AppNavbar() {
               timeZone: {
                 name: `${value.city} (${value.country_code})`,
                 value: value.timezone.gmt_offset * 60
-              }
+              },
+              country:value.country
             }))
             setCookie({ name: "canUseUserIp", value: 'true' })
           },
