@@ -163,7 +163,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                     }
                 }
             });
-            for (int i = 0; i < days.Length; i++)
+            for (int i = 0; i < days.Length - 1; i++)
             {
                 MonthWorkTime += days[i];
                 //Console.WriteLine(d.AddDays(i) + "-" + days[i]);
