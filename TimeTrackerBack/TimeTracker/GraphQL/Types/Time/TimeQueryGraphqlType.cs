@@ -10,7 +10,6 @@ using TimeTracker.GraphQL.Types.Time;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.ViewModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TimeTracker.GraphQL.Types.TimeQuery
 {
@@ -29,7 +28,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 {
                     var id = context.GetArgument<int>("id");
                     var time = _timeRepository.GetTime(id);
-                    return GetTimeFromSession(time, new List<TimeMark>(), 1);
+                    return GetTimeFromSession(time, new List<TimeMark>(), 1,startOfWeek.Monday);
                 });
             Field<TimeWithFlagOutPutGraphql>("getTime")
                 .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")

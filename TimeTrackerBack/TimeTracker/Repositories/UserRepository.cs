@@ -127,7 +127,7 @@ namespace TimeTracker.Repositories
             Password = PasswordHasher.ComputeHash(Password, salt, papper, iteration);
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = $"UPDATE Users SET Password = @Password, Salt = @salt, LastChanged = @LastChange WHERE Id = @Id";
+                var sqlQuery = $"UPDATE Users SET Password = @Password, Salt = @salt, LastChanged = @LastChanged WHERE Id = @Id";
                 var LastChanged = DateTime.UtcNow;
                 db.Execute(sqlQuery, new { Id, salt, Password,LastChanged });
                 _authorizationRepository.DeleteAllRefreshTokens(Id);

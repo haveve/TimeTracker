@@ -71,7 +71,8 @@ function AppNavbar() {
             timeZone: {
               name: `${value.city} (${value.country_code})`,
               value: value.timezone.gmt_offset * 60
-            }
+            },
+            country:value.country
           }))
           setCookie({ name: "canUseUserIp", value: 'true' })
         },
@@ -85,7 +86,7 @@ function AppNavbar() {
     var id = getCookie("user_id");
     dispatch(getCurrentUser());
     dispatch(getCurrentUserPermissions());
-  }, [tokenStatus]);
+  }}, [tokenStatus]);
 
   let user = useSelector((state: RootState) => state.currentUser.User);
 
@@ -192,12 +193,7 @@ function AppNavbar() {
             wrapperClass="vortex-wrapper"
             colors={['#f1faee','#231942', '#5e548e', '#9f86c0', '#be95c4', '#e0b1cb',]}
           />}
-
-      <Row className='justify-content-end p-0 m-0 height-main h-100 '>
-        <Col className='p-0 m-0 h-100 '>
-          <Outlet />
-
-        </Col>
+          </Col>
       </Row >
       <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {
         GetLocation().subscribe({
@@ -209,8 +205,8 @@ function AppNavbar() {
               timeZone: {
                 name: `${value.city} (${value.country_code})`,
                 value: value.timezone.gmt_offset * 60,
-                country:value.country
-              }
+              },
+              country:value.country
 
             }))
             setCookie({ name: "canUseUserIp", value: 'true' })
@@ -220,10 +216,7 @@ function AppNavbar() {
       }} reject={() => {
         setCookie({ name: "canUseUserIp", value: 'false' })
       }}>{canUserApi}</CheckModalWindow>
-      <NotificationModalWindow isShowed={errorTime !== ""} dropMassege={() => dispatch(clearErroMassageTime())} messegeType={MasssgeType.Error}>{errorTime}</NotificationModalWindow>
-      <NotificationModalWindow isShowed={errorUserList !== ""} dropMassege={() => dispatch(clearErroMassageUserList())} messegeType={MasssgeType.Error}>{errorUserList}</NotificationModalWindow>
-      <NotificationModalWindow isShowed={errorLocation !== ""} dropMassege={() => dispatch(clearErroMassageLocation())} messegeType={MasssgeType.Error}>{errorLocation}</NotificationModalWindow>
-    </Container>
+ </Container>
   );
 }
 

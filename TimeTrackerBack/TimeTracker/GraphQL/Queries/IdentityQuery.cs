@@ -103,7 +103,7 @@ namespace TimeTracker.GraphQL.Queries
                 {
                     access_token = encodedJwt,
                     user_id = user.Id,
-                    refresh_token = refreshToken
+                    refresh_token = refreshToken,
                     is_fulltimer = (user.WorkHours == 100)
 
                 };
