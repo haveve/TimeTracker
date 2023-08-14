@@ -41,6 +41,7 @@ namespace TimeTracker.GraphQL.Queries
                 var userRepository = context.RequestServices.GetService<IUserRepository>();
 
                 var user = userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
+                var permissions = userRepository.GetUserPermissions(user.Id);
                 if (user == null)
                 {
                     throw new Exception("User does not exist");
@@ -58,13 +59,13 @@ namespace TimeTracker.GraphQL.Queries
                 claims: new[] {
             new Claim("UserId", user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-            new Claim("CRUDUsers",user.CRUDUsers.ToString()),
-            new Claim("ViewUsers",user.ViewUsers.ToString()),
-            new Claim("EditPermiters",user.EditPermiters.ToString()),
-            new Claim("ImportExcel",user.ImportExcel.ToString()),
-            new Claim("ControlPresence",user.ControlPresence.ToString()),
-            new Claim("ControlDayOffs",user.ControlDayOffs.ToString()),
-            new Claim("EditWorkHours",user.EditWorkHours.ToString())
+            new Claim("CRUDUsers",permissions.CRUDUsers.ToString()),
+            new Claim("ViewUsers",permissions.ViewUsers.ToString()),
+            new Claim("EditPermiters",permissions.EditPermiters.ToString()),
+            new Claim("ImportExcel",permissions.ImportExcel.ToString()),
+            new Claim("ControlPresence",permissions.ControlPresence.ToString()),
+            new Claim("ControlDayOffs",permissions.ControlDayOffs.ToString()),
+            new Claim("EditWorkHours",permissions.EditWorkHours.ToString())
                 },
                 expires: DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration)),
                 signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
@@ -103,6 +104,8 @@ namespace TimeTracker.GraphQL.Queries
                     access_token = encodedJwt,
                     user_id = user.Id,
                     refresh_token = refreshToken
+                    is_fulltimer = (user.WorkHours == 100)
+
                 };
 
                 //HttpContext.Response.Cookies.Append("gdfg", "gdfdgdf", new()

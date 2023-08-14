@@ -7,13 +7,14 @@ import {
     RequestUser,
     RequestPagedUsers,
     RequestUsersBySearch,
-    RequestCurrentUser
+    RequestCurrentUser,
+    RequestCurrentUserPermissions
 } from "./Requests/UserRequests";
 import {User} from "./Types/User";
 import {Permissions} from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
 import {getUsersPage, getUsersList, getUsersListBySearch} from "./Slices/UserSlice";
-import {getTheCurrentUser} from "./Slices/CurrentUserSlice";
+import {getTheCurrentPermissions, getTheCurrentUser} from "./Slices/CurrentUserSlice";
 import {RequestGetTime,RequestSetStartDate,RequestSetEndDate} from "./Requests/TimeRequests";
 import {Time, TimeResponse, TimeRequest,TimeMark} from "./Types/Time";
 import {setTime, setErrorStatusAndError as setErrorStatusAndErrorTime, setStartTime,setEndTime} from "./Slices/TimeSlice"
@@ -37,7 +38,11 @@ import {ApproverNode} from "./Types/ApproverNode";
 import {VacationRequest} from "./Types/VacationRequest";
 import {InputVacationRequest} from "./Types/InputVacationRequest";
 import {InputApproverReaction} from "./Types/InputApproverReaction";
+
 import { getStartOfWeekByCountry } from "./Slices/LocationSlice";
+
+import {InputVacRequest} from "./Types/InputVacRequest";
+
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
@@ -72,6 +77,14 @@ export const getCurrentUserEpic: Epic = (action$: Observable<PayloadAction<numbe
     ofType("getCurrentUser"),
     mergeMap(() => RequestCurrentUser().pipe(
         map((res: User) => getTheCurrentUser(res))
+    ))
+);
+
+export const getCurrentUserPermissions = () => ({ type: "getCurrentUserPermissions" });
+export const getCurrentUserPermissionsEpic: Epic = action$ => action$.pipe(
+    ofType("getCurrentUserPermissions"),
+    mergeMap(() => RequestCurrentUserPermissions().pipe(
+        map((res: Permissions) => getTheCurrentPermissions(res))
     ))
 );
 
@@ -144,7 +157,7 @@ export const addApproverEpic: Epic = (action$: Observable<PayloadAction<Approver
     ofType("addApprover"),
     map(action => action.payload),
     mergeMap((approverNode) => RequestAddApprover(approverNode).pipe(
-        map(() => getApprovers(approverNode.requesterId))
+        map(() => getApprovers(approverNode.userIdRequester))
     ))
 );
 
@@ -154,26 +167,26 @@ export const deleteApproverEpic: Epic = (action$: Observable<PayloadAction<Appro
     ofType("deleteApprover"),
     map(action => action.payload),
     mergeMap((approverNode) => RequestDeleteApprover(approverNode).pipe(
-        map(() => getApprovers(approverNode.requesterId))
+        map(() => getApprovers(approverNode.userIdRequester))
     ))
 );
 
-export const getVacationRequestsByRequesterId = (requesterId: number) =>
-    ({type: "getVacationRequestsByRequesterId", payload: requesterId});
-export const getVacationRequestsEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
+export const getVacationRequestsByRequesterId = (inputVacRequest: InputVacRequest) =>
+    ({type: "getVacationRequestsByRequesterId", payload: inputVacRequest});
+export const getVacationRequestsEpic: Epic = (action$: Observable<PayloadAction<InputVacRequest>>) => action$.pipe(
     ofType("getVacationRequestsByRequesterId"),
     map(action => action.payload),
-    mergeMap((requesterId) => RequestVacationRequestsByRequesterId(requesterId).pipe(
+    mergeMap((inputVacRequest) => RequestVacationRequestsByRequesterId(inputVacRequest).pipe(
         map((res: VacationRequest[]) => getVacationRequestsListByRequesterId(res))
     ))
 )
 
-export const getIncomingVacationRequestsByApproverId = (approverId: number) =>
-    ({type: "getIncomingVacationRequestsByApproverId", payload: approverId});
-export const getIncomingVacationRequestsByApproverIdEpic: Epic = (action$: Observable<PayloadAction<number>>) => action$.pipe(
+export const getIncomingVacationRequestsByApproverId = (inputVacRequest: InputVacRequest) =>
+    ({type: "getIncomingVacationRequestsByApproverId", payload: inputVacRequest});
+export const getIncomingVacationRequestsByApproverIdEpic: Epic = (action$: Observable<PayloadAction<InputVacRequest>>) => action$.pipe(
     ofType("getIncomingVacationRequestsByApproverId"),
     map(action => action.payload),
-    mergeMap((approverId) => RequestIncomingVacationRequestsByApproverId(approverId).pipe(
+    mergeMap((inputVacRequest) => RequestIncomingVacationRequestsByApproverId(inputVacRequest).pipe(
         map((res: VacationRequest[]) => getIncomingVacationRequestsListByApproverId(res))
     ))
 )
@@ -194,7 +207,9 @@ export const addApproverReactionEpic: Epic = (action$: Observable<PayloadAction<
     ofType("addApproverReaction"),
     map(action => action.payload),
     mergeMap((inputApproverReaction) => RequestAddApproverReaction(inputApproverReaction).pipe(
-        map(() => getIncomingVacationRequestsByApproverId(inputApproverReaction.approverId))
+        map(() => getIncomingVacationRequestsByApproverId(
+          {approverOrRequesterId: inputApproverReaction.approverId, requestStatus: "Pending"}
+        ))
     ))
 )
 
@@ -204,7 +219,9 @@ export const createVacationRequestEpic: Epic = (action$: Observable<PayloadActio
     ofType("createVacationRequest"),
     map(action => action.payload),
     mergeMap((vacationRequest) => RequestCreateVacationRequest(vacationRequest).pipe(
-        map(() => getVacationRequestsByRequesterId(vacationRequest.requesterId))
+        map(() => getVacationRequestsByRequesterId(
+          {approverOrRequesterId: vacationRequest.requesterId, requestStatus: "Pending"}
+        ))
     ))
 );
 export const cancelVacationRequest = (vacationRequest: VacationRequest)=>
@@ -213,7 +230,9 @@ export const cancelVacationRequestEpic: Epic = (action$: Observable<PayloadActio
     ofType("cancelVacationRequest"),
     map(action => action.payload),
     mergeMap((vacationRequest) => RequestCancelVacationRequest(vacationRequest).pipe(
-        map(() => getVacationRequestsByRequesterId(vacationRequest.requesterId))
+        map(() => getVacationRequestsByRequesterId(
+          {approverOrRequesterId: vacationRequest.requesterId, requestStatus: "Pending"}
+        ))
     ))
 );
 
@@ -223,6 +242,9 @@ export const deleteVacationRequestEpic: Epic = (action$: Observable<PayloadActio
     ofType("deleteVacationRequest"),
     map(action => action.payload),
     mergeMap((vacationRequest) => RequestDeleteVacationRequest(vacationRequest).pipe(
-        map(() => getVacationRequestsByRequesterId(vacationRequest.requesterId))
+        map(() => getVacationRequestsByRequesterId(
+          {approverOrRequesterId: vacationRequest.requesterId,requestStatus: "Pending"}
+        ))
+
     ))
 );

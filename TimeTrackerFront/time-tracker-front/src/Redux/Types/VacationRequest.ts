@@ -1,4 +1,5 @@
 import {User} from "./User";
+import {ApproverNode} from "./ApproverNode";
 
 export interface VacationRequest {
     id: number,
@@ -7,5 +8,6 @@ export interface VacationRequest {
     status: string,
     startDate: Date,
     endDate: Date
-    requester: User
+    requester: User,
+    approversNodes: Array<ApproverNode>
 }

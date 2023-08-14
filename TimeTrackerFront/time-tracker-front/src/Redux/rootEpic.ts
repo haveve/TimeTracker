@@ -15,13 +15,15 @@ import {
     deleteVacationRequestEpic,
     createVacationRequestEpic, getIncomingVacationRequestsByApproverIdEpic, addApproverReactionEpic,
     setEndTimeEpic,
-    setStartTimeEpic
+    setStartTimeEpic,
+    getCurrentUserPermissionsEpic
 } from "./epics";
 import { catchError } from "rxjs";
 
 export const rootEpic: Epic = (action$, store$, dependencies) =>
     combineEpics(
         getCurrentUserEpic,
+        getCurrentUserPermissionsEpic,
         getUsersEpic,
         getPagedUsersEpic,
         getUsersBySearchEpic,

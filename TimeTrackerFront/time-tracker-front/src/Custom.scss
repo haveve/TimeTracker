@@ -6,6 +6,8 @@ $card-bg: black;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
+a:link{text-decoration:none}
+
 td, th{
   text-align: center;
   vertical-align: middle;
@@ -13,6 +15,10 @@ td, th{
 
 .bg-darkgray {
   background-color: rgb(13, 17, 23);
+}
+
+.text-darkred{
+  color: rgb(153, 0, 0);
 }
 
 body {

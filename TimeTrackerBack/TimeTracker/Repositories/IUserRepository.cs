@@ -13,7 +13,8 @@ namespace TimeTracker.Repositories
         public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string enabled);
         public User GetUser(int id);
         public User? GetUserByCredentials(string login, string password,bool hashed = false);
-        public void CreateUser(User user);
+        public Permissions GetUserPermissions(int id);
+        public void CreateUser(User user, Permissions permissions);
         public void UpdateUser(User user);
         public void UpdateRegisteredUserAndCode(User user);
         public void UpdateUserPassword(int id,string Password);

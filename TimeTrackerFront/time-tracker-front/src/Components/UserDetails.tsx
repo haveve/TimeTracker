@@ -18,7 +18,7 @@ import {RootState} from '../Redux/store';
 import '../Custom.css';
 import { getUsers } from '../Redux/epics';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
-import { RequestGetTotalWorkTime } from '../Redux/Requests/TimeRequests';
+import { RequestGetTotalWorkTime, RequestUserTime } from '../Redux/Requests/TimeRequests';
 import { User } from '../Redux/Types/User';
 import {
   RequestDisableUser,
@@ -30,6 +30,7 @@ import {Permissions} from '../Redux/Types/Permissions';
 import {addApprover, deleteApprover, getApprovers, getPagedUsers} from "../Redux/epics";
 import {ApproverNode} from "../Redux/Types/ApproverNode";
 import {Page} from "../Redux/Types/Page";
+import { Time } from '../Redux/Types/Time';
 
 function UserDetails() {
   const {userId = ""} = useParams();
@@ -37,6 +38,7 @@ function UserDetails() {
   const [showPermissions, setShowPermissions] = useState(false);
   const [showApprovers, setShowApprovers] = useState(false);
   const [user, setUser] = useState({} as User);
+  const [time, setTime] = useState({} as Time);
   const [totalWorkTime, setTotalWorkTime] = useState(0);
 
   const [cRUDUsers, setCRUDUsers] = useState(false)
@@ -67,7 +69,7 @@ function UserDetails() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  let currentUser = useSelector((state: RootState) => state.currentUser.User);
+  let currentUserPermissions = useSelector((state: RootState) => state.currentUser.Permissions);
 
   useEffect(() => {
     RequestUser(parseInt(userId)).subscribe((x) => {
@@ -75,6 +77,9 @@ function UserDetails() {
     })
     RequestGetTotalWorkTime(parseInt(userId)).subscribe((x) => {
       setTotalWorkTime(x);
+    })
+    RequestUserTime(parseInt(userId)).subscribe((x) => {
+      setTime(x.time);
     })
   }, []);
 
@@ -118,12 +123,12 @@ function UserDetails() {
     setShowApprovers(true);
   }
   const AddApproverClickHandler = (event: React.MouseEvent, inputUser: User) => {
-    const approverNode = {approverId: inputUser.id, requesterId: user.id} as ApproverNode;
+    const approverNode = {userIdApprover: inputUser.id, userIdRequester: user.id} as ApproverNode;
     console.log(approverNode)
     dispatch(addApprover(approverNode));
   }
   const RemoveClickHandler = (event: React.MouseEvent, inputUser: User) => {
-    const approverNode = {approverId: inputUser.id, requesterId: user.id} as ApproverNode;
+    const approverNode = {userIdApprover: inputUser.id, userIdRequester: user.id} as ApproverNode;
     dispatch(deleteApprover(approverNode));
   }
 
@@ -148,7 +153,7 @@ function UserDetails() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const Permissions: Permissions = {
-      id: parseInt(userId),
+      userId: parseInt(userId),
       cRUDUsers: cRUDUsers,
       editPermiters: editPermiters,
       viewUsers: viewUsers,
@@ -186,11 +191,11 @@ function UserDetails() {
                     <p className="m-0 fs-6 text-secondary">@{user.login}</p>
                     <p className="m-0 fs-6 text-secondary">{user.email}</p>
                     {user.enabled == false ?
-                      <p className='m-0 mt-auto text-danger'>User disabled</p>
+                      <p className='m-0 mt-auto text-danger'>User is disabled</p>
                       :
                       <>
 
-                        {currentUser.cRUDUsers ?
+                        {currentUserPermissions.cRUDUsers ?
                           <InputGroup className='mt-auto'>
                             <Button variant='outline-secondary'
                                     onClick={handleShowPermissions}>Permissions</Button>
@@ -209,18 +214,18 @@ function UserDetails() {
                   <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                       <p className='m-0'>Worked today</p>
-                      {TimeForStatisticFromSeconds(user.daySeconds!)}
+                      {TimeForStatisticFromSeconds(time.daySeconds)}
                     </div>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                       <p className='m-0'>Worked this week</p>
-                      {TimeForStatisticFromSeconds(user.weekSeconds!)}
+                      {TimeForStatisticFromSeconds(time.weekSeconds!)}
                     </div>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                       <p className='m-0'>Worked this month</p>
-                      {TimeForStatisticFromSeconds(user.monthSeconds!)}
+                      {TimeForStatisticFromSeconds(time.monthSeconds!)}
                     </div>
                     <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                      <ProgressBar now={(user.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'
+                      <ProgressBar now={(time.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'
                                    variant='success'/>
                       {TimeForStatisticFromSeconds(totalWorkTime)}
                     </div>

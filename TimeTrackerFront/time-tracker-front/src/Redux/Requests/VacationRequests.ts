@@ -9,6 +9,7 @@ import {VacationRequest} from "../Types/VacationRequest";
 import {vacationState} from "../Slices/VacationSlice";
 import {InputVacationRequest} from "../Types/InputVacationRequest";
 import {InputApproverReaction} from "../Types/InputApproverReaction";
+import {InputVacRequest} from "../Types/InputVacRequest";
 
 const url = "https://localhost:7226/graphql";
 
@@ -74,8 +75,8 @@ export function RequestAddApprover(approverNode: ApproverNode): Observable<strin
                 }
             `,
             variables: {
-                "approverId": Number(approverNode.approverId),
-                "requesterId": Number(approverNode.requesterId)
+                "approverId": Number(approverNode.userIdApprover),
+                "requesterId": Number(approverNode.userIdRequester)
             }
 
         })
@@ -113,8 +114,8 @@ export function RequestDeleteApprover(approverNode: ApproverNode): Observable<st
                 }
             `,
             variables: {
-                "approverId": Number(approverNode.approverId),
-                "requesterId": Number(approverNode.requesterId)
+                "approverId": Number(approverNode.userIdApprover),
+                "requesterId": Number(approverNode.userIdRequester)
             }
 
         })
@@ -134,7 +135,7 @@ interface GraphQlVacationRequests {
     }
 }
 
-export function RequestVacationRequestsByRequesterId(requesterId: Number): Observable<VacationRequest[]> {
+export function RequestVacationRequestsByRequesterId(inputVacRequest: InputVacRequest): Observable<VacationRequest[]> {
     return ajax<GraphQlVacationRequests>({
         url,
         method: "POST",
@@ -143,16 +144,17 @@ export function RequestVacationRequestsByRequesterId(requesterId: Number): Obser
         },
         body: JSON.stringify({
             query: `
-                query vacationRequest($requesterId:Int!){
+                query vacationRequest($requesterId:Int!, $requestStatus:String!){
                     vacation{
-                        vacationRequest(requesterId:$requesterId){
+                        vacationRequest(requesterId:$requesterId, requestStatus:$requestStatus){
                             id, requesterId, infoAboutRequest, status, startDate, endDate
                         }
                     }
                 }
             `,
             variables: {
-                "requesterId": Number(requesterId)
+                "requesterId": Number(inputVacRequest.approverOrRequesterId),
+                "requestStatus": String(inputVacRequest.requestStatus)
             }
 
         })
@@ -172,7 +174,7 @@ interface GraphQlIncomingVacationRequests {
     }
 }
 
-export function RequestIncomingVacationRequestsByApproverId(approverId: Number): Observable<VacationRequest[]> {
+export function RequestIncomingVacationRequestsByApproverId(inputVacRequest: InputVacRequest): Observable<VacationRequest[]> {
     return ajax<GraphQlIncomingVacationRequests>({
         url,
         method: "POST",
@@ -181,23 +183,39 @@ export function RequestIncomingVacationRequestsByApproverId(approverId: Number):
         },
         body: JSON.stringify({
             query: `
-                query vacationRequest($approverId:Int!){
+                query vacationRequest($approverId:Int!, $requestStatus:String!){
                     vacation{
-                        vacationRequest(approverId:$approverId){
-                            id, requesterId, infoAboutRequest, status, startDate, endDate, requester {
-        id, login, fullName, email
+                        vacationRequest(approverId:$approverId, requestStatus:$requestStatus){
+                            id,
+      requesterId, 
+      requester{
+        id,login,fullName, email
+      }
+      infoAboutRequest,
+      status,
+      startDate,
+      endDate,
+      approversNodes{
+        id,
+        isRequestApproved,
+        userIdRequester,
+        userIdApprover,
+        reactionMessage
       }
                         }
                     }
                 }
             `,
             variables: {
-                "approverId": Number(approverId)
+                "approverId": Number(inputVacRequest.approverOrRequesterId),
+                "requestStatus": String(inputVacRequest.requestStatus)
+
             }
 
         })
     }).pipe(
         map(res => {
+
             return res.response.data.vacation.vacationRequest;
         })
     );
@@ -273,7 +291,6 @@ export function RequestAddApproverReaction(inputApproverReaction:InputApproverRe
                 "reaction": Boolean(inputApproverReaction.reaction),
                 "reactionMessage": String(inputApproverReaction.reactionMessage),
             }
-
         })
     }).pipe(
         map(res => {

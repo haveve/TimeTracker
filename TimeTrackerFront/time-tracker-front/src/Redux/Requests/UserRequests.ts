@@ -115,17 +115,15 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
         },
         body: JSON.stringify({
             query: `
-                query GetUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $enabled: String){
+                query GetPagedUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $enabled: String){
                     user{
                         pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order, enabled: $enabled){
                             userList{
                                 id
                                 login
                                 fullName
-                                daySeconds
-                                weekSeconds
-                                monthSeconds
-                                timeManagedBy
+                                email
+                                enabled
                               }
                               totalCount
                               pageIndex
@@ -176,16 +174,6 @@ export function RequestUser(Id: Number): Observable<User> {
                         login
                         fullName
                         email
-                        cRUDUsers
-                        viewUsers
-                        editWorkHours
-                        editPermiters
-                        importExcel
-                        controlPresence
-                        controlDayOffs
-                        daySeconds
-                        weekSeconds
-                        monthSeconds
                         enabled
                       }
                     }
@@ -229,16 +217,6 @@ export function RequestCurrentUser(): Observable<User> {
                         login
                         fullName
                         email
-                        cRUDUsers
-                        viewUsers
-                        editWorkHours
-                        editPermiters
-                        importExcel
-                        controlPresence
-                        controlDayOffs
-                        daySeconds
-                        weekSeconds
-                        monthSeconds
                         enabled
                       }
                     }
@@ -254,16 +232,16 @@ export function RequestCurrentUser(): Observable<User> {
     );
 }
 
-interface GraphqlPermissions {
+interface GraphqlUserPermissions {
     data: {
         user: {
-            user: Permissions
+            userPermissions: Permissions
         }
     }
 }
 
 export function RequestUserPermissions(Id: Number): Observable<Permissions> {
-    return ajax<GraphqlPermissions>({
+    return ajax<GraphqlUserPermissions>({
         url,
         method: "POST",
         headers: {
@@ -272,10 +250,10 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
         },
         body: JSON.stringify({
             query: `
-                query GetUser($Id: Int!){
+                query GetUserPermissions($Id: Int!){
                     user{
-                        user(id: $Id){
-                        id
+                        userPermissions(id: $Id){
+                        userId
                         cRUDUsers
                         viewUsers
                         editWorkHours
@@ -294,7 +272,50 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
     }).pipe(
         map(res => {
             {
-                return res.response.data.user.user
+                return res.response.data.user.userPermissions
+            }
+        })
+    );
+}
+
+interface GraphqlCurrentUserPermissions {
+    data: {
+        user: {
+            currentUserPermissions: Permissions
+        }
+    }
+}
+
+export function RequestCurrentUserPermissions(): Observable<Permissions> {
+    return ajax<GraphqlCurrentUserPermissions>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query GetCurrentUserPermissions{
+                    user{
+                        currentUserPermissions{
+                        userId
+                        cRUDUsers
+                        viewUsers
+                        editWorkHours
+                        editPermiters
+                        importExcel
+                        controlPresence
+                        controlDayOffs
+                      }
+                    }
+                  }
+            `
+        })
+    }).pipe(
+        map(res => {
+            {
+                return res.response.data.user.currentUserPermissions
             }
         })
     );
@@ -344,7 +365,7 @@ interface GraphqlCreateUser {
     }
 }
 
-export function RequestCreateUser(user: User): Observable<string> {
+export function RequestCreateUser(user: User, permissions: Permissions): Observable<string> {
     return ajax<GraphqlCreateUser>({
         url,
         method: "POST",
@@ -354,9 +375,9 @@ export function RequestCreateUser(user: User): Observable<string> {
         },
         body: JSON.stringify({
             query: `
-                mutation createUser($User: UserInputType!){
+                mutation createUser($User: UserInputType!, $Permissions: PermissionsInputType!){
                     user{
-                        createUser(user: $User)
+                        createUser(user: $User, permissions: $Permissions)
                     }
                   }
             `,
@@ -366,14 +387,17 @@ export function RequestCreateUser(user: User): Observable<string> {
                     "fullName": user.fullName,
                     "password": user.password,
                     "email": user.email,
-                    "cRUDUsers": user.cRUDUsers,
-                    "editPermiters": user.editPermiters,
-                    "viewUsers": user.viewUsers,
-                    "editWorkHours": user.editWorkHours,
-                    "importExcel": user.importExcel,
-                    "controlPresence": user.controlPresence,
-                    "controlDayOffs": user.controlDayOffs,
                     "workHours": user.workHours
+                },
+                "Permissions": {
+                    "userId": permissions.userId,
+                    "cRUDUsers": permissions.cRUDUsers,
+                    "editPermiters": permissions.editPermiters,
+                    "viewUsers": permissions.viewUsers,
+                    "editWorkHours": permissions.editWorkHours,
+                    "importExcel": permissions.importExcel,
+                    "controlPresence": permissions.controlPresence,
+                    "controlDayOffs": permissions.controlDayOffs,
                 }
             }
         })
@@ -533,7 +557,7 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
         },
         body: JSON.stringify({
             query: `
-                mutation  updateUserPermissions($PermissionsType : PermissionsType!){
+                mutation  updateUserPermissions($PermissionsType : PermissionsInputType!){
                     user{
                         updateUserPermissions(permissions : $PermissionsType)
                     }
@@ -541,7 +565,7 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
             `,
             variables: {
                 "PermissionsType": {
-                    "id": permissions.id,
+                    "userId": permissions.userId,
                     "cRUDUsers": permissions.cRUDUsers,
                     "editPermiters": permissions.editPermiters,
                     "viewUsers": permissions.viewUsers,
