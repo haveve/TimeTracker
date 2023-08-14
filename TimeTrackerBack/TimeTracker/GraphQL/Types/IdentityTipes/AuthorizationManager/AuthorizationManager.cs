@@ -1,9 +1,13 @@
 ﻿using GraphQLParser;
 using GraphQLParser.AST;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using TimeTracker.GraphQL.Queries;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
@@ -36,23 +40,79 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             return Convert.ToBase64String(randomNumber) + Guid.NewGuid();
         }
 
-        public bool isValidAccessToken(string accessToken)
+        public bool IsValidAccessToken(string accessToken)
         {
-            JwtSecurityToken objAccessToken = ReadJwtToken(accessToken);
-            var date = objAccessToken.IssuedAt;
+            try
+            {
 
-            int userId = int.Parse(objAccessToken.Claims.First(c => c.Type == "UserId").Value);
-            DateTime? lastUserChanging = _authRepo.GetLastDateOfUserChanging(userId);
+                var tokenValidate = new JwtSecurityTokenHandler();
 
-            if ((lastUserChanging != null
-                || date > lastUserChanging) &&
-                (objAccessToken.Issuer != _configuration["JWT:Author"] ||
-                objAccessToken.Audiences.ToList().All(aud => aud != _configuration["JWT:Audience"])))
+                tokenValidate.ValidateToken(accessToken, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = _configuration["JWT:Author"],
+                    ValidateAudience = true,
+                    ValidAudience = _configuration["JWT:Audience"],
+                    ValidateLifetime = true,
+                    IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]!),
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken securityToken);
+
+
+                JwtSecurityToken objAccessToken = ReadJwtToken(accessToken);
+                var date = objAccessToken.IssuedAt;
+
+                int userId = int.Parse(objAccessToken.Claims.First(c => c.Type == "UserId").Value);
+                DateTime? lastUserChanging = _authRepo.GetLastDateOfUserChanging(userId);
+
+                if ((lastUserChanging != null
+                    || date > lastUserChanging) &&
+                    (objAccessToken.Issuer != _configuration["JWT:Author"] ||
+                    objAccessToken.Audiences.ToList().All(aud => aud != _configuration["JWT:Audience"])))
+                {
+                    return false;
+                }
+            }
+            catch
             {
                 return false;
             }
-
             return true;
+        }
+
+        public StateOfRememberMe IsValidRememberMe(RememberMe rememberMe, string refreshToken, int userId)
+        {
+            var savedToken = _authRepo.GetRefreshToken(refreshToken, userId);
+
+            if (savedToken == null)
+            {
+                return StateOfRememberMe.RefreshTokensDoesnotMatched;
+            }
+
+            var isMatchesRefeshes = savedToken!.Token == refreshToken
+                && savedToken.Token == rememberMe.userRefreshToken
+                && refreshToken == rememberMe.userRefreshToken;
+
+            if (!isMatchesRefeshes)
+            {
+                return StateOfRememberMe.RefreshTokensDoesnotMatched;
+            }
+
+            var user = _userRepository.GetUserByCredentials(rememberMe.userEmail, rememberMe.userPassword, true);
+
+            if (user == null || rememberMe.Expired < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            {
+                return StateOfRememberMe.InvalidRememberMeCookies;
+            }
+
+            if (savedToken.ExpiresEnd < DateTime.Now)
+            {
+                return StateOfRememberMe.RefreshTokenDeprecated;
+            }
+
+            return StateOfRememberMe.Success;
+
         }
 
         public JwtSecurityToken ReadJwtToken(string accessToken) => new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
@@ -72,22 +132,26 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 
             if (savedToken.ExpiresEnd < DateTime.Now)
             {
-                _authRepo.DeleteRefreshToken(refreshToken);
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is expired");
             }
 
-            if (oldAccessToken.Issuer != _configuration["JWT:Author"] ||
-            oldAccessToken.Audiences.ToList().All(aud => aud != _configuration["JWT:Audience"]))
+            if (!IsValidAccessToken(accessToken))
             {
-                _authRepo.DeleteRefreshToken(refreshToken);
-                return new ValidateRefreshAndGetAccess(null, false, "Expired access token is invalid");
+                return new ValidateRefreshAndGetAccess(null, false, "Access token is invalid");
             }
 
+
+            return new ValidateRefreshAndGetAccess(GetAccessToken(userId), true, null);
+
+        }
+
+        public string GetAccessToken(int userId)
+        {
             var user = _userRepository.GetUser(userId);
             var newAccessToken = new JwtSecurityToken(
-                issuer: _configuration["JWT:Author"],
-                audience: _configuration["JWT:Audience"],
-                claims: new[] {
+    issuer: _configuration["JWT:Author"],
+    audience: _configuration["JWT:Audience"],
+    claims: new[] {
             new Claim("UserId", user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
             new Claim("CRUDUsers",user.CRUDUsers.ToString()),
@@ -97,15 +161,11 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             new Claim("ControlPresence",user.ControlPresence.ToString()),
             new Claim("ControlDayOffs",user.ControlDayOffs.ToString()),
             new Claim("EditWorkHours",user.EditWorkHours.ToString())
-                },
-                expires: DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration)),
-                signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
-
-
-
-
-            return new ValidateRefreshAndGetAccess(new JwtSecurityTokenHandler().WriteToken(newAccessToken), true, null);
-
+    },
+    expires: DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration)),
+    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
+           
+            return new JwtSecurityTokenHandler().WriteToken(newAccessToken);
         }
     }
 }

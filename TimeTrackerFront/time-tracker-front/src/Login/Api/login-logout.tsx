@@ -53,8 +53,8 @@ export function ajaxForLogin(variables: {}) {
       Accept: "application/json",
     },
     body: JSON.stringify({
-      query: `query($login:LoginInputType!){
-        login(login:$login){
+      query: `query($login:LoginInputType!,$rememberMe:Boolean!){
+        login(login:$login,rememberMe:$rememberMe){
           access_token
           user_id
           refresh_token

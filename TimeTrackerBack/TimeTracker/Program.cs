@@ -36,21 +36,21 @@ builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
 //Token
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { });
-    //.AddJwtBearer(options =>
-    //{
-    //    options.TokenValidationParameters = new TokenValidationParameters
-    //    {
-    //        ValidateIssuer = true,
-    //        ValidateAudience = true,
-    //        ValidateLifetime = true,
-    //        ValidateIssuerSigningKey = true,
+//.AddJwtBearer(options =>
+//{
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuer = true,
+//        ValidateAudience = true,
+//        ValidateLifetime = true,
+//        ValidateIssuerSigningKey = true,
 
-    //        ValidIssuer = builder.Configuration["JWT:Author"],
-    //        ValidAudience = builder.Configuration["JWT:Audience"],
-    //        IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(builder.Configuration["JWT:Key"]),
-    //        ClockSkew = TimeSpan.Zero
-    //    };
-    //});
+//        ValidIssuer = builder.Configuration["JWT:Author"],
+//        ValidAudience = builder.Configuration["JWT:Audience"],
+//        IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(builder.Configuration["JWT:Key"]),
+//        ClockSkew = TimeSpan.Zero
+//    };
+//});
 
 builder.Services.AddControllers();
 
@@ -165,34 +165,13 @@ public class CustomJwtBearerHandler : JwtBearerHandler
 
         var token = authorizationHeader.Substring("Bearer ".Length).Trim();
 
-        var tokenValidate = new JwtSecurityTokenHandler();
-        try
+        if (_authorizationManager.IsValidAccessToken(token))
         {
-            tokenValidate.ValidateToken(token, new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = _configuration["JWT:Author"],
-                ValidateAudience = true,
-                ValidAudience = _configuration["JWT:Audience"],
-                ValidateLifetime = true,
-                IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]!),
-                ValidateIssuerSigningKey = true,
-                ClockSkew = TimeSpan.Zero
-            }, out SecurityToken securityToken);
-
             var a = _authorizationManager.ReadJwtToken(token);
             var principal = new ClaimsPrincipal(new ClaimsIdentity(a.Claims, "Token"));
-
-            if (_authorizationManager.isValidAccessToken(token))
-            {
-                return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
-            }
-
-            return AuthenticateResult.Fail("Token validation failed.");
+            return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
         }
-        catch
-        {
-            return AuthenticateResult.Fail("Token validation failed.");
-        }
+
+        return AuthenticateResult.Fail("Token validation failed.");
     }
 }
