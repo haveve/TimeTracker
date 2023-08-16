@@ -34,10 +34,7 @@ import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
 import '../Custom.css';
 import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
-import { boolean } from 'yup';
-import { Subscriber } from 'rxjs';
-import { ajaxForRefresh } from '../Login/Api/login-logout';
-import { ColorRing,Vortex } from 'react-loader-spinner';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -53,6 +50,8 @@ function AppNavbar() {
   const tokenStatus = useSelector((state: RootState) => state.token.loginByToken)
 
   const [canUserApi, setCanUserApi] = useState("")
+
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -166,8 +165,17 @@ function AppNavbar() {
                         deleteCookie("user_id");
                         deleteCookie("canUseUserIp");
                         dispatch(setLoginByToken(false));
+                        navigate("/Login")
                       },
-                      error: () => dispatch(setErroMassageLocation(ErrorMassagePattern))
+                      error: () => {
+                        dispatch(setLogout());
+                        deleteCookie("refresh_token");
+                        deleteCookie("access_token");
+                        deleteCookie("user_id");
+                        deleteCookie("canUseUserIp");
+                        dispatch(setLoginByToken(false));
+                        navigate("/Login")
+                      }
                     });
                   }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-left me-1 mb-1" viewBox="0 0 16 16">
@@ -176,23 +184,15 @@ function AppNavbar() {
                   </svg>
                   Logout</Nav.Link></ListGroup.Item>
               </ListGroup>
+
             </Nav>
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
 
       <Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
-        <Col className={`p-0 m-0 h-100 ${tokenStatus?"":"w-100 justify-content-center d-flex align-items-center"}`}>
-          {tokenStatus ?
-            <Outlet /> :<Vortex
-            visible={true}
-            height="50%"
-            width="50%"
-            ariaLabel="vortex-loading"
-            wrapperStyle={{}}
-            wrapperClass="vortex-wrapper"
-            colors={['#f1faee','#231942', '#5e548e', '#9f86c0', '#be95c4', '#e0b1cb',]}
-          />}
+        <Col className={`p-0 m-0 h-100`}>
+            <Outlet />
           </Col>
       </Row >
       <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {

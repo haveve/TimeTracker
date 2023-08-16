@@ -15,14 +15,12 @@ namespace TimeTracker.Repositories
             _dapperContext = context;
         }
 
-        void IAuthorizationRepository.CreateRefreshToken(string refreshToken, int userId)
+        void IAuthorizationRepository.CreateRefreshToken(TokenResult refreshToken, int userId)
         {
-            var startDate = DateTime.UtcNow;
-            var endDate = DateTime.UtcNow.AddSeconds(IAuthorizationManager.RefreshTokenExpiration);
 
-            string query = "INSERT INTO UserRefreshes (UserId, ExpiresStart, ExpiresEnd, Token) VALUES(@userId, @startDate, @endDate, @refreshToken)";
+            string query = "INSERT INTO UserRefreshes (UserId, ExpiresStart, ExpiresEnd, Token) VALUES(@userId, @issuedAt, @expiredAt, @token)";
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query, new { userId, startDate, endDate, refreshToken });
+            connection.Execute(query, new { userId, refreshToken.token, refreshToken.expiredAt, refreshToken.issuedAt });
         }
 
         void IAuthorizationRepository.DeleteAllRefreshTokens(int userId)
@@ -39,17 +37,17 @@ namespace TimeTracker.Repositories
             connection.Execute(query, new {refreshToken });
         }
 
-        void IAuthorizationRepository.UpdateRefreshToken(string oldRefreshToken, string refreshToken, int userId)
+        void IAuthorizationRepository.UpdateRefreshToken(string oldRefreshToken, TokenResult refreshToken, int userId)
         {
-            string query = "UPDATE UserRefreshes SET Token = @refreshToken  WHERE UserId = @userId AND Token = @oldRefreshToken";
+            string query = "UPDATE UserRefreshes SET Token = @token, ExpiresStart = @issuedAt , ExpiresEnd = @expiredAt   WHERE UserId = @userId AND Token = @oldRefreshToken";
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query, new { userId, refreshToken, oldRefreshToken });
+            connection.Execute(query, new { userId, refreshToken.token,refreshToken.expiredAt,refreshToken.issuedAt, oldRefreshToken });
         }
-        public RefreshToken? GetRefreshToken(string refreshToken, int userId)
+        public RefreshToken? GetRefreshToken(string refreshToken)
         {
-            string query = "SELECT * FROM UserRefreshes WHERE UserId = @userId AND Token = @refreshToken";
+            string query = "SELECT * FROM UserRefreshes WHERE Token = @refreshToken";
             using var connection = _dapperContext.CreateConnection();
-            return connection.QuerySingleOrDefault<RefreshToken?>(query, new { userId, refreshToken });
+            return connection.QuerySingleOrDefault<RefreshToken?>(query, new {refreshToken });
         }
         public DateTime? GetLastDateOfUserChanging(int userId)
         {

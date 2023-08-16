@@ -9,7 +9,7 @@ import { Alert } from 'react-bootstrap';
 
 export const accessTokenLiveTime = 60;
 
-const url = "https://time-tracker3.azurewebsites.net/graphql-login";
+const url = "https://localhost:7226/graphql-login";
 /*    "errors": [
         {
             "message": "User does not auth"
@@ -44,8 +44,47 @@ export function isUnvalidTokenError(response: {
   return false;
 }
 
+export type LoginErrorType = {
+  message: string
+}
+
+export type RequestTokenType = {
+  issuedAt: Date,
+  token: string
+  expiredAt: Date,
+}
+
+export type StoredTokenType = {
+  issuedAt: number,
+  token: string
+  expiredAt: number,
+}
+
+export type LoginType = {
+  data: {
+    login: {
+      access_token: RequestTokenType,
+      user_id: string,
+      is_fulltimer: string,
+      refresh_token: RequestTokenType
+    }
+  },
+  errors: LoginErrorType[]
+}
+
+export type RefreshType = {
+  data: {
+    refreshToken: {
+      access_token: RequestTokenType,
+      user_id: string,
+      refresh_token: RequestTokenType
+    }
+  },
+  errors: LoginErrorType[]
+}
+
 export function ajaxForLogin(variables: {}) {
-  return ajax({
+  return ajax<LoginType>({
     url: url,
     method: "POST",
     headers: {
@@ -53,13 +92,20 @@ export function ajaxForLogin(variables: {}) {
       Accept: "application/json",
     },
     body: JSON.stringify({
-      query: `query($login:LoginInputType!,$rememberMe:Boolean!){
-        login(login:$login,rememberMe:$rememberMe){
-          access_token
+      query: `query($login:LoginInputType!){
+        login(login:$login){
+          access_token {
+            issuedAt
+            token
+            expiredAt
+          }
           user_id
-          refresh_token
+          refresh_token {
+            issuedAt
+            token
+            expiredAt
+          }
           is_fulltimer
-
         }
       }`,
       variables
@@ -69,18 +115,30 @@ export function ajaxForLogin(variables: {}) {
     map((value): void => {
 
 
-      let fullResponse = value.response as { data:{login:{access_token: string, user_id: string, is_fulltimer: string,refresh_token: string}}, errors: {message: string}[]}
-
+      let fullResponse = value.response;
       let response = fullResponse.data.login;
-      if ((200 > value.status && value.status > 300) || !response || !response.access_token)
+
+
+      if (!response || !response.access_token)
         throw fullResponse.errors[0].message;
 
 
-      setCookie({ name: "access_token", value: response.access_token, expires_second: 7 * 24 * 60 * 60, path: "/" });
-      setCookie({ name: "user_id", value: response.user_id, expires_second: 7 * 24 * 60 * 60, path: "/" });
-      setCookie({ name: "refresh_token", value: response.refresh_token, expires_second: 7 * 24 * 60 * 60, path: "/" });
-      setCookie({ name: "is_fulltimer", value: response.is_fulltimer, expires_second: 365 * 24 * 60 * 60, path: "/" });
+        const access_token_to_save: StoredTokenType = {
+          issuedAt: new Date(response.access_token.issuedAt).getTime(),
+          expiredAt: new Date (response.access_token.expiredAt).getTime(),
+          token: response.access_token.token
+        }
+  
+        const refresh_token_to_save: StoredTokenType = {
+          issuedAt: new Date (response.refresh_token.issuedAt).getTime(),
+          expiredAt: new Date (response.refresh_token.expiredAt).getTime(),
+          token: response.refresh_token.token
+        }
 
+      setCookie({ name: "access_token", value: JSON.stringify(access_token_to_save), expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
+      setCookie({ name: "user_id", value: response.user_id, expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
+      setCookie({ name: "refresh_token", value: JSON.stringify(refresh_token_to_save), expires_second: refresh_token_to_save.expiredAt / 1000, path: "/" });
+      setCookie({ name: "is_fulltimer", value: response.is_fulltimer, expires_second: 365 * 24 * 60 * 60, path: "/" });
     }),
     catchError((error) => {
       throw error
@@ -88,47 +146,63 @@ export function ajaxForLogin(variables: {}) {
   );
 }
 
-export function ajaxForRefresh(variables: {}) {
-  return ajax({
+export function ajaxForRefresh(variables: {},token:string) {
+  return ajax<RefreshType>({
     url: url,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      access_token: getCookie("access_token"),
-      refresh_token: getCookie("refresh_token"),
+      refresh_token: token,
     },
     body: JSON.stringify({
       query: `query{
         refreshToken{
-          refresh_token,
-          user_id,
-          access_token
+          access_token {
+            issuedAt
+            token
+            expiredAt
+          }
+          user_id
+          refresh_token {
+            issuedAt
+            token
+            expiredAt
+          }
         }
-      }`,
+        }`,
       variables
     }),
     withCredentials: true,
   }).pipe(
     map((value): void => {
 
-      let fullResponse = value.response as { data: { refreshToken: { refresh_token: string, access_token: string, user_id: string } }, errors: { message: string }[] }
-      let response = fullResponse.data.refreshToken;
+      let response = value.response.data.refreshToken;
 
       if (isUnvalidTokenError(value.response as any)) {
         deleteCookie("refresh_token");
         deleteCookie("access_token");
         deleteCookie("user_id");
         deleteCookie("canUseUserIp");
-        throw fullResponse.data.refreshToken.refresh_token;
+        throw response.refresh_token.token;
       }
 
-      if ((200 > value.status && value.status > 300) || !response)
-        throw fullResponse.errors[0].message;
+      if (!response)
+        throw value.response.errors[0].message;
+      const access_token_to_save: StoredTokenType = {
+        issuedAt: new Date(response.access_token.issuedAt).getTime(),
+        expiredAt: new Date (response.access_token.expiredAt).getTime(),
+        token: response.access_token.token
+      }
 
-      setCookie({ name: "access_token", value: response.access_token, expires_second: 7 * 24 * 60 * 60, path: "/" });
-      setCookie({ name: "user_id", value: response.user_id, expires_second: 7 * 24 * 60 * 60, path: "/" });
-      setCookie({ name: "refresh_token", value: response.refresh_token, expires_second: 7 * 24 * 60 * 60, path: "/" });
+      const refresh_token_to_save: StoredTokenType = {
+        issuedAt: new Date (response.refresh_token.issuedAt).getTime(),
+        expiredAt: new Date (response.refresh_token.expiredAt).getTime(),
+        token: response.refresh_token.token
+      }
+      setCookie({ name: "access_token", value: JSON.stringify(access_token_to_save), expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
+      setCookie({ name: "user_id", value: response.user_id, expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
+      setCookie({ name: "refresh_token", value: JSON.stringify(refresh_token_to_save), expires_second: refresh_token_to_save.expiredAt / 1000, path: "/" });
     }),
     catchError((error) => {
       throw error
@@ -170,7 +244,7 @@ export function ajaxForLogout(token: string) {
 
 type navigateType = ReturnType<typeof useNavigate>;
 
-export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void,setLoginByToken:()=>void, commitNavigate: navigateType, path: string): Observer<any> => {
+export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, setLoginByToken: () => void, commitNavigate: navigateType, path: string): Observer<any> => {
   return {
     next: () => {
       commitNavigate(path);

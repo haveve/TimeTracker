@@ -7,26 +7,17 @@ import { response } from "../Types/ResponseType";
 import { number } from "yup";
 import { Page } from "../Types/Page";
 import { UsersPage } from "../Types/UsersPage";
+import { GetAjaxObservable } from "./TimeRequests";
 
 interface GraphqlUsers {
-    data: {
-        user: {
-            users: User[]
-        }
+    user: {
+        users: User[]
     }
 }
-const url = "https://time-tracker3.azurewebsites.net/graphql";
 
 export function RequestUsers(): Observable<User[]> {
-    return ajax<GraphqlUsers>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlUsers>(
+        `
                 query GetUsers{
                     user{
                         users{
@@ -39,35 +30,24 @@ export function RequestUsers(): Observable<User[]> {
                           }
                     }
                   }
-            `
-        })
-    }).pipe(
-        map(res => {
-            let users: User[] = res.response.data.user.users;
+            `, {})
+        .pipe(
+            map(res => {
+                let users: User[] = res.response.data.user.users;
 
-            return users;
-        })
-    );
+                return users;
+            })
+        );
 }
 
 interface GraphqlUsersBySearch {
-    data: {
-        user: {
-            usersBySearch: User[]
-        }
+    user: {
+        usersBySearch: User[]
     }
 }
 
 export function RequestUsersBySearch(search: String): Observable<User[]> {
-    return ajax<GraphqlUsersBySearch>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlUsersBySearch>(`
                 query GetUsersBySearch($search: String!){
                     user{
                         usersBySearch(name:$search){
@@ -78,11 +58,8 @@ export function RequestUsersBySearch(search: String): Observable<User[]> {
                           }
                     }
                   }
-            `,
-            variables: {
-                "search": search
-            }
-        })
+            `, {
+        "search": search
     }).pipe(
         map(res => {
             let users: User[] = res.response.data.user.usersBySearch;
@@ -94,27 +71,17 @@ export function RequestUsersBySearch(search: String): Observable<User[]> {
 
 
 interface GraphqlPagedUsers {
-    data: {
-        user: {
-            pagedUsers: {
-                userList: User[],
-                totalCount: number,
-                pageIndex: number
-            }
+    user: {
+        pagedUsers: {
+            userList: User[],
+            totalCount: number,
+            pageIndex: number
         }
     }
 }
 
 export function RequestPagedUsers(page: Page): Observable<UsersPage> {
-    return ajax<GraphqlPagedUsers>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlPagedUsers>(`
                 query GetPagedUsers($first: Int!, $after: Int!, $search: String, $orderfield: String, $order: String, $enabled: String){
                     user{
                         pagedUsers(first: $first, after: $after, search: $search, orderfield: $orderfield, order: $order, enabled: $enabled){
@@ -131,42 +98,29 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
                     }
                   }
             `,
-            variables: {
-                "first": page.first,
-                "after": page.after,
-                "search": page.search,
-                "orderfield": page.orderfield,
-                "order": page.order,
-                "enabled": page.enabled
-            }
+        {
+            "first": page.first,
+            "after": page.after,
+            "search": page.search,
+            "orderfield": page.orderfield,
+            "order": page.order,
+            "enabled": page.enabled
+        }).pipe(
+            map(res => {
+                let page: UsersPage = res.response.data.user.pagedUsers;
 
-        })
-    }).pipe(
-        map(res => {
-            let page: UsersPage = res.response.data.user.pagedUsers;
-
-            return page;
-        })
-    );
+                return page;
+            })
+        );
 }
 interface GraphqlUser {
-    data: {
-        user: {
-            user: User
-        }
+    user: {
+        user: User
     }
 }
 
 export function RequestUser(Id: Number): Observable<User> {
-    return ajax<GraphqlUser>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlUser>(`
                 query GetUser($Id: Int!){
                     user{
                         user(id: $Id){
@@ -179,37 +133,25 @@ export function RequestUser(Id: Number): Observable<User> {
                     }
                   }
             `,
-            variables: {
-                "Id": Number(Id)
-            }
-        })
-    }).pipe(
-        map(res => {
-            {
-                return res.response.data.user.user
-            }
-        })
-    );
+        {
+            "Id": Number(Id)
+        }).pipe(
+            map(res => {
+                {
+                    return res.response.data.user.user
+                }
+            })
+        );
 }
 
 interface GraphqlCurrentUser {
-    data: {
-        user: {
-            currentUser: User
-        }
+    user: {
+        currentUser: User
     }
 }
 
 export function RequestCurrentUser(): Observable<User> {
-    return ajax<GraphqlCurrentUser>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlCurrentUser>(`
                 query GetCurrentUser{
                     user{
                         currentUser{
@@ -221,9 +163,7 @@ export function RequestCurrentUser(): Observable<User> {
                       }
                     }
                   }
-            `
-        })
-    }).pipe(
+            `, {}).pipe(
         map(res => {
             {
                 return res.response.data.user.currentUser
@@ -233,23 +173,13 @@ export function RequestCurrentUser(): Observable<User> {
 }
 
 interface GraphqlUserPermissions {
-    data: {
-        user: {
-            userPermissions: Permissions
-        }
+    user: {
+        userPermissions: Permissions
     }
 }
 
 export function RequestUserPermissions(Id: Number): Observable<Permissions> {
-    return ajax<GraphqlUserPermissions>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlUserPermissions>(`
                 query GetUserPermissions($Id: Int!){
                     user{
                         userPermissions(id: $Id){
@@ -265,37 +195,25 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
                     }
                   }
             `,
-            variables: {
-                "Id": Id
-            }
-        })
-    }).pipe(
-        map(res => {
-            {
-                return res.response.data.user.userPermissions
-            }
-        })
-    );
+        {
+            "Id": Id
+        }).pipe(
+            map(res => {
+                {
+                    return res.response.data.user.userPermissions
+                }
+            })
+        );
 }
 
 interface GraphqlCurrentUserPermissions {
-    data: {
-        user: {
-            currentUserPermissions: Permissions
-        }
+    user: {
+        currentUserPermissions: Permissions
     }
 }
 
 export function RequestCurrentUserPermissions(): Observable<Permissions> {
-    return ajax<GraphqlCurrentUserPermissions>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlCurrentUserPermissions>(`
                 query GetCurrentUserPermissions{
                     user{
                         currentUserPermissions{
@@ -310,9 +228,7 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
                       }
                     }
                   }
-            `
-        })
-    }).pipe(
+            `, {}).pipe(
         map(res => {
             {
                 return res.response.data.user.currentUserPermissions
@@ -322,33 +238,23 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
 }
 
 interface GraphqlRequestPasswordReset {
-    data: {
-        user: {
-            RequestPasswordReset: string
-        }
+    user: {
+        RequestPasswordReset: string
     }
 }
 
 export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
-    return ajax<GraphqlRequestPasswordReset>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlRequestPasswordReset>(`
                 query sentResetPasswordEmail($LoginOrEmail: String!){
                     user{
                         sentResetPasswordEmail(loginOrEmail: $LoginOrEmail)
                     }
                   }
             `,
-            variables: {
-                "LoginOrEmail": LoginOrEmail
-            }
-        })
-    }).pipe(
+        {
+            "LoginOrEmail": LoginOrEmail
+        }
+    ).pipe(
         map(res => {
             {
                 return res.response.data.user.RequestPasswordReset;
@@ -358,250 +264,178 @@ export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
 }
 
 interface GraphqlCreateUser {
-    data: {
-        user: {
-            createUser: string
-        }
+    user: {
+        createUser: string
     }
 }
 
 export function RequestCreateUser(user: User, permissions: Permissions): Observable<string> {
-    return ajax<GraphqlCreateUser>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlCreateUser>(`
                 mutation createUser($User: UserInputType!, $Permissions: PermissionsInputType!){
                     user{
                         createUser(user: $User, permissions: $Permissions)
                     }
                   }
             `,
-            variables: {
-                "User": {
-                    "login": user.login,
-                    "fullName": user.fullName,
-                    "password": user.password,
-                    "email": user.email,
-                    "workHours": user.workHours
-                },
-                "Permissions": {
-                    "userId": permissions.userId,
-                    "cRUDUsers": permissions.cRUDUsers,
-                    "editPermiters": permissions.editPermiters,
-                    "viewUsers": permissions.viewUsers,
-                    "editWorkHours": permissions.editWorkHours,
-                    "importExcel": permissions.importExcel,
-                    "controlPresence": permissions.controlPresence,
-                    "controlDayOffs": permissions.controlDayOffs,
-                }
+        {
+            "User": {
+                "login": user.login,
+                "fullName": user.fullName,
+                "password": user.password,
+                "email": user.email,
+                "workHours": user.workHours
+            },
+            "Permissions": {
+                "userId": permissions.userId,
+                "cRUDUsers": permissions.cRUDUsers,
+                "editPermiters": permissions.editPermiters,
+                "viewUsers": permissions.viewUsers,
+                "editWorkHours": permissions.editWorkHours,
+                "importExcel": permissions.importExcel,
+                "controlPresence": permissions.controlPresence,
+                "controlDayOffs": permissions.controlDayOffs,
             }
-        })
-    }).pipe(
+        }
+    ).pipe(
         map(res => { return res.response.data.user.createUser })
     );
 }
 
 interface GraphqlUpdateUser {
-    data: {
-        user: {
-            updateUser: string
-        }
+    user: {
+        updateUser: string
     }
 }
 
 export function RequestUpdateUser(user: User): Observable<string> {
-    return ajax<GraphqlUpdateUser>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlUpdateUser>(`
                 mutation updateUser($Id : Int!, $User: UserInputType!){
                     user{
                         updateUser(id : $Id, user: $User)
                     }
                   }
-            `,
-            variables: {
-                "User": {
-                    "login": user.login,
-                    "fullName": user.fullName,
-                    "password": user.password,
-                    "email": user.email
-                },
-                "Id": Number(user.id)
-            }
-        })
-    }).pipe(
+            `, {
+        "User": {
+            "login": user.login,
+            "fullName": user.fullName,
+            "password": user.password,
+            "email": user.email
+        },
+        "Id": Number(user.id)
+    }
+    ).pipe(
         map(res => { return res.response.data.user.updateUser })
     );
 }
 
 interface GraphqlRequestRegisterUserByCode {
-    data: {
-        user: {
-            registerUserByCode: string
-        }
+    user: {
+        registerUserByCode: string
     }
 }
 
 export function RequestRegisterUserByCode(Password: string, Login: string, Code: string, Email: string): Observable<string> {
-    return ajax<GraphqlRequestRegisterUserByCode>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlRequestRegisterUserByCode>(`
                 mutation registerUserByCode($Code : String!, $Email: String!, $Login : String!, $Password: String!){
                     user{
                         registerUserByCode(code : $Code, email: $Email, password: $Password, login: $Login)
                     }
                   }
             `,
-            variables: {
-                "Code": Code,
-                "Email": Email,
-                "Password": Password,
-                "Login": Login
-            }
-        })
-    }).pipe(
+        {
+            "Code": Code,
+            "Email": Email,
+            "Password": Password,
+            "Login": Login
+        }
+    ).pipe(
         map(res => { return res.response.data.user.registerUserByCode })
     );
 }
 
 interface GraphqlUpdatePasswordByCode {
-    data: {
-        user: {
-            resetUserPasswordByCode: string
-        }
+    user: {
+        resetUserPasswordByCode: string
     }
 }
 
 export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, Email: string): Observable<string> {
-    return ajax<GraphqlUpdatePasswordByCode>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlUpdatePasswordByCode>(`
                 mutation resetUserPasswordByCode($Code : String!, $NewPassword: String!, $Email: String!){
                     user{
                         resetUserPasswordByCode(code : $Code, password: $NewPassword, email: $Email)
                     }
                   }
             `,
-            variables: {
-                "Code": Code,
-                "NewPassword": NewPassword,
-                "Email": Email,
-            }
-        })
-    }).pipe(
+        {
+            "Code": Code,
+            "NewPassword": NewPassword,
+            "Email": Email,
+        }
+    ).pipe(
         map(res => { return res.response.data.user.resetUserPasswordByCode })
     );
 }
 interface GraphqlUpdatePassword {
-    data: {
-        user: {
-            updateUserPassword: string
-        }
+    user: {
+        updateUserPassword: string
     }
 }
 export function RequestUpdatePassword(id: Number, NewPassword: string, Password: string): Observable<string> {
-    return ajax<GraphqlUpdatePassword>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlUpdatePassword>(`
                 mutation updateUserPassword($id : Int!, $Password: String!, $NewPassword: String!){
                     user{
                         updateUserPassword(id : $id, password: $Password, newPassword: $NewPassword)
                     }
                   }
             `,
-            variables: {
-                "id": Number(id),
-                "Password": Password,
-                "NewPassword": NewPassword
-            }
-        })
-    }).pipe(
+        {
+            "id": Number(id),
+            "Password": Password,
+            "NewPassword": NewPassword
+        }
+    ).pipe(
         map(res => { return res.response.data.user.updateUserPassword })
     );
 }
 
 export function RequestUpdateUserPermissions(permissions: Permissions): Observable<string> {
-    return ajax<string>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<string>(`
                 mutation  updateUserPermissions($PermissionsType : PermissionsInputType!){
                     user{
                         updateUserPermissions(permissions : $PermissionsType)
                     }
                   }
             `,
-            variables: {
-                "PermissionsType": {
-                    "userId": permissions.userId,
-                    "cRUDUsers": permissions.cRUDUsers,
-                    "editPermiters": permissions.editPermiters,
-                    "viewUsers": permissions.viewUsers,
-                    "editWorkHours": permissions.editWorkHours,
-                    "importExcel": permissions.importExcel,
-                    "controlPresence": permissions.controlPresence,
-                    "controlDayOffs": permissions.controlDayOffs
-                }
+        {
+            "PermissionsType": {
+                "userId": permissions.userId,
+                "cRUDUsers": permissions.cRUDUsers,
+                "editPermiters": permissions.editPermiters,
+                "viewUsers": permissions.viewUsers,
+                "editWorkHours": permissions.editWorkHours,
+                "importExcel": permissions.importExcel,
+                "controlPresence": permissions.controlPresence,
+                "controlDayOffs": permissions.controlDayOffs
             }
-        })
-    }).pipe(
-        map(res => res.response)
+        }
+    ).pipe(
+        map(res => res.response.data)
     );
 }
 
 export function RequestDisableUser(id: number): Observable<string> {
-    return ajax<string>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<string>(`
                 mutation DisableUser($id: Int!) {
                     user{
                         disableUser(id: $id)
                     }
                 }
             `,
-            variables: {
+            {
                 "id": Number(id)
             }
-        })
-    }).pipe(
-        map(res => res.response)
+    ).pipe(
+        map(res => res.response.data)
     );
 }

@@ -7,6 +7,7 @@ import TimeReducer from "./Slices/TimeSlice";
 import VacationReducer from "./Slices/VacationSlice";
 import LocationReducer from "./Slices/LocationSlice";
 import TokenReducer from "./Slices/TokenSlicer";
+import { useDispatch } from "react-redux";
 
 const epicMiddleware = createEpicMiddleware();
 
@@ -25,4 +26,5 @@ const store = configureStore({
 epicMiddleware.run(rootEpic);
 
 export type RootState = ReturnType<typeof store.getState>
+export type Dispatch = ReturnType<typeof useDispatch>
 export default store;

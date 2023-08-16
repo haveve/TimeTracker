@@ -164,7 +164,7 @@ public class CustomJwtBearerHandler : JwtBearerHandler
 
         var token = authorizationHeader.Substring("Bearer ".Length).Trim();
 
-        if (_authorizationManager.IsValidAccessToken(token))
+        if (_authorizationManager.IsValidToken(token))
         {
             var a = _authorizationManager.ReadJwtToken(token);
             var principal = new ClaimsPrincipal(new ClaimsIdentity(a.Claims, "Token"));

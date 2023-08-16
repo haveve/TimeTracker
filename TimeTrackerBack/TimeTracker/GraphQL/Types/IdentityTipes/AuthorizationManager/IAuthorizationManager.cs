@@ -6,15 +6,14 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 {
     public interface IAuthorizationManager
     {
-        public const int RefreshTokenExpiration = 86400;
+        public const int RefreshTokenExpiration = 31536000;
         public const int AccessTokenExpiration = 60;
 
-        public string GetRefreshToken();
+        public TokenResult GetRefreshToken(int userId);
         public JwtSecurityToken ReadJwtToken(string accessToken);
-        public ValidateRefreshAndGetAccess ValidateRefreshAndGetAccessToken(string accessToken,string refreshToken);
-        public bool IsValidAccessToken(string accessToken);
-        public StateOfRememberMe IsValidRememberMe(RememberMe rememberMe,string refreshToken, int userId);
-        public string GetAccessToken(int userId);
+        public ValidateRefreshAndGetAccess ValidateRefreshAndGetAccessToken(string refreshToken);
+        public bool IsValidToken(string token);
+        public TokenResult GetAccessToken(int userId);
     }
     public enum StateOfRememberMe
     {

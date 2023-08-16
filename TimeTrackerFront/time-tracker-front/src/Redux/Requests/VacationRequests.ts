@@ -1,35 +1,24 @@
-import {User} from "../Types/User";
-import {map, Observable} from "rxjs";
-import {ajax} from "rxjs/ajax";
-import {ApproverNode} from "../Types/ApproverNode";
-import {GetAjaxObservable} from "./TimeRequests";
-import {TimeRequest} from "../Types/Time";
+import { User } from "../Types/User";
+import { map, Observable } from "rxjs";
+import { ajax } from "rxjs/ajax";
+import { ApproverNode } from "../Types/ApproverNode";
+import { GetAjaxObservable } from "./TimeRequests";
+import { TimeRequest } from "../Types/Time";
 import App from "../../App";
-import {VacationRequest} from "../Types/VacationRequest";
-import {vacationState} from "../Slices/VacationSlice";
-import {InputVacationRequest} from "../Types/InputVacationRequest";
-import {InputApproverReaction} from "../Types/InputApproverReaction";
-import {InputVacRequest} from "../Types/InputVacRequest";
-
-const url = "https://time-tracker3.azurewebsites.net/graphql";
+import { VacationRequest } from "../Types/VacationRequest";
+import { vacationState } from "../Slices/VacationSlice";
+import { InputVacationRequest } from "../Types/InputVacationRequest";
+import { InputApproverReaction } from "../Types/InputApproverReaction";
+import { InputVacRequest } from "../Types/InputVacRequest";
 
 interface GraphQlUsers {
-    data: {
-        vacation: {
-            approvers: User[]
-        }
+    vacation: {
+        approvers: User[]
     }
 }
 
 export function RequestApprovers(requesterId: Number): Observable<User[]> {
-    return ajax<GraphQlUsers>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphQlUsers>(`
                 query GetApprovers($requesterId:Int!){
                     vacation{
                         approvers(requesterId: $requesterId){
@@ -38,12 +27,11 @@ export function RequestApprovers(requesterId: Number): Observable<User[]> {
                     }
                 }
             `,
-            variables: {
-                "requesterId": Number(requesterId)
-            }
+        {
+            "requesterId": Number(requesterId)
+        }
 
-        })
-    }).pipe(
+    ).pipe(
         map(res => {
             return res.response.data.vacation.approvers;
         })
@@ -51,36 +39,24 @@ export function RequestApprovers(requesterId: Number): Observable<User[]> {
 }
 
 interface GraphQlAddApprover {
-    data: {
-        vacation: {
-            addApproverForUser: string;
-        }
-
+    vacation: {
+        addApproverForUser: string;
     }
 }
 
 export function RequestAddApprover(approverNode: ApproverNode): Observable<string> {
-    return ajax<GraphQlAddApprover>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphQlAddApprover>(`
                 mutation addApproverForUser($approverId:Int!,$requesterId:Int!){
                     vacation{
                         addApproverForUser(approverUserId: $approverId, requesterUserId: $requesterId)
                     }
                 }
             `,
-            variables: {
-                "approverId": Number(approverNode.userIdApprover),
-                "requesterId": Number(approverNode.userIdRequester)
-            }
-
-        })
-    }).pipe(
+        {
+            "approverId": Number(approverNode.userIdApprover),
+            "requesterId": Number(approverNode.userIdRequester)
+        }
+    ).pipe(
         map(res => {
 
             return res.response.data.vacation.addApproverForUser;
@@ -90,36 +66,24 @@ export function RequestAddApprover(approverNode: ApproverNode): Observable<strin
 
 
 interface GraphQlDeleteApprover {
-    data: {
-        vacation: {
-            deleteApprover: string;
-        }
-
+    vacation: {
+        deleteApprover: string;
     }
 }
 
 export function RequestDeleteApprover(approverNode: ApproverNode): Observable<string> {
-    return ajax<GraphQlDeleteApprover>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphQlDeleteApprover>(`
                 mutation deleteApprover($approverId:Int!,$requesterId:Int!){
                     vacation{
                         deleteApprover(approverUserId: $approverId, requesterUserId: $requesterId)
                     }
                 }
             `,
-            variables: {
-                "approverId": Number(approverNode.userIdApprover),
-                "requesterId": Number(approverNode.userIdRequester)
-            }
-
-        })
-    }).pipe(
+        {
+            "approverId": Number(approverNode.userIdApprover),
+            "requesterId": Number(approverNode.userIdRequester)
+        }
+    ).pipe(
         map(res => {
 
             return res.response.data.vacation.deleteApprover;
@@ -128,22 +92,13 @@ export function RequestDeleteApprover(approverNode: ApproverNode): Observable<st
 }
 
 interface GraphQlVacationRequests {
-    data: {
-        vacation: {
-            vacationRequest: VacationRequest[]
-        }
+    vacation: {
+        vacationRequest: VacationRequest[]
     }
 }
 
 export function RequestVacationRequestsByRequesterId(inputVacRequest: InputVacRequest): Observable<VacationRequest[]> {
-    return ajax<GraphQlVacationRequests>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphQlVacationRequests>(`
                 query vacationRequest($requesterId:Int!, $requestStatus:String!){
                     vacation{
                         vacationRequest(requesterId:$requesterId, requestStatus:$requestStatus){
@@ -152,13 +107,11 @@ export function RequestVacationRequestsByRequesterId(inputVacRequest: InputVacRe
                     }
                 }
             `,
-            variables: {
-                "requesterId": Number(inputVacRequest.approverOrRequesterId),
-                "requestStatus": String(inputVacRequest.requestStatus)
-            }
-
-        })
-    }).pipe(
+        {
+            "requesterId": Number(inputVacRequest.approverOrRequesterId),
+            "requestStatus": String(inputVacRequest.requestStatus)
+        }
+    ).pipe(
         map(res => {
             return res.response.data.vacation.vacationRequest;
         })
@@ -167,22 +120,13 @@ export function RequestVacationRequestsByRequesterId(inputVacRequest: InputVacRe
 
 
 interface GraphQlIncomingVacationRequests {
-    data: {
-        vacation: {
-            vacationRequest: VacationRequest[]
-        }
+    vacation: {
+        vacationRequest: VacationRequest[]
     }
 }
 
 export function RequestIncomingVacationRequestsByApproverId(inputVacRequest: InputVacRequest): Observable<VacationRequest[]> {
-    return ajax<GraphQlIncomingVacationRequests>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphQlIncomingVacationRequests>(`
                 query vacationRequest($approverId:Int!, $requestStatus:String!){
                     vacation{
                         vacationRequest(approverId:$approverId, requestStatus:$requestStatus){
@@ -206,38 +150,26 @@ export function RequestIncomingVacationRequestsByApproverId(inputVacRequest: Inp
                     }
                 }
             `,
-            variables: {
-                "approverId": Number(inputVacRequest.approverOrRequesterId),
-                "requestStatus": String(inputVacRequest.requestStatus)
+        {
+            "approverId": Number(inputVacRequest.approverOrRequesterId),
+            "requestStatus": String(inputVacRequest.requestStatus)
 
-            }
+        }).pipe(
+            map(res => {
 
-        })
-    }).pipe(
-        map(res => {
-
-            return res.response.data.vacation.vacationRequest;
-        })
-    );
+                return res.response.data.vacation.vacationRequest;
+            })
+        );
 }
 
 interface GraphQlApproverNodes {
-    data: {
-        vacation: {
-            approversReaction: ApproverNode[]
-        }
+    vacation: {
+        approversReaction: ApproverNode[]
     }
 }
 
 export function RequestApproversReaction(requestId: Number): Observable<ApproverNode[]> {
-    return ajax<GraphQlApproverNodes>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphQlApproverNodes>(`
                 query approversReaction($requestId: Int!){
                     vacation{
                         approversReaction(requestId: $requestId){
@@ -249,169 +181,119 @@ export function RequestApproversReaction(requestId: Number): Observable<Approver
                     }
                 }
             `,
-            variables: {
-                "requestId": Number(requestId)
-            }
-
-        })
-    }).pipe(
-        map(res => {
-            return res.response.data.vacation.approversReaction;
-        })
-    );
+        {
+            "requestId": Number(requestId)
+        }).pipe(
+            map(res => {
+                return res.response.data.vacation.approversReaction;
+            })
+        );
 }
 
 interface GraphQlAddApproverReaction {
-    data: {
-        vacation: {
-            addApproverReaction: string
-        }
+    vacation: {
+        addApproverReaction: string
     }
 }
 
 
-export function RequestAddApproverReaction(inputApproverReaction:InputApproverReaction){
-    return ajax<GraphQlAddApproverReaction>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+export function RequestAddApproverReaction(inputApproverReaction: InputApproverReaction) {
+    return GetAjaxObservable<GraphQlAddApproverReaction>(`
                 mutation addApproverReaction($approverUserId:Int!,$requestId:Int!,$reaction: Boolean!, $reactionMessage: String!){
                     vacation{
                         addApproverReaction(approverUserId: $approverUserId, requestId: $requestId, reaction: $reaction, reactionMessage:$reactionMessage)
                     }
                 }
             `,
-            variables: {
-                "approverUserId":Number(inputApproverReaction.approverId),
-                "requestId": Number(inputApproverReaction.requestId),
-                "reaction": Boolean(inputApproverReaction.reaction),
-                "reactionMessage": String(inputApproverReaction.reactionMessage),
-            }
-        })
-    }).pipe(
-        map(res => {
+        {
+            "approverUserId": Number(inputApproverReaction.approverId),
+            "requestId": Number(inputApproverReaction.requestId),
+            "reaction": Boolean(inputApproverReaction.reaction),
+            "reactionMessage": String(inputApproverReaction.reactionMessage),
+        }).pipe(
+            map(res => {
 
-            return res.response.data.vacation.addApproverReaction;
-        })
-    );
+                return res.response.data.vacation.addApproverReaction;
+            })
+        );
 }
 
 
 
 
 interface GraphQlCancelVacationRequest {
-    data: {
-        vacation: {
-            cancelVacationRequest: string
-        }
+    vacation: {
+        cancelVacationRequest: string
     }
 }
 
 
-export function RequestCancelVacationRequest(vacationRequest:VacationRequest){
-    return ajax<GraphQlCancelVacationRequest>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+export function RequestCancelVacationRequest(vacationRequest: VacationRequest) {
+    return GetAjaxObservable<GraphQlCancelVacationRequest>(`
                 mutation cancelVacationRequest($requestId:Int!){
                     vacation{
                         cancelVacationRequest(requestId:$requestId)
                     }
                 }
             `,
-            variables: {
-                "requestId": Number(vacationRequest.id)
-            }
+        {
+            "requestId": Number(vacationRequest.id)
+        }).pipe(
+            map(res => {
 
-        })
-    }).pipe(
-        map(res => {
-
-            return res.response.data.vacation.cancelVacationRequest;
-        })
-    );
+                return res.response.data.vacation.cancelVacationRequest;
+            })
+        );
 }
 
 interface GraphQlDeleteVacationRequest {
-    data: {
-        vacation: {
-            deleteVacationRequest: string
-        }
+    vacation: {
+        deleteVacationRequest: string
     }
 }
 
 
-export function RequestDeleteVacationRequest(vacationRequest:VacationRequest){
-    return ajax<GraphQlDeleteVacationRequest>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+export function RequestDeleteVacationRequest(vacationRequest: VacationRequest) {
+    return GetAjaxObservable<GraphQlDeleteVacationRequest>(`
                 mutation deleteVacationRequest($requestId:Int!){
                     vacation{
                         deleteVacationRequest(requestId:$requestId)
                     }
                 }
             `,
-            variables: {
-                "requestId": Number(vacationRequest.id)
-            }
-
-        })
-    }).pipe(
-        map(res => {
-            return res.response.data.vacation.deleteVacationRequest;
-        })
-    );
+        {
+            "requestId": Number(vacationRequest.id)
+        }).pipe(
+            map(res => {
+                return res.response.data.vacation.deleteVacationRequest;
+            })
+        );
 }
 
 interface GraphQlCreateVacationRequest {
-    data: {
-        vacation: {
-            createVacationRequest: string
-        }
+    vacation: {
+        createVacationRequest: string
     }
 }
 
 
-export function RequestCreateVacationRequest(vacationRequest:InputVacationRequest){
-    return ajax<GraphQlCreateVacationRequest>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: `
+export function RequestCreateVacationRequest(vacationRequest: InputVacationRequest) {
+    return GetAjaxObservable<GraphQlCreateVacationRequest>(`
                 mutation createVacationRequest($requesterId:Int!, $infoAboutRequest: String!, $startDate: DateTime!, $endDate: DateTime!){
                     vacation{
                         createVacationRequest(requesterId:$requesterId, infoAboutRequest: $infoAboutRequest, startDate: $startDate, endDate:$endDate )
                     }
                 }
             `,
-            variables: {
-                "requesterId": Number(vacationRequest.requesterId),
-                "infoAboutRequest": vacationRequest.infoAboutRequest,
-                "startDate": vacationRequest.startDate.toISOString(),
-                "endDate": vacationRequest.endDate.toISOString(),
-            }
-
-        })
-    }).pipe(
-        map(res => {
-            return res.response.data.vacation.createVacationRequest;
-        })
-    );
+        {
+            "requesterId": Number(vacationRequest.requesterId),
+            "infoAboutRequest": vacationRequest.infoAboutRequest,
+            "startDate": vacationRequest.startDate.toISOString(),
+            "endDate": vacationRequest.endDate.toISOString(),
+        }).pipe(
+            map(res => {
+                return res.response.data.vacation.createVacationRequest;
+            })
+        );
 }
 
