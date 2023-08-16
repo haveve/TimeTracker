@@ -4,10 +4,7 @@ import {
   redirect,
   useNavigate,
 } from "react-router-dom";
-import { User } from '../../Redux/Types/User';
-import { Alert } from 'react-bootstrap';
-
-export const accessTokenLiveTime = 60;
+import { LogoutDeleteCookie } from '../../Components/Navbar';
 
 const url = "https://localhost:7226/graphql-login";
 /*    "errors": [
@@ -119,7 +116,7 @@ export function ajaxForLogin(variables: {}) {
       let response = fullResponse.data.login;
 
 
-      if (!response || !response.access_token)
+      if (fullResponse.errors)
         throw fullResponse.errors[0].message;
 
 
@@ -144,6 +141,22 @@ export function ajaxForLogin(variables: {}) {
       throw error
     })
   );
+}
+
+
+export function IsRefreshError(error:any){
+    const refreshError:RefreshError = error
+    return refreshError.error&&refreshError.errorType === RefreshErrorEnum.RefreshError;
+  }
+
+
+export enum RefreshErrorEnum  {
+  RefreshError
+}
+
+export type RefreshError = {
+  error:string,
+  errorType:RefreshErrorEnum
 }
 
 export function ajaxForRefresh(variables: {},token:string) {
@@ -178,17 +191,20 @@ export function ajaxForRefresh(variables: {},token:string) {
     map((value): void => {
 
       let response = value.response.data.refreshToken;
-
-      if (isUnvalidTokenError(value.response as any)) {
-        deleteCookie("refresh_token");
-        deleteCookie("access_token");
-        deleteCookie("user_id");
-        deleteCookie("canUseUserIp");
-        throw response.refresh_token.token;
+      let refreshError:RefreshError = {
+        error:"",
+        errorType:RefreshErrorEnum.RefreshError
       }
 
-      if (!response)
-        throw value.response.errors[0].message;
+      if (isUnvalidTokenError(value.response as any)) {
+        LogoutDeleteCookie()
+        refreshError.error = response.refresh_token.token
+        throw refreshError;
+      }
+
+      if (value.response.errors)
+        throw refreshError;
+
       const access_token_to_save: StoredTokenType = {
         issuedAt: new Date(response.access_token.issuedAt).getTime(),
         expiredAt: new Date (response.access_token.expiredAt).getTime(),

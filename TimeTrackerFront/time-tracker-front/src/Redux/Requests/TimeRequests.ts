@@ -1,6 +1,6 @@
 import { ajax } from "rxjs/internal/ajax/ajax";
-import { catchError, map, mergeMap, Observable, of,timer} from "rxjs";
-import { getCookie, setCookie } from "../../Login/Api/login-logout";
+import { catchError, map, mergeMap, Observable, of, timer } from "rxjs";
+import { getCookie, IsRefreshError, RefreshError, setCookie } from "../../Login/Api/login-logout";
 import { Time, TimeResponse, TimeRequest, TimeMark } from "../Types/Time";
 import { response } from "../Types/ResponseType";
 import { locationOffset, startOfWeek } from "../Slices/LocationSlice";
@@ -36,12 +36,12 @@ export function GetTokenObservable() {
     return DoRefresh(WhetherDoRefresh())
 }
 
-export function TokenErrorHandler() {
-    const dispatch = store.dispatch;
+export function TokenErrorHandler(error: string = ErrorMassagePattern) {
 
+    const dispatch = store.dispatch;
     dispatch(setLoginByToken(false))
     dispatch(setLogout())
-    dispatch(setErrorStatusAndError(ErrorMassagePattern))
+    dispatch(setErrorStatusAndError(error))
 }
 
 export type DoRefreshType = {
@@ -50,25 +50,23 @@ export type DoRefreshType = {
 }
 
 export function DoRefresh(refresh: DoRefreshType) {
-
     switch (refresh.refreshStatus) {
         case RefreshStatus.DoRefresh:
-
             const refreshSentString = getCookie("refresh_sent");
             const isTokenAriwed: boolean = refreshSentString ? JSON.parse(refreshSentString) : refreshSentString
 
             if (!isTokenAriwed) {
-                setCookie({name:"refresh_sent",value:"true"})
+                setCookie({ name: "refresh_sent", value: "true" })
                 return ajaxForRefresh({}, refresh.refresh_token);
             }
             else {
                 return new Observable<void>((subscriber) => {
-                   const sub =  timer(30,60).subscribe({
-                        next:()=>{
+                    const sub = timer(30, 60).subscribe({
+                        next: () => {
                             let refreshSentString = getCookie("refresh_sent");
                             let isTokenAriwed: boolean = refreshSentString ? JSON.parse(refreshSentString) : refreshSentString
-                            
-                            if(!isTokenAriwed){
+
+                            if (!isTokenAriwed) {
                                 subscriber.next()
                                 sub.unsubscribe()
                             }
@@ -128,7 +126,7 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
 
     return GetTokenObservable().pipe(
         mergeMap(() => {
-            setCookie({name:"refresh_sent",value:"false"})
+            setCookie({ name: "refresh_sent", value: "false" })
             const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
             return ajax<response<T>>({
                 url,
@@ -144,10 +142,16 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
                 withCredentials: withCredentials
             })
         }),
-        catchError(() => of().pipe(
-            map(() => {
-                throw "error"
-            }))
+        catchError((error) => {
+            if (IsRefreshError(error)) {
+                const refreshError: RefreshError = error;
+                if (refreshError.error != "")
+                    TokenErrorHandler(refreshError.error)
+                else
+                    TokenErrorHandler()
+            }
+            throw "error"
+        }
         )
     )
 }

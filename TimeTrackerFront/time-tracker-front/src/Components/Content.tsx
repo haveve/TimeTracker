@@ -25,7 +25,6 @@ import { clearErroMassage as clearErroMassageUserList } from '../Redux/Slices/Us
 import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
 import { setErrorStatusAndError as setErroMassageToken,setSuccessStatus as setSuccessStatusToken, clearErroMassage as clearErroMassageToken, setloadingStatus as setloadingStatusToken } from '../Redux/Slices/TokenSlicer';
 import { Subscription,timer } from 'rxjs';
-import { accessTokenLiveTime } from '../Login/Api/login-logout';
 import { ajaxForRefresh } from '../Login/Api/login-logout';
 
 import { Permissions } from '../Redux/Types/Permissions';
@@ -119,7 +118,6 @@ function AppContent() {
   const errorToken = useSelector((state:RootState)=> state.token.error ? state.token.error : "")
 
   const dispatch = useDispatch();
-  let user = useSelector((state: RootState) => state.currentUser.User);
   let permissions = useSelector((state: RootState) => state.currentUser.Permissions);
   return (
     <div className='Content container-fluid p-0 h-100'>
