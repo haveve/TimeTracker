@@ -17,6 +17,7 @@ using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
+using static TimeTracker.Controllers.TestController;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,8 +51,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //        ClockSkew = TimeSpan.Zero
 //    };
 //});
-
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+//builder.Services.AddControllers();
 
 //CORS
 builder.Services.AddCors();
@@ -69,6 +70,8 @@ builder.Services.AddSingleton<ISchema, IdentitySchema>(services =>
     var scheme = new IdentitySchema(new SelfActivatingServiceProvider(services));
     return scheme;
 });
+
+builder.Services.AddMvc();
 
 /*builder.Services.AddSingleton<ISchema, VacationSchema>(services =>
 {
@@ -125,6 +128,12 @@ app.UseGraphQL<IdentitySchema>("/graphql-login", (config) =>
 {
 
 });
+
+
+app.MapControllerRoute(
+    name: "TestRoute",
+    pattern: "{controller}/{action=Index}/{id?}");
+
 app.UseGraphQLAltair();
 
 app.Run();
