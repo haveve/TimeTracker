@@ -605,3 +605,44 @@ export function RequestDisableUser(id: number): Observable<string> {
         map(res => res.response)
     );
 }
+
+interface GraphqlExportExcel {
+    data: {
+        user: {
+            getExcelFile: string
+        }
+    }
+}
+
+export function RequestExportExcel(page: Page): Observable<string> {
+    return ajax<GraphqlExportExcel>({
+        url,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie("access_token")
+        },
+        body: JSON.stringify({
+            query: `
+                query ExportExcel($search: String, $orderfield: String, $order: String, $enabled: String){
+                    user{
+                        getExcelFile(search: $search, orderField: $orderfield, order: $order, enabled: $enabled)
+                    }
+                  }
+            `,
+            variables: {
+                "search": page.search,
+                "orderField": page.orderfield,
+                "order": page.order,
+                "enabled": page.enabled
+            }
+
+        })
+    }).pipe(
+        map(res => {
+            const response : string = res.response.data.user.getExcelFile;
+            console.log(response);
+            return response;
+        })
+    );
+}

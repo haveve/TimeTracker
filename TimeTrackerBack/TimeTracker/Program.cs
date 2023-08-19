@@ -25,6 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<DapperContext>();
 
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
+builder.Services.AddSingleton<IExcelHandler, ExcelHandler>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<ITimeRepository, TimeRepository>();
 builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
@@ -131,8 +132,8 @@ app.UseGraphQL<IdentitySchema>("/graphql-login", (config) =>
 
 
 app.MapControllerRoute(
-    name: "TestRoute",
-    pattern: "{controller}/{action=Index}/{id?}");
+    name: "default",
+    pattern: "{controller}/{action=Download}/{id}");
 
 app.UseGraphQLAltair();
 
