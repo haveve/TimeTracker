@@ -26,9 +26,6 @@ export function RequestUsers(): Observable<User[]> {
                             id
                             login
                             fullName
-                            daySeconds
-                            weekSeconds
-                            monthSeconds
                           }
                     }
                   }
@@ -190,8 +187,8 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
                         cRUDUsers
                         viewUsers
                         editWorkHours
-                        editPermiters
-                        importExcel
+                        editApprovers
+                        exportExcel
                         controlPresence
                         controlDayOffs
                       }
@@ -224,8 +221,8 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
                         cRUDUsers
                         viewUsers
                         editWorkHours
-                        editPermiters
-                        importExcel
+                        editApprovers
+                        exportExcel
                         controlPresence
                         controlDayOffs
                       }
@@ -291,10 +288,10 @@ export function RequestCreateUser(user: User, permissions: Permissions): Observa
             "Permissions": {
                 "userId": permissions.userId,
                 "cRUDUsers": permissions.cRUDUsers,
-                "editPermiters": permissions.editPermiters,
+                "editApprovers": permissions.editApprovers,
                 "viewUsers": permissions.viewUsers,
                 "editWorkHours": permissions.editWorkHours,
-                "importExcel": permissions.importExcel,
+                "exportExcel": permissions.exportExcel,
                 "controlPresence": permissions.controlPresence,
                 "controlDayOffs": permissions.controlDayOffs,
             }
@@ -426,10 +423,10 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
             "PermissionsType": {
                 "userId": permissions.userId,
                 "cRUDUsers": permissions.cRUDUsers,
-                "editPermiters": permissions.editPermiters,
+                "editApprovers": permissions.editApprovers,
                 "viewUsers": permissions.viewUsers,
                 "editWorkHours": permissions.editWorkHours,
-                "importExcel": permissions.importExcel,
+                "exportExcel": permissions.exportExcel,
                 "controlPresence": permissions.controlPresence,
                 "controlDayOffs": permissions.controlDayOffs
             }
