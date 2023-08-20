@@ -1,13 +1,13 @@
-import { ajax } from "rxjs/internal/ajax/ajax";
-import { map, Observable } from "rxjs";
-import { User } from "../Types/User";
-import { Permissions } from "../Types/Permissions";
-import { getCookie } from "../../Login/Api/login-logout";
-import { response } from "../Types/ResponseType";
-import { number } from "yup";
-import { Page } from "../Types/Page";
-import { UsersPage } from "../Types/UsersPage";
-import { GetAjaxObservable } from "./TimeRequests";
+import {ajax} from "rxjs/internal/ajax/ajax";
+import {map, Observable} from "rxjs";
+import {User} from "../Types/User";
+import {Permissions} from "../Types/Permissions";
+import {getCookie} from "../../Login/Api/login-logout";
+import {response} from "../Types/ResponseType";
+import {number} from "yup";
+import {Page} from "../Types/Page";
+import {UsersPage} from "../Types/UsersPage";
+import {GetAjaxObservable} from "./TimeRequests";
 
 interface GraphqlUsers {
     user: {
@@ -108,13 +108,14 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
             "order": page.order,
             "enabled": page.enabled
         }).pipe(
-            map(res => {
-                let page: UsersPage = res.response.data.user.pagedUsers;
+        map(res => {
+            let page: UsersPage = res.response.data.user.pagedUsers;
 
-                return page;
-            })
-        );
+            return page;
+        })
+    );
 }
+
 interface GraphqlUser {
     user: {
         user: User
@@ -138,12 +139,12 @@ export function RequestUser(Id: Number): Observable<User> {
         {
             "Id": Number(Id)
         }).pipe(
-            map(res => {
-                {
-                    return res.response.data.user.user
-                }
-            })
-        );
+        map(res => {
+            {
+                return res.response.data.user.user
+            }
+        })
+    );
 }
 
 interface GraphqlCurrentUser {
@@ -200,12 +201,12 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
         {
             "Id": Id
         }).pipe(
-            map(res => {
-                {
-                    return res.response.data.user.userPermissions
-                }
-            })
-        );
+        map(res => {
+            {
+                return res.response.data.user.userPermissions
+            }
+        })
+    );
 }
 
 interface GraphqlCurrentUserPermissions {
@@ -299,7 +300,9 @@ export function RequestCreateUser(user: User, permissions: Permissions): Observa
             }
         }
     ).pipe(
-        map(res => { return res.response.data.user.createUser })
+        map(res => {
+            return res.response.data.user.createUser
+        })
     );
 }
 
@@ -317,16 +320,18 @@ export function RequestUpdateUser(user: User): Observable<string> {
                     }
                   }
             `, {
-        "User": {
-            "login": user.login,
-            "fullName": user.fullName,
-            "password": user.password,
-            "email": user.email
-        },
-        "Id": Number(user.id)
-    }
+            "User": {
+                "login": user.login,
+                "fullName": user.fullName,
+                "password": user.password,
+                "email": user.email
+            },
+            "Id": Number(user.id)
+        }
     ).pipe(
-        map(res => { return res.response.data.user.updateUser })
+        map(res => {
+            return res.response.data.user.updateUser
+        })
     );
 }
 
@@ -351,7 +356,9 @@ export function RequestRegisterUserByCode(Password: string, Login: string, Code:
             "Login": Login
         }
     ).pipe(
-        map(res => { return res.response.data.user.registerUserByCode })
+        map(res => {
+            return res.response.data.user.registerUserByCode
+        })
     );
 }
 
@@ -375,14 +382,18 @@ export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, E
             "Email": Email,
         }
     ).pipe(
-        map(res => { return res.response.data.user.resetUserPasswordByCode })
+        map(res => {
+            return res.response.data.user.resetUserPasswordByCode
+        })
     );
 }
+
 interface GraphqlUpdatePassword {
     user: {
         updateUserPassword: string
     }
 }
+
 export function RequestUpdatePassword(id: Number, NewPassword: string, Password: string): Observable<string> {
     return GetAjaxObservable<GraphqlUpdatePassword>(`
                 mutation updateUserPassword($id : Int!, $Password: String!, $NewPassword: String!){
@@ -397,7 +408,9 @@ export function RequestUpdatePassword(id: Number, NewPassword: string, Password:
             "NewPassword": NewPassword
         }
     ).pipe(
-        map(res => { return res.response.data.user.updateUserPassword })
+        map(res => {
+            return res.response.data.user.updateUserPassword
+        })
     );
 }
 
@@ -434,51 +447,39 @@ export function RequestDisableUser(id: number): Observable<string> {
                     }
                 }
             `,
-            {
-                "id": Number(id)
-            }
+        {
+            "id": Number(id)
+        }
     ).pipe(
         map(res => res.response.data)
     );
 }
 
 interface GraphqlExportExcel {
-    data: {
-        user: {
-            getExcelFile: string
-        }
+    user: {
+        getExcelFile: string
     }
 }
 
 export function RequestExportExcel(page: Page): Observable<string> {
-    return ajax<GraphqlExportExcel>({
-        url,
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + getCookie("access_token")
-        },
-        body: JSON.stringify({
-            query: `
+    return GetAjaxObservable<GraphqlExportExcel>(`
                 query ExportExcel($search: String, $orderfield: String, $order: String, $enabled: String){
                     user{
                         getExcelFile(search: $search, orderField: $orderfield, order: $order, enabled: $enabled)
                     }
                   }
             `,
-            variables: {
-                "search": page.search,
-                "orderField": page.orderfield,
-                "order": page.order,
-                "enabled": page.enabled
-            }
-
+        {
+            "search": page.search,
+            "orderField": page.orderfield,
+            "order": page.order,
+            "enabled": page.enabled
         })
-    }).pipe(
-        map(res => {
-            const response : string = res.response.data.user.getExcelFile;
-            console.log(response);
-            return response;
-        })
-    );
+        .pipe(
+            map(res => {
+                const response: string = res.response.data.user.getExcelFile;
+                console.log(response);
+                return response;
+            })
+        );
 }
