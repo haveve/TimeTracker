@@ -3,9 +3,9 @@ using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 
 namespace TimeTracker.GraphQL.Types.IdentityTipes
 {
-    public class LoginInputType:InputObjectGraphType<Login>
+    public class LoginInputGraphType:InputObjectGraphType<Login>
     {
-        public LoginInputType() 
+        public LoginInputGraphType() 
         {
             Field(l => l.LoginOrEmail,nullable:false);
             Field(l => l.Password, nullable: false);

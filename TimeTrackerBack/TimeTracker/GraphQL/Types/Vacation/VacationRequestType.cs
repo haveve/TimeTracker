@@ -9,7 +9,7 @@ namespace TimeTracker.GraphQL.Types.Vacation
         {
             Field(i => i.Id, type: typeof(IdGraphType));
             Field(i => i.RequesterId, type: typeof(IntGraphType));
-            Field(i => i.Requester, type: typeof(UserTypes.UserType));
+            Field(i => i.Requester, type: typeof(UserTypes.UserGraphType));
             Field(i => i.InfoAboutRequest, type: typeof(StringGraphType));
             Field(i => i.Status, type: typeof(StringGraphType));
             Field(i => i.ApproversNodes, type: typeof(ListGraphType<ApproverNodeType>));

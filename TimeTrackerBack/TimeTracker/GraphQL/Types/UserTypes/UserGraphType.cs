@@ -4,9 +4,9 @@ using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Types.UserTypes
 {
-    public class UserType : ObjectGraphType<User>
+    public class UserGraphType : ObjectGraphType<User>
     {
-        public UserType()
+        public UserGraphType()
         {
             Field(i => i.Id, type: typeof(IdGraphType));
             Field(i => i.Login);

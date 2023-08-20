@@ -3,11 +3,11 @@ using TimeTracker.ViewModels;
 
 namespace TimeTracker.GraphQL.Types.UserTypes
 {
-    public class UserPageType : ObjectGraphType<UserPageViewModel>
+    public class UserPageGraphType : ObjectGraphType<UserPageViewModel>
     {
-        public UserPageType()
+        public UserPageGraphType()
         {
-            Field(i => i.UserList, type: typeof(ListGraphType<UserType>));
+            Field(i => i.UserList, type: typeof(ListGraphType<UserGraphType>));
             Field(i => i.TotalCount, type: typeof(IntGraphType));
             Field(i => i.PageIndex, type: typeof(IntGraphType));
         }

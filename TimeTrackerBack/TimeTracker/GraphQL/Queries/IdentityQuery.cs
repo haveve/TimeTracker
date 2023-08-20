@@ -1,22 +1,9 @@
 ﻿using GraphQL;
-using GraphQL.MicrosoftDI;
 using GraphQL.Types;
-using GraphQL.Validation;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using TimeTracker.GraphQL.Types.IdentityTipes;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
-using TimeTracker.Models;
 using TimeTracker.Repositories;
-using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using System.Net.Http;
-using Newtonsoft.Json;
-using Azure.Core;
 
 namespace TimeTracker.GraphQL.Queries
 {
@@ -33,7 +20,7 @@ namespace TimeTracker.GraphQL.Queries
             _configuration = configuration;
 
             Field<IdentityOutPutGraphType>("login")
-                .Argument<NonNullGraphType<LoginInputType>>("login")
+                .Argument<NonNullGraphType<LoginInputGraphType>>("login")
             .Resolve(context =>
             {
                 Login UserLogData = context.GetArgument<Login>("login");

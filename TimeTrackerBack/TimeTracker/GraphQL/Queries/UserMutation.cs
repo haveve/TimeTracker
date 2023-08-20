@@ -19,9 +19,9 @@ namespace TimeTracker.GraphQL.Queries
 
             Field<UserMutationGraphQLType>("user")
             .Resolve(context => new { });
-            Field<TimeMutationGraphType>("time")
+            Field<TimeMutationGraphQLType>("time")
             .Resolve(context => new { });
-            Field<CalendarMutationGraphqlType>("calendar")
+            Field<CalendarMutationGraphQLType>("calendar")
                 .Resolve(context => new { });
             Field<VacationMutation>("vacation")
             .Resolve(context => new { });

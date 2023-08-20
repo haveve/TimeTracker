@@ -16,8 +16,8 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             repo = Repo;
 
             Field<StringGraphType>("createUser")
-                .Argument<NonNullGraphType<UserInputType>>("User")
-                .Argument<NonNullGraphType<PermissionsInputType>>("Permissions")
+                .Argument<NonNullGraphType<UserInputGraphType>>("User")
+                .Argument<NonNullGraphType<PermissionsInputGraphType>>("Permissions")
                 .ResolveAsync(async context =>
                 {
                     var user = context.GetArgument<User>("User");
@@ -33,7 +33,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
 
             Field<StringGraphType>("updateUser")
                 .Argument<NonNullGraphType<IntGraphType>>("Id")
-                .Argument<NonNullGraphType<UserInputType>>("User")
+                .Argument<NonNullGraphType<UserInputGraphType>>("User")
                 .ResolveAsync(async context =>
                 {
                     var Id = context.GetArgument<int>("Id");
@@ -101,7 +101,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 });
 
             Field<StringGraphType>("updateUserPermissions")
-                .Argument<NonNullGraphType<PermissionsInputType>>("Permissions")
+                .Argument<NonNullGraphType<PermissionsInputGraphType>>("Permissions")
                 .ResolveAsync(async context =>
                 {
                     var permissions = context.GetArgument<Permissions>("Permissions");

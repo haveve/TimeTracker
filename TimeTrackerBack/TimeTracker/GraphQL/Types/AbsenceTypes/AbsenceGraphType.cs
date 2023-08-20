@@ -3,9 +3,9 @@ using TimeTracker.Models;
 
 namespace TimeTracker.GraphQL.Types.AbsenceTypes
 {
-    public class AbsenceInputType : InputObjectGraphType<Absence>
+    public class AbsenceGraphType : ObjectGraphType<Absence>
     {
-        public AbsenceInputType()
+        public AbsenceGraphType()
         {
             Field(i => i.UserId, type: typeof(IdGraphType));
             Field(i => i.Type, type: typeof(StringGraphType));

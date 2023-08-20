@@ -8,7 +8,7 @@ using TimeTracker.ViewModels;
 
 namespace TimeTracker.GraphQL.Types.Calendar
 {
-    public class CalendarQueryGraphqlType : ObjectGraphType
+    public class CalendarQueryGraphQLType : ObjectGraphType
     {
         private readonly ICalendarRepository _calendarRepository;
 
@@ -28,7 +28,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
             new GlobalEventsViewModel("Різдво Христове", new DateTime(DateTime.Now.Year, 12, 25), TypeOfGlobalEvent.Celebrate),
         };
 
-        public CalendarQueryGraphqlType(ICalendarRepository calendarRepository)
+        public CalendarQueryGraphQLType(ICalendarRepository calendarRepository)
         {
             _calendarRepository = calendarRepository;
 
@@ -38,8 +38,8 @@ namespace TimeTracker.GraphQL.Types.Calendar
                 .Argument<NonNullGraphType<EnumerationGraphType<MonthOrWeek>>>("weekOrMonth")
                 .Resolve(context =>
                 {
-                    var userId = context.GetArgument<int?>("userId") ?? TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
-                    var date = TimeQueryGraphqlType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
+                    var userId = context.GetArgument<int?>("userId") ?? TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
+                    var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
                     var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
 
 
@@ -90,7 +90,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
             .Argument<NonNullGraphType<EnumerationGraphType<MonthOrWeek>>>("weekOrMonth")
             .Resolve(context =>
     {
-        var date = TimeQueryGraphqlType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
+        var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
         var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
 
         var globalCalendar = _calendarRepository.GetAllGlobalEvents();

@@ -26,10 +26,10 @@ namespace TimeTracker.GraphQL.Types.Time.ManageTime
                     var startOfWeek = context.GetArgument<startOfWeek>("startOfWeek");
                     var offSet = context.GetArgument<int?>("offSet") ?? 0;
 
-                    var userId = TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
+                    var userId = TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
 
-                    var oldSeconds = TimeQueryGraphqlType.getSecondsOfSession(new(), oldTime, offSet, startOfWeek);
-                    var newSeconds = TimeQueryGraphqlType.getSecondsOfSession(new(), userTime, offSet, startOfWeek);
+                    var oldSeconds = TimeQueryGraphQLType.getSecondsOfSession(new(), oldTime, offSet, startOfWeek);
+                    var newSeconds = TimeQueryGraphQLType.getSecondsOfSession(new(), userTime, offSet, startOfWeek);
                     _timeRepository.UpdateTime(oldTime.StartTimeTrackDate, userTime, userId);
 
                     return new UpdateTimeResultViewModel() { oldSeconds = oldSeconds,newSeconds = newSeconds};

@@ -17,7 +17,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
             repo = Repo;
 
             Field<StringGraphType>("addUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");
@@ -26,7 +26,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 });
 
             Field<StringGraphType>("addCurrentUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");
@@ -36,7 +36,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 });
 
             Field<StringGraphType>("removeUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");
@@ -45,7 +45,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 }).AuthorizeWithPolicy("ControlPresence");
 
             Field<StringGraphType>("removeCurrentUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");

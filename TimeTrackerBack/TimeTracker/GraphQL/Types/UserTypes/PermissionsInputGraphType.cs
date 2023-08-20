@@ -3,9 +3,9 @@ using TimeTracker.Models;
 
 namespace TimeTracker.GraphQL.Types.UserTypes
 {
-    public class PermissionsInputType : InputObjectGraphType<Permissions>
+    public class PermissionsInputGraphType : InputObjectGraphType<Permissions>
     {
-        public PermissionsInputType()
+        public PermissionsInputGraphType()
         {
             Field(i => i.userId, type: typeof(IdGraphType));
             Field(i => i.CRUDUsers, type: typeof(BooleanGraphType));

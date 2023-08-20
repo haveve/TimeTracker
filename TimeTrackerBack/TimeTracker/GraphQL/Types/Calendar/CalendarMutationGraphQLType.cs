@@ -7,11 +7,11 @@ using TimeTracker.GraphQL.Types.Calendar.GlobalCalendar;
 
 namespace TimeTracker.GraphQL.Types.Calendar
 {
-    public class CalendarMutationGraphqlType : ObjectGraphType
+    public class CalendarMutationGraphQLType : ObjectGraphType
     {
         private readonly ICalendarRepository _calendarRepository;
 
-        public CalendarMutationGraphqlType(ICalendarRepository calendarRepository)
+        public CalendarMutationGraphQLType(ICalendarRepository calendarRepository)
         {
             _calendarRepository = calendarRepository;
 
@@ -19,7 +19,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
                  .Argument<NonNullGraphType<CalendarInputGraphType>>("event")
                  .Resolve((context) =>
                  {
-                     var userId = TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
+                     var userId = TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                      var calendarEvent = context.GetArgument<CalendarEventViewModel>("event");
                      _calendarRepository.AddEvent(userId, calendarEvent);
                      return "successfully";
@@ -29,7 +29,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
                  .Argument<NonNullGraphType<DateTimeGraphType>>("eventStartDate")
                  .Resolve((context) =>
                  {
-                     var userId = TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
+                     var userId = TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                      var eventStartDate = context.GetArgument<DateTime>("eventStartDate");
                      _calendarRepository.RemoveEvent(userId, eventStartDate);
                      return "successfully";
@@ -40,7 +40,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
                  .Argument<NonNullGraphType<CalendarInputGraphType>>("event")
                  .Resolve((context) =>
                  {
-                     var userId = TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
+                     var userId = TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                      var eventStartDate = context.GetArgument<DateTime>("eventStartDate");
                      var calendarEvent = context.GetArgument<CalendarEventViewModel>("event");
                      _calendarRepository.UpdateEvent(userId, eventStartDate, calendarEvent);
@@ -51,12 +51,12 @@ namespace TimeTracker.GraphQL.Types.Calendar
                  .Argument<ListGraphType<NonNullGraphType<CalendarInputGraphType>>>("rangeEvent")
                  .Resolve((context) =>
                  {
-                     var userId = TimeQueryGraphqlType.GetUserIdFromClaims(context.User!);
+                     var userId = TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                      var calendarEvent = context.GetArgument<List<CalendarEventViewModel>>("rangeEvent");
                      _calendarRepository.AddEventRange(userId, calendarEvent);
                      return "successfully";
                  });
-            Field<GlobalCalendarMutationGraphType>("globalCalendar")
+            Field<GlobalCalendarMutationGraphQLType>("globalCalendar")
     .Resolve((context) => new { });
         }
     }
