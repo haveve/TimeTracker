@@ -6,9 +6,19 @@ $card-bg: black;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
+a:link{text-decoration:none}
+
 td, th{
   text-align: center;
   vertical-align: middle;
+}
+
+.bg-darkgray {
+  background-color: rgb(13, 17, 23);
+}
+
+.text-darkred{
+  color: rgb(153, 0, 0);
 }
 
 body {
@@ -16,4 +26,59 @@ body {
 }
 .modal-content{
   background-color: #2a2a2a;
+}
+
+.height-main{
+  height: 90% !important;
+}
+.height-header{
+  height: 10% !important;
+}
+.garamond-font{
+  font-family: Garamond;
+}
+
+.time-stat-title-font-size{
+  font-size: 1.5em;
+}
+
+.time-stat-content-font-size{
+  font-size: 1.2em;
+}
+
+.time-card-color1{
+  background-color: #355070 !important;
+  color: rgb(201, 199, 199) !important;
+}
+
+.time-card-color2{
+  background-color: #6d597a !important;
+  color: rgb(201, 199, 199) !important;
+}
+
+.time-card-color3{
+  background-color: #b56576 !important;
+  color: rgb(201, 199, 199) !important;
+}
+.fc-col-header-cell-cushion{
+  color: #edf6f9;
+  text-decoration: none;
+}
+.fc-daygrid-day-number{
+  text-decoration: none;
+}
+.calendar-head-color{
+  background: #005f73 !important;
+}
+
+.dropdown-toggle::after {
+  display: none !important; 
+}
+.full-width-content {
+  width: 100%;
+}
+
+.scroll {
+  max-height: 250px;
+  overflow-y: scroll;
 }

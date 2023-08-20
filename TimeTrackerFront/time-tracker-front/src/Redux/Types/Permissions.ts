@@ -1,10 +1,10 @@
 export interface Permissions {
-    id: number,
+    userId?: number,
     cRUDUsers: boolean,
-    editPermiters: boolean,
+    editApprovers: boolean,
     viewUsers: boolean,
     editWorkHours: boolean,
-    importExcel: boolean,
+    exportExcel: boolean,
     controlPresence: boolean,
     controlDayOffs: boolean
 }
