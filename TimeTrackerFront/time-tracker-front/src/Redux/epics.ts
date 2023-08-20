@@ -14,7 +14,7 @@ import {User} from "./Types/User";
 import {Permissions} from "./Types/Permissions";
 import {PayloadAction} from "@reduxjs/toolkit";
 import {getUsersPage, getUsersList, getUsersListBySearch} from "./Slices/UserSlice";
-import {getTheCurrentPermissions, getTheCurrentUser} from "./Slices/CurrentUserSlice";
+import {getCurrentUserAbsencesList, getTheCurrentPermissions, getTheCurrentUser} from "./Slices/CurrentUserSlice";
 import {RequestGetTime,RequestSetStartDate,RequestSetEndDate} from "./Requests/TimeRequests";
 import {Time, TimeResponse, TimeRequest,TimeMark} from "./Types/Time";
 import {setTime, setErrorStatusAndError as setErrorStatusAndErrorTime, setStartTime,setEndTime} from "./Slices/TimeSlice"
@@ -38,10 +38,10 @@ import {ApproverNode} from "./Types/ApproverNode";
 import {VacationRequest} from "./Types/VacationRequest";
 import {InputVacationRequest} from "./Types/InputVacationRequest";
 import {InputApproverReaction} from "./Types/InputApproverReaction";
-
+import {InputVacRequest} from "./Types/InputVacRequest";
+import { RequestCurrentUserAbsences, RequestUserAbsences } from "./Requests/AbsenceRequests";
+import { Absence } from "./Types/Absence";
 import { getStartOfWeekByCountry } from "./Slices/LocationSlice";
-
-import {InputVacRequest} from "./Types/InputVacRequest"; 
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 

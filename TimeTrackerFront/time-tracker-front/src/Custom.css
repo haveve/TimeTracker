@@ -12059,5 +12059,10 @@ body {
 
 .full-width-content {
   width: 100%;
+}
+
+.scroll {
+  max-height: 250px;
+  overflow-y: scroll;
 }/*# sourceMappingURL=Custom.css.map */
 

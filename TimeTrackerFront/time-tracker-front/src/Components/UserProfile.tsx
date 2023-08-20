@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup } from "react-bootstrap";
+import { Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup, ListGroup } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { User } from '../Redux/Types/User';
@@ -13,6 +13,8 @@ import { getCookie } from '../Login/Api/login-logout';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
 import VacationRequests from "./VacationRequests";
 import { Time } from '../Redux/Types/Time';
+import { Absence } from '../Redux/Types/Absence';
+import { RequestAddCurrentUserAbsence, RequestCurrentUserAbsences, RequestRemoveCurrentUserAbsence } from '../Redux/Requests/AbsenceRequests';
 
 
 function UserProfile() {
@@ -20,19 +22,21 @@ function UserProfile() {
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-
-    const [showTimeManage, setShowTimeManage] = useState(false);
+    const [showAbsence, setShowAbsence] = useState(false);
 
     const [showVacationRequests, setShowVacationRequests] = useState(false);
 
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
-    const handleCloseEdit = () => { setShowEdit(false); setShowError(false); };
-    const handleShowEdit = () => setShowEdit(true);
+    const handleCloseAbcense = () => { setShowAbsence(false); setShowError(false); };
+    const handleShowAbcense = () => { RequestCurrentUserAbsences().subscribe(x => setAbsences(x)); setShowAbsence(true); };
 
     const handleClosePassword = () => { setShowPassword(false); setShowError(false); };
     const handleShowPassword = () => setShowPassword(true);
+
+    const handleCloseEdit = () => { setShowEdit(false); setShowError(false); };
+    const handleShowEdit = () => setShowEdit(true);
 
     const handleShowVacationRequests = () => setShowVacationRequests(true);
     const handleCloseVacationRequests = () => setShowVacationRequests(false);
@@ -40,6 +44,7 @@ function UserProfile() {
 
     const [user, setUser] = useState({} as User);
     const [time, setTime] = useState({} as Time);
+    const [absences, setAbsences] = useState([] as Absence[]);
     const [totalWorkTime, setTotalWorkTime] = useState(0);
 
     const [id, setId] = useState(0);
@@ -50,6 +55,10 @@ function UserProfile() {
 
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
+
+    
+    const [date, setDate] = useState<Date>();
+    const [type, setType] = useState('Absent');
 
     useEffect(() => {
         RequestCurrentUser().subscribe((x) => {
@@ -113,6 +122,28 @@ function UserProfile() {
         });
     }
 
+    const handleAddAbsence = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (date === undefined) { setShowError(true); setErrorMessage("Fill all fields"); return; }
+        if (absences.filter((a) => a.date!.toLocaleString() === date!.toISOString().slice(0, 10)).length !== 0) { setShowError(true); setErrorMessage("Already absent on this date"); return; }
+        const Absence: Absence = {
+            userId: id,
+            type: type,
+            date: date
+        }
+        RequestAddCurrentUserAbsence(Absence).subscribe((x) => {
+            setShowError(false);
+            RequestCurrentUserAbsences().subscribe(x => setAbsences(x));
+        });
+    }
+
+    const handleRemoveAbsence = (Absence : Absence) => {
+        RequestRemoveCurrentUserAbsence(Absence).subscribe((x) => {
+            setShowError(false);
+            RequestCurrentUserAbsences().subscribe(x => setAbsences(x));
+        });
+    }
+
     return (
 
         <div className='UserDetails d-flex align-items-center flex-column m-1'>
@@ -132,13 +163,9 @@ function UserProfile() {
                                         <p className="m-0 fs-6 text-secondary">@{user.login}</p>
                                         <p className="m-0 fs-6 text-secondary">{user.email}</p>
                                         <InputGroup className='mt-auto'>
-                                            {user.editWorkHours ?
-                                                <Button variant="outline-secondary" type="submit" onClick={() => setShowTimeManage(n => !n)}>Time Manage</Button>
-                                                :
-                                                <></>
-                                            }
                                             <Button variant='outline-secondary' onClick={handleShowEdit}>Edit</Button>
                                             <Button variant='outline-secondary' onClick={handleShowPassword}>Change Password</Button>
+                                            <Button variant='outline-secondary' onClick={handleShowAbcense}>Presence</Button>
                                         </InputGroup>
                                     </span>
                                 </Col>
@@ -239,6 +266,58 @@ function UserProfile() {
                                 <Button variant="success" type="submit">Update</Button>
                             </Modal.Footer>
                         </Form>
+                    </Modal>
+                    <Modal
+                        show={showAbsence}
+                        backdrop="static"
+                        keyboard={false}
+                        centered
+                        data-bs-theme="dark"
+                        onHide={handleCloseAbcense}
+                    >
+                            <Modal.Header closeButton>
+                                <Modal.Title>Presence</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Form className='mb-2' onSubmit={e => handleAddAbsence(e)}>
+                                    <InputGroup>
+                                        <Form.Control type="date" onChange={e => setDate(new Date(e.target.value))}/>
+                                        <Form.Select onChange={e => setType(e.target.value)}>
+                                            <option value="Absent">Absent</option>
+                                            <option value="Ill">Ill</option>
+                                        </Form.Select>
+                                        <Button variant='success' type='submit'>Add</Button>
+                                    </InputGroup>
+                                    <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
+                                </Form>
+                                <ListGroup className='w-100 d-flex scroll pe-2'>
+                                    {
+                                        absences?.map((absence, index) =>
+                                            <ListGroup.Item key={index} className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
+                                                <Row className='w-100'>
+                                                    <Col sm={4} className='d-flex align-items-center'>
+                                                        <p className='m-0 fs-5'>{absence.date!.toLocaleString()}</p>
+                                                    </Col>
+                                                    <Col sm={4} className='d-flex align-items-center'>
+                                                        <p className='m-0 fs-5'>{absence.type}</p>
+                                                    </Col>
+                                                    <Col className='d-flex align-items-center pe-0'>
+                                                        <Button variant="outline-danger" onClick={() => handleRemoveAbsence(absence)} className='ms-auto'>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-trash mb-1" viewBox="0 0 16 16">
+                                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
+                                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
+                                                            </svg>
+                                                        </Button>
+                                                    </Col>
+                                                </Row>
+                                            </ListGroup.Item>
+                                        )
+                                    }
+                                </ListGroup>
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button variant="secondary" onClick={handleCloseAbcense}>Close</Button>
+                            </Modal.Footer>
                     </Modal>
                 </>
             )

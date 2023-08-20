@@ -1,6 +1,7 @@
 
 using GraphQL;
 using GraphQL.Types;
+using TimeTracker.GraphQL.Types.AbsenceTypes;
 using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.GraphQL.Types.UserTypes;
@@ -23,6 +24,8 @@ namespace TimeTracker.GraphQL.Queries
             Field<CalendarQueryGraphqlType>("calendar")
                 .Resolve(context => new { });
             Field<VacationQuery>("vacation")
+            .Resolve(context => new { });
+            Field<AbsenceQueryGraphQLType>("absence")
             .Resolve(context => new { });
 
         }
