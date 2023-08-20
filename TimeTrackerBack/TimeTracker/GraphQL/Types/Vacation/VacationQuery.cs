@@ -51,7 +51,7 @@ namespace TimeTracker.GraphQL.Types.Vacation
                         {
                             request.ApproversNodes[i].Approver = userRepo.GetUser(request.ApproversNodes[i].UserIdApprover);
                         }
-                        request.Requester = userRepo.GetUser(requesterId);
+                        request.Requester = userRepo.GetUser(request.RequesterId);
                         return new List<VacationRequest>() { request };
                     }
                     else if (requesterId != 0)

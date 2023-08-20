@@ -6,6 +6,9 @@ import {
 } from "react-router-dom";
 import { LogoutDeleteCookie } from '../../Components/Navbar';
 
+
+export const accessTokenLiveTime = 60;
+
 const url = "https://localhost:7226/graphql-login";
 /*    "errors": [
         {

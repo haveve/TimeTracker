@@ -17,6 +17,7 @@ using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
+using static TimeTracker.Controllers.TestController;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<DapperContext>();
 
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
+builder.Services.AddSingleton<IExcelHandler, ExcelHandler>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<ITimeRepository, TimeRepository>();
 builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
@@ -50,8 +52,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //        ClockSkew = TimeSpan.Zero
 //    };
 //});
-
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+//builder.Services.AddControllers();
 
 //CORS
 builder.Services.AddCors();
@@ -69,6 +71,8 @@ builder.Services.AddSingleton<ISchema, IdentitySchema>(services =>
     var scheme = new IdentitySchema(new SelfActivatingServiceProvider(services));
     return scheme;
 });
+
+builder.Services.AddMvc();
 
 /*builder.Services.AddSingleton<ISchema, VacationSchema>(services =>
 {
@@ -125,6 +129,12 @@ app.UseGraphQL<IdentitySchema>("/graphql-login", (config) =>
 {
 
 });
+
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller}/{action=Download}/{id}");
+
 app.UseGraphQLAltair();
 
 app.Run();

@@ -11,6 +11,8 @@ import { InputVacationRequest } from "../Types/InputVacationRequest";
 import { InputApproverReaction } from "../Types/InputApproverReaction";
 import { InputVacRequest } from "../Types/InputVacRequest";
 
+const url = "https://localhost:7226/graphql";
+
 interface GraphQlUsers {
     vacation: {
         approvers: User[]
