@@ -16,7 +16,6 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
 import TimeTracker, { IsSuccessOrIdle } from './TimeTracker';
-import { accessTokenLiveTime } from '../Login/Api/login-logout';
 import { Subscription, timer } from 'rxjs';
 import { ajaxForLogout } from '../Login/Api/login-logout';
 
@@ -26,7 +25,7 @@ import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow'
 import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSlice';
 import { deleteCookie, getCookie, setCookie } from '../Login/Api/login-logout';
 import { getCurrentUser, getCurrentUserPermissions } from '../Redux/epics';
-import { RootState } from '../Redux/store';
+import { Dispatch, RootState } from '../Redux/store';
 import { clearErroMassage as clearErroMassageUserList, setLogout } from '../Redux/Slices/UserSlice';
 import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
 import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
@@ -34,10 +33,7 @@ import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
 import '../Custom.css';
 import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
-import { boolean } from 'yup';
-import { Subscriber } from 'rxjs';
-import { ajaxForRefresh } from '../Login/Api/login-logout';
-import { ColorRing,Vortex } from 'react-loader-spinner';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -53,6 +49,8 @@ function AppNavbar() {
   const tokenStatus = useSelector((state: RootState) => state.token.loginByToken)
 
   const [canUserApi, setCanUserApi] = useState("")
+
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -160,14 +158,11 @@ function AppNavbar() {
                   onClick={() => {
                     ajaxForLogout(getCookie("refresh_token")!).subscribe({
                       next: () => {
-                        dispatch(setLogout());
-                        deleteCookie("refresh_token");
-                        deleteCookie("access_token");
-                        deleteCookie("user_id");
-                        deleteCookie("canUseUserIp");
-                        dispatch(setLoginByToken(false));
+                        Logout(dispatch,navigate)
                       },
-                      error: () => dispatch(setErroMassageLocation(ErrorMassagePattern))
+                      error: () => {
+                        Logout(dispatch,navigate)
+                      }
                     });
                   }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-left me-1 mb-1" viewBox="0 0 16 16">
@@ -176,23 +171,15 @@ function AppNavbar() {
                   </svg>
                   Logout</Nav.Link></ListGroup.Item>
               </ListGroup>
+
             </Nav>
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
 
       <Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
-        <Col className={`p-0 m-0 h-100 ${tokenStatus?"":"w-100 justify-content-center d-flex align-items-center"}`}>
-          {tokenStatus ?
-            <Outlet /> :<Vortex
-            visible={true}
-            height="50%"
-            width="50%"
-            ariaLabel="vortex-loading"
-            wrapperStyle={{}}
-            wrapperClass="vortex-wrapper"
-            colors={['#f1faee','#231942', '#5e548e', '#9f86c0', '#be95c4', '#e0b1cb',]}
-          />}
+        <Col className={`p-0 m-0 h-100`}>
+            <Outlet />
           </Col>
       </Row >
       <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {
@@ -218,6 +205,21 @@ function AppNavbar() {
       }}>{canUserApi}</CheckModalWindow>
  </Container>
   );
+}
+
+export function Logout(dispatch:Dispatch,navigate:ReturnType<typeof useNavigate>){
+  dispatch(setLogout());
+  LogoutDeleteCookie();
+  dispatch(setLoginByToken(false));
+  navigate("/Login")
+}
+
+export function LogoutDeleteCookie(){
+  deleteCookie("refresh_token");
+  deleteCookie("access_token");
+  deleteCookie("user_id");
+  deleteCookie("canUseUserIp");
+  setCookie({ name: "refresh_sent", value: "false" })
 }
 
 export default AppNavbar;

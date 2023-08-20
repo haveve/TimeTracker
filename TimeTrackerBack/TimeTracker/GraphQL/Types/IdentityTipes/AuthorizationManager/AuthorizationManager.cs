@@ -8,17 +8,19 @@ using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using TimeTracker.GraphQL.Queries;
+using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
 {
-    public record class ValidateRefreshAndGetAccess(string? accessToken, bool isValid, string? erroMessage);
+    public record class ValidateRefreshAndGetAccess(TokenResult accessToken, bool isValid, string? erroMessage);
+    public record class TokenResult(string token,DateTime expiredAt, DateTime issuedAt);
 
     public class AuthorizationManager : IAuthorizationManager
     {
-        public const int RefreshTokenExpiration = 604800;
+        public const int RefreshTokenExpiration = 31536000;
         public const int AccessTokenExpiration = 60;
 
         public readonly IAuthorizationRepository _authRepo;
@@ -31,23 +33,34 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             _userRepository = userRepository;
         }
 
-        public string GetRefreshToken()
+        public TokenResult GetRefreshToken(int userId)
         {
-            var randomNumber = new byte[200];
-            using var rng = RandomNumberGenerator.Create();
+            var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.RefreshTokenExpiration));
+            var issuedAt = DateTime.UtcNow;
 
-            rng.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber) + Guid.NewGuid();
+            DateTimeOffset issuedAtOffset = issuedAt;
+
+            var refreshToken = new JwtSecurityToken(
+    issuer: _configuration["JWT:Author"],
+    audience: _configuration["JWT:Audience"],
+    claims: new[] {
+            new Claim("UserId", userId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
+            new Claim("isRefresh",true.ToString())
+    },
+    expires: expiredAt,
+    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
+
+            return new (new JwtSecurityTokenHandler().WriteToken(refreshToken),expiredAt,issuedAt);
         }
 
-        public bool IsValidAccessToken(string accessToken)
+        public bool IsValidToken(string token)
         {
             try
             {
-
                 var tokenValidate = new JwtSecurityTokenHandler();
 
-                tokenValidate.ValidateToken(accessToken, new TokenValidationParameters
+                tokenValidate.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidIssuer = _configuration["JWT:Author"],
@@ -58,19 +71,6 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken securityToken);
-
-
-                JwtSecurityToken objAccessToken = ReadJwtToken(accessToken);
-                var date = objAccessToken.IssuedAt;
-
-                int userId = int.Parse(objAccessToken.Claims.First(c => c.Type == "UserId").Value);
-                DateTime? lastUserChanging = _authRepo.GetLastDateOfUserChanging(userId);
-
-                if (lastUserChanging != null
-                    && date < lastUserChanging)
-                {
-                    return false;
-                }
             }
             catch
             {
@@ -79,79 +79,51 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             return true;
         }
 
-        public StateOfRememberMe IsValidRememberMe(RememberMe rememberMe, string refreshToken, int userId)
-        {
-            var savedToken = _authRepo.GetRefreshToken(refreshToken, userId);
+        public JwtSecurityToken ReadJwtToken(string token) => new JwtSecurityTokenHandler().ReadJwtToken(token);
 
-            if (savedToken == null)
-            {
-                return StateOfRememberMe.RefreshTokensDoesnotMatched;
-            }
-
-            var isMatchesRefeshes = savedToken!.Token == refreshToken
-                && savedToken.Token == rememberMe.userRefreshToken
-                && refreshToken == rememberMe.userRefreshToken;
-
-            if (!isMatchesRefeshes)
-            {
-                return StateOfRememberMe.RefreshTokensDoesnotMatched;
-            }
-
-            var user = _userRepository.GetUserByCredentials(rememberMe.userEmail, rememberMe.userPassword, true);
-
-            if (user == null || rememberMe.Expired < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
-            {
-                return StateOfRememberMe.InvalidRememberMeCookies;
-            }
-
-            if (savedToken.ExpiresEnd < DateTime.Now)
-            {
-                return StateOfRememberMe.RefreshTokenDeprecated;
-            }
-
-            return StateOfRememberMe.Success;
-
-        }
-
-        public JwtSecurityToken ReadJwtToken(string accessToken) => new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-
-        public ValidateRefreshAndGetAccess ValidateRefreshAndGetAccessToken(string accessToken, string refreshToken)
+        public ValidateRefreshAndGetAccess ValidateRefreshAndGetAccessToken(string refreshToken)
         {
 
-            JwtSecurityToken oldAccessToken = ReadJwtToken(accessToken);
+            JwtSecurityToken objRefreshToken = ReadJwtToken(refreshToken);
 
-            int userId = int.Parse(oldAccessToken.Claims.First(c => c.Type == "UserId").Value);
-            var savedToken = _authRepo.GetRefreshToken(refreshToken, userId);
+            int userId = int.Parse(objRefreshToken.Claims.First(c => c.Type == "UserId").Value);
+            bool isRefresh = bool.Parse(objRefreshToken.Claims.First(c => c.Type == "isRefresh").Value);
+            var savedToken = _authRepo.GetRefreshToken(refreshToken);
 
             if (savedToken == null)
             {
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
             }
 
-            if (savedToken.ExpiresEnd < DateTime.Now)
+            if (!IsValidToken(refreshToken))
+            {
+                return new ValidateRefreshAndGetAccess(null, false, "Refresh token is invalid");
+            }
+
+            if (!isRefresh)
             {
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is expired");
             }
-
-            if (!IsValidAccessToken(accessToken))
-            {
-                return new ValidateRefreshAndGetAccess(null, false, "Access token is invalid");
-            }
-
 
             return new ValidateRefreshAndGetAccess(GetAccessToken(userId), true, null);
 
         }
 
-        public string GetAccessToken(int userId)
+        public TokenResult GetAccessToken(int userId)
         {
             var permissions = _userRepository.GetUserPermissions(userId);
+
+            var expiredAt = DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration));
+            var issuedAt = DateTime.UtcNow;
+
+            DateTimeOffset issuedAtOffset = issuedAt;
+
             var newAccessToken = new JwtSecurityToken(
     issuer: _configuration["JWT:Author"],
     audience: _configuration["JWT:Audience"],
     claims: new[] {
             new Claim("UserId", userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+            new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
             new Claim("CRUDUsers",permissions.CRUDUsers.ToString()),
             new Claim("ViewUsers",permissions.ViewUsers.ToString()),
             new Claim("EditPermiters",permissions.EditPermiters.ToString()),
@@ -160,10 +132,11 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             new Claim("ControlDayOffs",permissions.ControlDayOffs.ToString()),
             new Claim("EditWorkHours",permissions.EditWorkHours.ToString())
     },
-    expires: DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration)),
+    expires: expiredAt,
     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
-           
-            return new JwtSecurityTokenHandler().WriteToken(newAccessToken);
+
+            return new(new JwtSecurityTokenHandler().WriteToken(newAccessToken), expiredAt, issuedAt);
+
         }
     }
 }

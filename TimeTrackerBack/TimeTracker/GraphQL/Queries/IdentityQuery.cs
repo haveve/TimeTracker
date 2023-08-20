@@ -13,10 +13,10 @@ using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using System.Text.Json;
-using TimeTracker.GraphQL.Types.IdentityTipes.Encryption;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http;
 using Newtonsoft.Json;
+using Azure.Core;
 
 namespace TimeTracker.GraphQL.Queries
 {
@@ -34,70 +34,26 @@ namespace TimeTracker.GraphQL.Queries
 
             Field<IdentityOutPutGraphType>("login")
                 .Argument<NonNullGraphType<LoginInputType>>("login")
-                .Argument<NonNullGraphType<BooleanGraphType>>("rememberMe")
             .Resolve(context =>
             {
                 Login UserLogData = context.GetArgument<Login>("login");
                 var userRepository = context.RequestServices.GetService<IUserRepository>();
 
                 var user = userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
-                var permissions = userRepository.GetUserPermissions(user.Id);
                 if (user == null)
                 {
                     throw new Exception("User does not exist");
                 }
-
+                var permissions = userRepository.GetUserPermissions(user.Id);
                 if (user.Enabled != true)
                 {
                     context.Errors.Add(new ExecutionError("User was disabled"));
                     return null;
                 }
+                var encodedJwt = _authorizationManager.GetAccessToken(user.Id);
 
-                var jwt = new JwtSecurityToken(
-                issuer: _configuration["JWT:Author"],
-                audience: _configuration["JWT:Audience"],
-                claims: new[] {
-            new Claim("UserId", user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-            new Claim("CRUDUsers",permissions.CRUDUsers.ToString()),
-            new Claim("ViewUsers",permissions.ViewUsers.ToString()),
-            new Claim("EditPermiters",permissions.EditPermiters.ToString()),
-            new Claim("ImportExcel",permissions.ImportExcel.ToString()),
-            new Claim("ControlPresence",permissions.ControlPresence.ToString()),
-            new Claim("ControlDayOffs",permissions.ControlDayOffs.ToString()),
-            new Claim("EditWorkHours",permissions.EditWorkHours.ToString())
-                },
-                expires: DateTime.UtcNow.Add(TimeSpan.FromSeconds(IAuthorizationManager.AccessTokenExpiration)),
-                signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(_configuration["JWT:Key"]), SecurityAlgorithms.HmacSha256));
-
-                var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-
-                var refreshToken = _authorizationManager.GetRefreshToken();
+                var refreshToken = _authorizationManager.GetRefreshToken(user.Id);
                 _authorizationRepository.CreateRefreshToken(refreshToken, user.Id);
-
-                var rememberMe = context.GetArgument<bool>("rememberMe");
-
-                if (rememberMe)
-                {
-                    var httpContext = context.RequestServices.GetService<IHttpContextAccessor>()!.HttpContext;
-
-                    RememberMe userRememberMe = new RememberMe();
-                    userRememberMe.userPassword = user.Password;
-                    userRememberMe.userEmail = user.Email;
-                    userRememberMe.userRefreshToken = refreshToken;
-                    userRememberMe.Expired = DateTimeOffset.UtcNow.AddDays(20).ToUnixTimeSeconds();
-
-                    CookieOptions cookieOptions = new CookieOptions();
-                    cookieOptions.Expires = DateTime.Now.AddDays(20);
-                    cookieOptions.Secure = true;
-                    cookieOptions.HttpOnly = true;
-
-                    string stringToEncryption = JsonConvert.SerializeObject(userRememberMe);
-                    string encryptedString = Encryption.Encrypt(stringToEncryption, _configuration["RememberMe:Key"]!);
-
-                    httpContext!.Response.Cookies.Append("rememberMe", encryptedString, cookieOptions);
-                }
-
 
                 var response = new LoginOutput()
                 {
@@ -122,69 +78,29 @@ namespace TimeTracker.GraphQL.Queries
                 {
                     HttpContext httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
 
-                    var accessToken = httpContext.Request.Headers.First(at => at.Key == "access_token").Value[0]!;
                     var refreshToken = httpContext.Request.Headers.First(at => at.Key == "refresh_token").Value[0]!;
 
-                    if (accessToken == null || refreshToken == null)
+                    if (refreshToken == null)
                     {
-                        if(refreshToken != null)
-                        {
-                            _authorizationRepository.DeleteRefreshToken(refreshToken);
-                        }
-
                         return ExpiredSessionError(context);
                     }
 
-                    var rememberMeCookie = httpContext.Request.Cookies["rememberMe"];
-                    var whetherValid = _authorizationManager.ValidateRefreshAndGetAccessToken(accessToken, refreshToken);
-                    var newRefreshToken = _authorizationManager.GetRefreshToken();
-                    int userId = int.Parse(_authorizationManager.ReadJwtToken(accessToken).Claims.First(c => c.Type == "UserId").Value);
+                    var whetherValid = _authorizationManager.ValidateRefreshAndGetAccessToken(refreshToken);
 
                     if (!whetherValid.isValid)
                     {
-                        if (rememberMeCookie == null)
-                        {
-                            _authorizationRepository.DeleteRefreshToken(refreshToken);
-                            return ExpiredSessionError(context);
-                        }
-
-                        string decryptString = Encryption.Decrypt(rememberMeCookie, _configuration["RememberMe:Key"]!);
-                        var rememberMe = JsonConvert.DeserializeObject<RememberMe>(decryptString);
-
-                        if (rememberMe == null)
-                        {
-                            _authorizationRepository.DeleteRefreshToken(refreshToken);
-                            return ExpiredSessionError(context);
-                        }
-
-                        var rememberMeValidateResult = _authorizationManager.IsValidRememberMe(rememberMe, refreshToken, userId);
-
-                        switch(rememberMeValidateResult)
-                        {
-                            case StateOfRememberMe.RefreshTokensDoesnotMatched:
-                            case StateOfRememberMe.InvalidRememberMeCookies:
-                                httpContext.Response.Cookies.Delete("rememberMe");
-                                _authorizationRepository.DeleteRefreshToken(refreshToken);
-                                return ExpiredSessionError(context);
-                            case StateOfRememberMe.RefreshTokenDeprecated:
-                                _authorizationRepository.DeleteRefreshToken(refreshToken);
-                                _authorizationRepository.CreateRefreshToken(newRefreshToken, userId);
-                                break;
-                        }
+                        _authorizationRepository.DeleteRefreshToken(refreshToken);
+                        return ExpiredSessionError(context);
                     }
 
-                    if(rememberMeCookie != null)
-                    {
-                        string decryptString = Encryption.Decrypt(rememberMeCookie, _configuration["RememberMe:Key"]!);
-                        var rememberMe = JsonConvert.DeserializeObject<RememberMe>(decryptString);
-                        AppendEncryptedCookie(rememberMe, newRefreshToken, httpContext);
-                    }
+                    int userId = int.Parse(_authorizationManager.ReadJwtToken(refreshToken).Claims.First(c => c.Type == "UserId").Value);
+                    var newRefreshToken = _authorizationManager.GetRefreshToken(userId);
 
                     _authorizationRepository.UpdateRefreshToken(refreshToken, newRefreshToken, userId);
 
                     return new LoginOutput()
                     {
-                        access_token = whetherValid.accessToken?? _authorizationManager.GetAccessToken(userId),
+                        access_token = whetherValid.accessToken!,
                         user_id = userId,
                         refresh_token = newRefreshToken
                     };
@@ -195,7 +111,6 @@ namespace TimeTracker.GraphQL.Queries
               Resolve((context) =>
               {
                   HttpContext httpContext = context.RequestServices!.GetService<IHttpContextAccessor>()!.HttpContext!;
-                  httpContext.Response.Cookies.Delete("rememberMe");
                   var refreshToken = httpContext.Request.Headers.First(at => at.Key == "refresh_token").Value[0]!;
 
                   _authorizationRepository.DeleteRefreshToken(refreshToken);
@@ -210,24 +125,10 @@ namespace TimeTracker.GraphQL.Queries
             context.Errors.Add(new ExecutionError("User does not auth"));
             return new LoginOutput()
             {
-                access_token = "",
+                access_token = new("",new DateTime(),new DateTime()),
                 user_id = 0,
-                refresh_token = "Your session was expired. Please, login again",
+                refresh_token = new("Your session was expired. Please, login again", new DateTime(), new DateTime()),
             };
-        }
-
-        public void AppendEncryptedCookie(RememberMe rememberMe, string newRefreshToken, HttpContext context)
-        {
-            CookieOptions cookieOptions = new CookieOptions();
-            cookieOptions.Expires = DateTime.Now.AddDays(20);
-            cookieOptions.Secure = true;
-            cookieOptions.HttpOnly = true;
-            rememberMe.userRefreshToken = newRefreshToken;
-
-            string stringToEncryption = JsonConvert.SerializeObject(rememberMe);
-            string encryptedString = Encryption.Encrypt(stringToEncryption, _configuration["RememberMe:Key"]!);
-
-            context.Response.Cookies.Append("rememberMe", encryptedString, cookieOptions);
         }
     }
 

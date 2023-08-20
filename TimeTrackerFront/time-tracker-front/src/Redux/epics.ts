@@ -41,8 +41,7 @@ import {InputApproverReaction} from "./Types/InputApproverReaction";
 
 import { getStartOfWeekByCountry } from "./Slices/LocationSlice";
 
-import {InputVacRequest} from "./Types/InputVacRequest";
-
+import {InputVacRequest} from "./Types/InputVacRequest"; 
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
