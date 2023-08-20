@@ -8,50 +8,66 @@ import { Link, Outlet } from 'react-router-dom';
 import { Subscription, timer } from 'rxjs';
 import Clock from 'react-clock';
 import '../Clock.css'
-import { plusOneSecondE } from '../Redux/epics';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../Redux/store";
 import { setTimeE } from '../Redux/epics';
 import { useEffect } from 'react';
-import { setloadingStatus, setIdleStatus, statusType } from '../Redux/Slices/TimeSlice';
+import { setloadingStatus, setIdleStatus, statusType, setErrorStatusAndError } from '../Redux/Slices/TimeSlice';
+import { ErrorMassagePattern,setStartTimeE,setEndTimeE } from '../Redux/epics';
+import { changeTimerState } from '../Redux/Slices/TimeSlice';
+import { TimeMark } from '../Redux/Types/Time';
 
 export default function TimeTracker() {
-    const [isStarted, setStarted] = useState(false);
     const [buttonMassage, setButtonMassage] = useState("Start");
     const [unsubTimer, setUnsubTimer] = useState(new Subscription());
-    const [localTimeInSeconds,setLocalTimeInSeconds] = useState(0)
+    const [localTimeInSeconds, setLocalTimeInSeconds] = useState(0)
 
-    const dispatcher = useDispatch();
-    useEffect(() => {
-        dispatcher(setloadingStatus());
-        dispatcher(setTimeE());
-    }, [])
+    const dispatch = useDispatch();
+
+    const offset = useSelector((state: RootState) => {
+        return state.location.userOffset;
+    });
 
     const status = useSelector((state: RootState) => {
         return state.time.status;
     });
 
-    const isSuccessOrIdle = IsSuccessOrIdle(dispatcher,status);
+    const isStarted = useSelector((state: RootState) => {
+        return state.time.time.isStarted;
+    });
+
+    useEffect(() => {
+        if (isStarted) {
+            const subscriber = timer(0, 1000).subscribe(n => {
+                setLocalTimeInSeconds(n => n + 1);
+            });
+            setUnsubTimer(subscriber);
+            unsubTimer.unsubscribe();
+        }
+        setButtonMassage(isStarted ? "End" : "Start")
+
+    }, [isStarted])
+
+    const isSuccessOrIdle = IsSuccessOrIdle(status);
     const clockTime = TimeStringFromSeconds(localTimeInSeconds);
 
-    return <Card className='rounded-0 border-0 d-flex flex-column h-100 '>
-        <Row className='p-0 m-0 justify-content-center'>
-            <Clock size={190} value={new Date(localTimeInSeconds * 1000)} ></Clock>
+    return <Card className='rounded-0 border-0 d-flex flex-column h-100'>
+        <Row className='p-0 m-0 justify-content-center h-100 w-100'>
+            <Clock size={"100%"} className = "" value={new Date(localTimeInSeconds * 1000)} ></Clock>
         </Row>
         <Card.Body className='text-center time-track-font'>{clockTime.stringTime}</Card.Body>
-        <Button variant={isSuccessOrIdle?"success":"dark"} disabled={isSuccessOrIdle? false : true} className='m-5 my-0 ' onClick={() => {
+        <Button variant={isSuccessOrIdle ? "success" : "dark"} disabled={isSuccessOrIdle ? false : true} className='m-5 my-0 ' onClick={() => {
 
             if (!isStarted) {
-                setUnsubTimer(timer(0, 1000).subscribe(n => {
-                    dispatcher(plusOneSecondE());
-                    setLocalTimeInSeconds(n=>n+1);
-                }));
+                dispatch(setStartTimeE(offset))
             }
             else {
+
+                dispatch(setEndTimeE(offset))
                 unsubTimer.unsubscribe();
             }
-            setStarted(!isStarted);
-            setButtonMassage(isStarted ? "Start" : "Pause")
+
+            dispatch(changeTimerState());
         }}>{buttonMassage}</Button>
         <Image src={picture}></Image>
     </Card>
@@ -78,9 +94,8 @@ export type timeClockType = {
     stringTime: string
 };
 
-export function IsSuccessOrIdle(dispatcher: ReturnType<typeof useDispatch>, status: statusType) {
+export function IsSuccessOrIdle(status: statusType) {
     if (status == "success") {
-        dispatcher(setIdleStatus());
         return true;
     }
     if (status == "idle")

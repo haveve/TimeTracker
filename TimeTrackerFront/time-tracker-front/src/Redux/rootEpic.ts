@@ -1,16 +1,47 @@
 import { combineEpics, Epic } from "redux-observable";
-import { deleteUserEpic, getUsersPermissionsEpic, getUsersEpic, updateUserPermissionsEpic, plusOneSecondEpic, setTimeEpic } from "./epics";
+import {
+    getUsersEpic,
+    setTimeEpic,
+    getCurrentUserEpic,
+    getPagedUsersEpic,
+    getUsersBySearchEpic,
+    getApproversEpic,
+    addApproverEpic,
+    deleteApproverEpic,
+    getVacationRequestsEpic,
+    getApproversReaction,
+    getApproversReactionEpic,
+    cancelVacationRequestEpic,
+    deleteVacationRequestEpic,
+    createVacationRequestEpic, getIncomingVacationRequestsByApproverIdEpic, addApproverReactionEpic,
+    setEndTimeEpic,
+    setStartTimeEpic,
+    getCurrentUserPermissionsEpic
+} from "./epics";
 import { catchError } from "rxjs";
 
 export const rootEpic: Epic = (action$, store$, dependencies) =>
     combineEpics(
-        deleteUserEpic,
+        getCurrentUserEpic,
+        getCurrentUserPermissionsEpic,
         getUsersEpic,
-        getUsersPermissionsEpic,
-        updateUserPermissionsEpic,
+        getPagedUsersEpic,
+        getUsersBySearchEpic,
         //Time
-        plusOneSecondEpic,
-        setTimeEpic
+        setTimeEpic,
+        setEndTimeEpic,
+        setStartTimeEpic,
+        // Vacation
+        getApproversEpic,
+        addApproverEpic,
+        deleteApproverEpic,
+        getVacationRequestsEpic,
+        getApproversReactionEpic,
+        cancelVacationRequestEpic,
+        deleteVacationRequestEpic,
+        createVacationRequestEpic,
+        getIncomingVacationRequestsByApproverIdEpic,
+        addApproverReactionEpic
     )(action$, store$, dependencies).pipe(
         catchError((error, source) => {
             return source;

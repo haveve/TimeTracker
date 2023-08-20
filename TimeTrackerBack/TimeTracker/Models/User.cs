@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using TimeTracker.Repositories;
 
 namespace TimeTracker.Models
 {
@@ -9,12 +10,11 @@ namespace TimeTracker.Models
         public string Login { get; set; }
         public string Password { get; set; }
         public string FullName{ get; set; }
-        public bool CRUDUsers { get; set; } = false;
-        public bool EditPermiters { get; set; } = false;
-        public bool ViewUsers { get; set; } = false;
-        public bool EditWorkHours { get; set; } = false;
-        public bool ImportExcel { get; set; } = false;
-        public bool ControlPresence { get; set; } = false;
-        public bool ControlDayOffs { get; set; } = false;
+        public string Email { get; set; }
+        public string ResetCode { get; set; } = null;
+        public bool Enabled { get; set; } = false;
+        public int WorkHours {  get; set; }
+        public LasUpdatedBy TimeManagedBy { get; set; }
+        public double WorkedHours { get; set; }
     }
 }

@@ -1,19 +1,111 @@
-import React from 'react';
-import { Container, Col, Row, Nav, Navbar, NavDropdown, Button, Offcanvas, Form, ListGroup, ListGroupItem } from "react-bootstrap";
-import '../Custom.css';
+import React, { useEffect, useState } from 'react';
+import {
+  Container,
+  Col,
+  Row,
+  Nav,
+  Navbar,
+  NavDropdown,
+  Button,
+  Offcanvas,
+  Form,
+  ListGroup,
+  ListGroupItem,
+  Spinner
+} from "react-bootstrap";
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
-import TimeTracker from './TimeTracker';
-import { deleteCookie } from '../Login/Api/login-logout';
+import TimeTracker, { IsSuccessOrIdle } from './TimeTracker';
+import { Subscription, timer } from 'rxjs';
+import { ajaxForLogout } from '../Login/Api/login-logout';
+
+import { GetLocation } from '../Redux/Requests/CalendarRequest';
+import CheckModalWindow from './CheckModalWindow';
+import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
+import { clearErroMassage as clearErroMassageTime } from '../Redux/Slices/TimeSlice';
+import { deleteCookie, getCookie, setCookie } from '../Login/Api/login-logout';
+import { getCurrentUser, getCurrentUserPermissions } from '../Redux/epics';
+import { Dispatch, RootState } from '../Redux/store';
+import { clearErroMassage as clearErroMassageUserList, setLogout } from '../Redux/Slices/UserSlice';
+import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
+import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
+
+import '../Custom.css';
+import { setErrorStatusAndError as setErroMassageLocation, clearErroMassage as clearErroMassageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
+import { ErrorMassagePattern } from '../Redux/epics';
+import { useNavigate } from 'react-router-dom';
+
+
 
 function AppNavbar() {
-  const user = JSON.parse(localStorage.getItem("User")!);
+
+  const listOfTimeZones = useSelector((state: RootState) => {
+    return state.location.listOfTimeZones
+  })
+  const geoOffset = useSelector((state: RootState) => {
+    return state.location.userOffset
+  })
+
+  const tokenStatus = useSelector((state: RootState) => state.token.loginByToken)
+
+  const [canUserApi, setCanUserApi] = useState("")
+
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+  useEffect(() => {
+
+
+    if (tokenStatus) {
+      const canUseUserIp = getCookie("canUseUserIp")
+
+    if (canUseUserIp && canUseUserIp === "true") {
+      GetLocation().subscribe({
+        next: (value) => {
+
+          dispatch(setLocation({
+            oldOffset: geoOffset,
+            userOffset: value.timezone.gmt_offset * 60,
+            timeZone: {
+              name: `${value.city} (${value.country_code})`,
+              value: value.timezone.gmt_offset * 60
+            },
+            country:value.country
+          }))
+          setCookie({ name: "canUseUserIp", value: 'true' })
+        },
+        error: () => setErroMassageLocation(ErrorMassagePattern)
+      })
+    }
+    else if (!canUseUserIp) {
+      setCanUserApi("Can we use your IP to locate you?")
+    }
+
+    var id = getCookie("user_id");
+    dispatch(getCurrentUser());
+    dispatch(getCurrentUserPermissions());
+  }}, [tokenStatus]);
+
+  let user = useSelector((state: RootState) => state.currentUser.User);
 
   return (
-    <>
-      <Navbar expand={false} className="bg-black ">
+    <Container fluid className='p-0 m-0 h-100'>
+      <Navbar expand={false} className="bg-black height-header">
         <Container fluid className='justify-content-start'>
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-false`} />
           <Navbar.Brand as={Link} to={"/"} className='ms-1'>TimeTracker</Navbar.Brand>
+          <Button variant='dark' onClick={() => {
+            const list = listOfTimeZones.filter(l => l.value === geoOffset)
+            const name = list[1] ? list[1].name : list[0].name
+            const obj = listOfTimeZones.filter(l => l.name !== name)[0]
+            if (obj)
+              dispatch(changeLocation({ oldOffSet: geoOffset, newOffSet: obj.value }))
+          }}>
+            {(function () {
+              const list = listOfTimeZones.filter(l => l.value === geoOffset)
+              return list[1] ? list[1].name : list[0].name
+            })()}
+          </Button>
           <Nav.Link as={Link} to={user ? "/User/" + user.login : "/Login"} className='ms-auto'>{user ? user.login : "sign in"}</Nav.Link>
           <Navbar.Offcanvas
             id={`offcanvasNavbar-expand-false`}
@@ -29,32 +121,105 @@ function AppNavbar() {
             <Offcanvas.Body>
               <Nav className="justify-content-end flex-grow-1 pe-3">
                 <ListGroup>
-                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Users"} className='m-0'>Users</Nav.Link></ListGroup.Item>
-                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/CreateUser"} className='m-0'>Create user</Nav.Link></ListGroup.Item>
+                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Time"} className='m-0'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-alarm me-1 mb-1" viewBox="0 0 16 16">
+                      <path d="M8.5 5.5a.5.5 0 0 0-1 0v3.362l-1.429 2.38a.5.5 0 1 0 .858.515l1.5-2.5A.5.5 0 0 0 8.5 9V5.5z" />
+                      <path d="M6.5 0a.5.5 0 0 0 0 1H7v1.07a7.001 7.001 0 0 0-3.273 12.474l-.602.602a.5.5 0 0 0 .707.708l.746-.746A6.97 6.97 0 0 0 8 16a6.97 6.97 0 0 0 3.422-.892l.746.746a.5.5 0 0 0 .707-.708l-.601-.602A7.001 7.001 0 0 0 9 2.07V1h.5a.5.5 0 0 0 0-1h-3zm1.038 3.018a6.093 6.093 0 0 1 .924 0 6 6 0 1 1-.924 0zM0 3.5c0 .753.333 1.429.86 1.887A8.035 8.035 0 0 1 4.387 1.86 2.5 2.5 0 0 0 0 3.5zM13.5 1c-.753 0-1.429.333-1.887.86a8.035 8.035 0 0 1 3.527 3.527A2.5 2.5 0 0 0 13.5 1z" />
+                    </svg>
+                    Time
+                  </Nav.Link></ListGroup.Item>
+                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Users"} className='m-0'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-people me-1 mb-1" viewBox="0 0 16 16">
+                      <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
+                    </svg>
+                    Users
+                  </Nav.Link></ListGroup.Item>
+                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/CreateUser"} className='m-0'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person-plus me-1 mb-1" viewBox="0 0 16 16">
+                      <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.289 10 6 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+                      <path fillRule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z" />
+                    </svg>
+                    Create user
+                  </Nav.Link></ListGroup.Item>
+                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'>
+                    <Nav.Link as={Link} to={"/Calendar"} className='m-0'>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-calendar me-1 mb-1" viewBox="0 0 16 16">
+                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                      </svg>
+                      Calendar
+                    </Nav.Link>
+                  </ListGroup.Item>
                 </ListGroup>
               </Nav>
             </Offcanvas.Body>
             <Nav className="justify-content-center ps-2 mb-3 flex flex-grow-1">
-                <ListGroup className="justify-content-end flex flex-grow-1 pe-3 ">
-                  <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Login"} className='m-0'
-                    onClick={() => {
-                      deleteCookie("access_token");
-                    }}>Logout</Nav.Link></ListGroup.Item>
-                </ListGroup>
-              </Nav>
+              <ListGroup className="justify-content-end flex flex-grow-1 pe-3 ">
+                <ListGroup.Item action className='border-0 rounded-1 p-0 ps-2'><Nav.Link as={Link} to={"/Login"} className='m-0'
+                  onClick={() => {
+                    ajaxForLogout(getCookie("refresh_token")!).subscribe({
+                      next: () => {
+                        Logout(dispatch,navigate)
+                      },
+                      error: () => {
+                        Logout(dispatch,navigate)
+                      }
+                    });
+                  }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-left me-1 mb-1" viewBox="0 0 16 16">
+                    <path fillRule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z" />
+                    <path fillRule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z" />
+                  </svg>
+                  Logout</Nav.Link></ListGroup.Item>
+              </ListGroup>
+
+            </Nav>
           </Navbar.Offcanvas>
         </Container>
       </Navbar>
-      <Row className='justify-content-end p-0 m-0 height-main'>
-        <Col className='mt-3' >
-          <Outlet />
-        </Col>
-        <Col className='p-0 m-0 h-100' md={3} lg={3}>
-          <TimeTracker />
-        </Col>
+
+      <Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
+        <Col className={`p-0 m-0 h-100`}>
+            <Outlet />
+          </Col>
       </Row >
-    </>
+      <CheckModalWindow isShowed={canUserApi !== ""} dropMassege={setCanUserApi} messegeType={MasssgeType.Warning} agree={() => {
+        GetLocation().subscribe({
+          next: (value) => {
+
+            dispatch(setLocation({
+              oldOffset: geoOffset,
+              userOffset: value.timezone.gmt_offset * 60,
+              timeZone: {
+                name: `${value.city} (${value.country_code})`,
+                value: value.timezone.gmt_offset * 60,
+              },
+              country:value.country
+
+            }))
+            setCookie({ name: "canUseUserIp", value: 'true' })
+          },
+          error: () => setErroMassageLocation(ErrorMassagePattern)
+        })
+      }} reject={() => {
+        setCookie({ name: "canUseUserIp", value: 'false' })
+      }}>{canUserApi}</CheckModalWindow>
+ </Container>
   );
+}
+
+export function Logout(dispatch:Dispatch,navigate:ReturnType<typeof useNavigate>){
+  dispatch(setLogout());
+  LogoutDeleteCookie();
+  dispatch(setLoginByToken(false));
+  navigate("/Login")
+}
+
+export function LogoutDeleteCookie(){
+  deleteCookie("refresh_token");
+  deleteCookie("access_token");
+  deleteCookie("user_id");
+  deleteCookie("canUseUserIp");
+  setCookie({ name: "refresh_sent", value: "false" })
 }
 
 export default AppNavbar;
