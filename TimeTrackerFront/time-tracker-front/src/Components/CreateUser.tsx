@@ -17,10 +17,10 @@ function CreateUser() {
     const [email, setEmail] = useState("")
     const [workHours, setWorkHours] = useState(100)
     const [cRUDUsers, setCRUDUsers] = useState(false)
-    const [editPermiters, setEditPermiters] = useState(false)
+    const [editApprovers, setEditApprovers] = useState(false)
     const [viewUsers, setViewUsers] = useState(false)
     const [editWorkHours, setEditWorkHours] = useState(false)
-    const [importExcel, setImportExcel] = useState(false)
+    const [exportExcel, setExportExcel] = useState(false)
     const [controlPresence, setControlPresence] = useState(false)
     const [controlDayOffs, setControlDayOffs] = useState(false)
 
@@ -33,10 +33,10 @@ function CreateUser() {
             fullName: fullName,
             email: email,
             cRUDUsers: cRUDUsers,
-            editPermiters: editPermiters,
+            editApprovers: editApprovers,
             viewUsers: viewUsers,
             editWorkHours: editWorkHours,
-            importExcel: importExcel,
+            exportExcel: exportExcel,
             controlPresence: controlPresence,
             controlDayOffs: controlDayOffs,
             workHours: workHours
@@ -44,10 +44,10 @@ function CreateUser() {
         const permissions: Permissions = {
             userId: 0,
             cRUDUsers: cRUDUsers,
-            editPermiters: editPermiters,
+            editApprovers: editApprovers,
             viewUsers: viewUsers,
             editWorkHours: editWorkHours,
-            importExcel: importExcel,
+            exportExcel: exportExcel,
             controlPresence: controlPresence,
             controlDayOffs: controlDayOffs
         }
@@ -56,10 +56,10 @@ function CreateUser() {
         setEmail("")
         setWorkHours(100)
         setCRUDUsers(false)
-        setEditPermiters(false)
+        setEditApprovers(false)
         setViewUsers(false)
         setEditWorkHours(false)
-        setImportExcel(false)
+        setExportExcel(false)
         setControlPresence(false)
         setControlDayOffs(false)
     }
@@ -104,9 +104,9 @@ function CreateUser() {
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-2"
-                                label="Import excell"
-                                checked={importExcel}
-                                onClick={() => { setImportExcel(!importExcel) }}
+                                label="Export excell"
+                                checked={exportExcel}
+                                onClick={() => { setExportExcel(!exportExcel) }}
                             />
                             <Form.Check
                                 type="switch"
@@ -118,9 +118,9 @@ function CreateUser() {
                             <Form.Check
                                 type="switch"
                                 id="custom-switch-4"
-                                label="Manage permiters"
-                                checked={editPermiters}
-                                onClick={() => { setEditPermiters(!editPermiters) }}
+                                label="Manage approvers"
+                                checked={editApprovers}
+                                onClick={() => { setEditApprovers(!editApprovers) }}
                             />
                             <Form.Check
                                 type="switch"

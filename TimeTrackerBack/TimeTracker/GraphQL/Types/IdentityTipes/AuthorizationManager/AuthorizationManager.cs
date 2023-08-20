@@ -126,8 +126,8 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
             new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
             new Claim("CRUDUsers",permissions.CRUDUsers.ToString()),
             new Claim("ViewUsers",permissions.ViewUsers.ToString()),
-            new Claim("EditPermiters",permissions.EditApprovers.ToString()),
-            new Claim("ImportExcel",permissions.ExportExcel.ToString()),
+            new Claim("EditApprovers",permissions.EditApprovers.ToString()),
+            new Claim("ExportExcel",permissions.ExportExcel.ToString()),
             new Claim("ControlPresence",permissions.ControlPresence.ToString()),
             new Claim("ControlDayOffs",permissions.ControlDayOffs.ToString()),
             new Claim("EditWorkHours",permissions.EditWorkHours.ToString())

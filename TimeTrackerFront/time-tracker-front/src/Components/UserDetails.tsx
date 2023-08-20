@@ -50,10 +50,10 @@ function UserDetails() {
   const [type, setType] = useState('Absent');
 
   const [cRUDUsers, setCRUDUsers] = useState(false)
-  const [editPermiters, setEditPermiters] = useState(false)
+  const [editApprovers, setEditApprovers] = useState(false)
   const [viewUsers, setViewUsers] = useState(false)
   const [editWorkHours, setEditWorkHours] = useState(false)
-  const [importExcel, setImportExcel] = useState(false)
+  const [exportExcel, setExportExcel] = useState(false)
   const [controlPresence, setControlPresence] = useState(false)
   const [controlDayOffs, setControlDayOffs] = useState(false)
 
@@ -121,10 +121,10 @@ function UserDetails() {
   const handleShowPermissions = () => {
     RequestUserPermissions(parseInt(userId)).subscribe((x) => {
       setCRUDUsers(x.cRUDUsers)
-      setEditPermiters(x.editPermiters)
+      setEditApprovers(x.editApprovers)
       setViewUsers(x.viewUsers)
       setEditWorkHours(x.editWorkHours)
-      setImportExcel(x.importExcel)
+      setExportExcel(x.exportExcel)
       setControlPresence(x.controlPresence)
       setControlDayOffs(x.controlDayOffs)
     })
@@ -169,10 +169,10 @@ function UserDetails() {
     const Permissions: Permissions = {
       userId: parseInt(userId),
       cRUDUsers: cRUDUsers,
-      editPermiters: editPermiters,
+      editApprovers: editApprovers,
       viewUsers: viewUsers,
       editWorkHours: editWorkHours,
-      importExcel: importExcel,
+      exportExcel: exportExcel,
       controlPresence: controlPresence,
       controlDayOffs: controlDayOffs
     }
@@ -321,9 +321,9 @@ function UserDetails() {
                     type="switch"
                     id="custom-switch-2"
                     label="Import excell"
-                    checked={importExcel}
+                    checked={exportExcel}
                     onClick={() => {
-                      setImportExcel(!importExcel)
+                      setExportExcel(!exportExcel)
                     }}
                   />
                   <Form.Check
@@ -339,9 +339,9 @@ function UserDetails() {
                     type="switch"
                     id="custom-switch-4"
                     label="Manage permiters"
-                    checked={editPermiters}
+                    checked={editApprovers}
                     onClick={() => {
-                      setEditPermiters(!editPermiters)
+                      setEditApprovers(!editApprovers)
                     }}
                   />
                   <Form.Check

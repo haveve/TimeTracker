@@ -39,7 +39,7 @@ export default function CreateExcelFile(props:
         //setUrl("");
         setShowDownloadButton(false);
     }
-    if(permissions.importExcel) {
+    if(permissions.exportExcel) {
         return (<>
             <Button variant="outline-primary" onClick={HandlePrepareExport}>Prepare excel with current search settings</Button>
             {showDownloadButton ?
