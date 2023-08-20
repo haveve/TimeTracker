@@ -16,7 +16,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
         {
             repo = Repo;
             Field<ListGraphType<UserType>>("users")
-                .ResolveAsync(async context => repo.GetUsers()).AuthorizeWithPolicy("ViewUsers");
+                .ResolveAsync(async context => repo.GetUsers());
             Field<UserPageType>("pagedUsers")
                 .Argument<NonNullGraphType<IntGraphType>>("first")
                 .Argument<NonNullGraphType<IntGraphType>>("after")

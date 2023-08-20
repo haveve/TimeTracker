@@ -118,17 +118,8 @@ function Userslist() {
                         <ListGroup.Item key={user.id} className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
                             <Row className='w-100'>
                                 <Col sm={6}>
-                                    {user.enabled ?
-                                        <>
-                                            <p className='m-0 fs-5'>{user.fullName}</p>
-                                            <p className="m-0 fs-8">{user.email}</p>
-                                        </>
-                                        :
-                                        <>
-                                            <p className='m-0 fs-5'>{user.fullName}</p>
-                                            <p className="m-0 fs-8">{user.email}</p>
-                                        </>
-                                    }
+                                    <p className='m-0 fs-5'>{user.fullName}</p>
+                                    <p className="m-0 fs-8">{user.email}</p>
                                 </Col>
                                 <Col className='d-flex align-items-center'>
                                     <p className='m-0 me-2 ms-auto text-darkred'>{user.enabled ? "" : "disabled"}</p>

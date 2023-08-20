@@ -20,6 +20,7 @@ builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<ITimeRepository, TimeRepository>();
 builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
 builder.Services.AddSingleton<IVacationRepository, VacationRepository>();
+builder.Services.AddSingleton<IAbsenceRepository, AbsenceRepository>();
 
 
 //Token
