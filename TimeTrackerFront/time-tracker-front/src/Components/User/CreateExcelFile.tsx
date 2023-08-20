@@ -33,6 +33,7 @@ export default function CreateExcelFile(props:
     const HandleDownloadButton = ()=>{
         setShowDownloadButton(false);
     }
+    //alert(permissions.exportExcel);
     if(permissions.exportExcel) {
         return (<>
             <Button variant="outline-primary" onClick={HandlePrepareExport}>Prepare excel with current search settings</Button>
