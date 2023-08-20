@@ -6,7 +6,7 @@ import type { RootState } from "../Redux/store";
 import { getPagedUsers, getUsers } from '../Redux/epics';
 import { Link, useNavigate } from 'react-router-dom';
 import { Page } from '../Redux/Types/Page';
-import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import { TimeForStatisticFromSeconds } from './Time/TimeStatistic';
 
 function MainMenu() {
     const dispatch = useDispatch();

@@ -1,10 +1,6 @@
-import {ajax} from "rxjs/internal/ajax/ajax";
 import {map, Observable} from "rxjs";
 import {User} from "../Types/User";
 import {Permissions} from "../Types/Permissions";
-import {getCookie} from "../../Login/Api/login-logout";
-import {response} from "../Types/ResponseType";
-import {number} from "yup";
 import {Page} from "../Types/Page";
 import {UsersPage} from "../Types/UsersPage";
 import {GetAjaxObservable} from "./TimeRequests";
@@ -15,7 +11,6 @@ interface GraphqlUsers {
     }
 }
 
-const url = "https://localhost:7226/graphql";
 
 export function RequestUsers(): Observable<User[]> {
     return GetAjaxObservable<GraphqlUsers>(
@@ -32,9 +27,8 @@ export function RequestUsers(): Observable<User[]> {
             `, {})
         .pipe(
             map(res => {
-                let users: User[] = res.response.data.user.users;
 
-                return users;
+                return res.response.data.user.users;
             })
         );
 }
@@ -61,9 +55,7 @@ export function RequestUsersBySearch(search: String): Observable<User[]> {
         "search": search
     }).pipe(
         map(res => {
-            let users: User[] = res.response.data.user.usersBySearch;
-
-            return users;
+            return res.response.data.user.usersBySearch;
         })
     );
 }
@@ -101,7 +93,7 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
             "first": page.first,
             "after": page.after,
             "search": page.search,
-            "orderfield": page.orderfield,
+            "orderfield": page.orderField,
             "order": page.order,
             "enabled": page.enabled
         }).pipe(
@@ -137,9 +129,7 @@ export function RequestUser(Id: Number): Observable<User> {
             "Id": Number(Id)
         }).pipe(
         map(res => {
-            {
-                return res.response.data.user.user
-            }
+            return res.response.data.user.user
         })
     );
 }
@@ -165,9 +155,7 @@ export function RequestCurrentUser(): Observable<User> {
                   }
             `, {}).pipe(
         map(res => {
-            {
-                return res.response.data.user.currentUser
-            }
+            return res.response.data.user.currentUser
         })
     );
 }
@@ -199,9 +187,7 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
             "Id": Id
         }).pipe(
         map(res => {
-            {
-                return res.response.data.user.userPermissions
-            }
+            return res.response.data.user.userPermissions
         })
     );
 }
@@ -468,7 +454,7 @@ export function RequestExportExcel(page: Page): Observable<string> {
             `,
         {
             "search": page.search,
-            "orderField": page.orderfield,
+            "orderField": page.orderField,
             "order": page.order,
             "enabled": page.enabled
         })

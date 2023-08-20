@@ -2,7 +2,7 @@ import { Observable, map } from "rxjs";
 import { GetAjaxObservable } from "./TimeRequests";
 import { CalendarDay } from "../Types/Calendar";
 import { CalendarDayRequest } from "../Types/Calendar";
-import { MonthOrWeek } from "../../Components/Calendar";
+import { MonthOrWeek } from "../../Components/Calendar/Calendar";
 import { ajax } from "rxjs/ajax";
 import { locationOffset } from "../Slices/LocationSlice";
 import { GlobalEventsViewModel } from "../Types/Calendar";

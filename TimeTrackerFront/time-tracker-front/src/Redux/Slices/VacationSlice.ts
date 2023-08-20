@@ -1,7 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {User} from "../Types/User";
 import {VacationRequest} from "../Types/VacationRequest";
-import {getVacationRequestsByRequesterId} from "../epics";
 import {ApproverNode} from "../Types/ApproverNode";
 
 

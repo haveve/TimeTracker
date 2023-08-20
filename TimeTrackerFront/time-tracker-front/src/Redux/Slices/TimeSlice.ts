@@ -1,17 +1,16 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Session, TimeMark, TimeResponse } from "../Types/Time";
-import { itemsInPage } from "../../Components/TimeStatistic";
-import { LocationSlicer } from "./LocationSlice";
-import { locationOffset } from "./LocationSlice";
-import { ChangeLocationPayload, Location, officeTimeZone } from "./LocationSlice";
-import { LocationPayload } from "./LocationSlice";
-import { UpdateTimeReturnType } from "../Requests/TimeRequests";
+import {createSlice, PayloadAction} from "@reduxjs/toolkit";
+import {Session, TimeMark, TimeResponse} from "../Types/Time";
+import {itemsInPage} from "../../Components/Time/TimeStatistic";
+import {LocationSlicer} from "./LocationSlice";
+import {ChangeLocationPayload, Location, officeTimeZone} from "./LocationSlice";
+import {LocationPayload} from "./LocationSlice";
+import {UpdateTimeReturnType} from "../Requests/TimeRequests";
 
 export type ErrorGraphql = [
     {
         "message": string
         "locations":
-        { "line": number, "column": number }[],
+            { "line": number, "column": number }[],
         "path": string[],
         "extensions": { "code": string, "codes": string }
     }
@@ -52,7 +51,7 @@ export const timeSlicer = createSlice({
     reducers: {
         setStartTime: (state, action: PayloadAction<Date>) => {
 
-            if (state.time.time.sessions.length == itemsInPage)
+            if (state.time.time.sessions.length === itemsInPage)
                 state.time.time.sessions.pop()
 
             state.time.time.sessions.unshift({
@@ -107,7 +106,7 @@ export const timeSlicer = createSlice({
             state.status = "idle"
             state.error = ""
         },
-        clearErroMassage: (state) => {
+        clearErrorMessage: (state) => {
             state.error = ""
         },
         changeTimerState: (state) => {
@@ -131,5 +130,15 @@ export const timeSlicer = createSlice({
 })
 
 export const timeSlicerAction = timeSlicer.actions;
-export const { setTime, updateTime, setEndTime, setStartTime, setloadingStatus, changeTimerState, setErrorStatusAndError, setIdleStatus, clearErroMassage } = timeSlicer.actions;
+export const {
+    setTime,
+    updateTime,
+    setEndTime,
+    setStartTime,
+    setloadingStatus,
+    changeTimerState,
+    setErrorStatusAndError,
+    setIdleStatus,
+    clearErrorMessage
+} = timeSlicer.actions;
 export default timeSlicer.reducer;

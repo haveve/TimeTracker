@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { ListGroup, Pagination, Form, InputGroup, Button, Row, Col, Overlay } from "react-bootstrap";
-import '../Custom.css';
+import '../../Custom.css';
 import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from "../Redux/store";
-import { getPagedUsers, getUsers } from '../Redux/epics';
+import type { RootState } from "../../Redux/store";
+import { getPagedUsers, getUsers } from '../../Redux/epics';
 import { Link } from 'react-router-dom';
-import { Page } from '../Redux/Types/Page';
-import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import { Page } from '../../Redux/Types/Page';
+import { TimeForStatisticFromSeconds } from '../Time/TimeStatistic';
 import CreateExcelFile from "./CreateExcelFile";
 
 function Userslist() {
@@ -15,7 +15,7 @@ function Userslist() {
     const first = 6;
     const [after, setAfter] = useState(0);
     const [search, setSearch] = useState('');
-    const [orderfield, setOrderfield] = useState('');
+    const [orderField, setOrderField] = useState('');
     const [enabled, setEnabled] = useState('%');
     const [order, setOrder] = useState("ASC");
     const page = useSelector((state: RootState) => state.users.UsersPage);
@@ -26,12 +26,12 @@ function Userslist() {
             first: first,
             after: after,
             search: search,
-            orderfield: orderfield,
+            orderField: orderField,
             order: order,
             enabled: enabled
         }
         dispatch(getPagedUsers(page));
-    }, [after, orderfield, order, enabled]);
+    }, [after, orderField, order, enabled]);
 
     const handleKeyDown = (event: React.KeyboardEvent) => {
         if (event.key === 'Enter') {
@@ -44,7 +44,7 @@ function Userslist() {
             first: first,
             after: 0,
             search: search,
-            orderfield: orderfield,
+            orderField: orderField,
             order: order,
             enabled: enabled
         }
@@ -75,7 +75,7 @@ function Userslist() {
                     </Col>
                     <Col className='m-0 p-0'>
                         <InputGroup>
-                            <Form.Select onChange={e => setOrderfield(e.target.value)}>
+                            <Form.Select onChange={e => setOrderField(e.target.value)}>
                                 <option value="">Sort by</option>
                                 <option value="Email">Email</option>
                                 <option value="FullName">Name</option>
@@ -150,7 +150,7 @@ function Userslist() {
                 </Pagination>
                 : <p>No users found</p>
             }
-            <CreateExcelFile enabled={enabled} orderfield={orderfield} order={order} search={search}/>
+            <CreateExcelFile enabled={enabled} orderField={orderField} order={order} search={search}/>
         </div>
     );
 }

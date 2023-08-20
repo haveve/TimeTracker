@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button, Card, InputGroup } from "react-bootstrap";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from "../Redux/store";
-import '../Custom.css';
-import { User } from '../Redux/Types/User';
-import { RequestCreateUser, RequestRegisterUserByCode } from '../Redux/Requests/UserRequests';
+import type { RootState } from "../../Redux/store";
+import '../../Custom.css';
+import { User } from '../../Redux/Types/User';
+import { RequestCreateUser, RequestRegisterUserByCode } from '../../Redux/Requests/UserRequests';
 
-import { Error } from './Error';
+import { Error } from '../Service/Error';
 
 function UserRegistration() {
     const [searchParams] = useSearchParams();

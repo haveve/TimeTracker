@@ -219,7 +219,7 @@ export const LocationSlicer = createSlice({
             state.status = "idle"
             state.error = ""
         },
-        clearErroMassage: (state) => {
+        clearErrorMessage: (state) => {
             state.error = ""
         },
 
@@ -227,5 +227,11 @@ export const LocationSlicer = createSlice({
 
 })
 
-export const { setLocation, setErrorStatusAndError, setloadingStatus, setIdleStatus, clearErroMassage, changeLocation } = LocationSlicer.actions;
+export const {
+    setLocation,
+    setErrorStatusAndError,
+    setloadingStatus,
+    setIdleStatus,
+    clearErrorMessage,
+    changeLocation } = LocationSlicer.actions;
 export default LocationSlicer.reducer;

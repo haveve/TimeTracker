@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { ajaxForLogin, getQueryObserver } from "../Api/login-logout";
-import { Error } from '../../Components/Error';
+import { Error } from '../../Components/Service/Error';
 import { useDispatch } from 'react-redux';
 import { setLoginByToken } from '../../Redux/Slices/TokenSlicer';
 

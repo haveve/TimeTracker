@@ -51,7 +51,7 @@ export const userSlice = createSlice({
             state.status = "idle"
             state.error = ""
         },
-        clearErroMassage: (state) => {
+        clearErrorMessage: (state) => {
             state.error = ""
         }
     }
@@ -64,7 +64,7 @@ export const {
     setloadingStatus,
     setErrorStatusAndError,
     setIdleStatus,
-    clearErroMassage,
+    clearErrorMessage,
     setLogout
 } = userSlice.actions;
 export default userSlice.reducer;

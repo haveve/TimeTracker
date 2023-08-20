@@ -1,10 +1,10 @@
-import "../Custom.css";
-import { Error } from "./Error";
+import "../../Custom.css";
+import { Error } from "../Service/Error";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button, Card, Form, FormText, InputGroup } from "react-bootstrap";
 import React, { ChangeEvent, ChangeEventHandler, FormEvent, useState } from "react";
-import { ErrorMassagePattern } from "../Redux/epics";
-import { RequestUpdatePasswordByCode } from "../Redux/Requests/UserRequests";
+import { ErrorMassagePattern } from "../../Redux/epics";
+import { RequestUpdatePasswordByCode } from "../../Redux/Requests/UserRequests";
 
 
 function ResetPassword() {

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Session, TimeMark, TimeResponse } from "../Types/Time";
-import { itemsInPage } from "../../Components/TimeStatistic";
+import { itemsInPage } from "../../Components/Time/TimeStatistic";
 import { LocationSlicer } from "./LocationSlice";
 import { locationOffset } from "./LocationSlice";
 import { ChangeLocationPayload, Location, officeTimeZone } from "./LocationSlice";
@@ -38,7 +38,7 @@ export const TokenSlicer = createSlice({
             state.status = "idle"
             state.error = ""
         },
-        clearErroMassage: (state) => {
+        clearErrorMessage: (state) => {
             state.error = ""
         },
         setLoginByToken: (state,action:PayloadAction<boolean>) => {
@@ -47,6 +47,12 @@ export const TokenSlicer = createSlice({
     }
 })
 
-export const {clearErroMassage,setLoginByToken,setErrorStatusAndError,setIdleStatus,setSuccessStatus,setloadingStatus} = TokenSlicer.actions
+export const {
+    clearErrorMessage,
+    setLoginByToken,
+    setErrorStatusAndError,
+    setIdleStatus,
+    setSuccessStatus,
+    setloadingStatus} = TokenSlicer.actions
 
 export default TokenSlicer.reducer;

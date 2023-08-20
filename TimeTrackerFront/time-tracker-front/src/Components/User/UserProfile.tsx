@@ -2,19 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup, ListGroup } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { User } from '../Redux/Types/User';
-import { RequestUpdateUser, RequestUpdatePassword, RequestUser, RequestCurrentUser } from '../Redux/Requests/UserRequests';
-import { RootState } from '../Redux/store';
-import { getCurrentUser, getUsers } from '../Redux/epics';
-import { Error } from './Error';
-import '../Custom.css';
-import { RequestGetTotalWorkTime, RequestUserTime } from '../Redux/Requests/TimeRequests';
-import { getCookie } from '../Login/Api/login-logout';
-import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import { User } from '../../Redux/Types/User';
+import { RequestUpdateUser, RequestUpdatePassword, RequestUser, RequestCurrentUser } from '../../Redux/Requests/UserRequests';
+import { RootState } from '../../Redux/store';
+import { getCurrentUser, getUsers } from '../../Redux/epics';
+import { Error } from '../Service/Error';
+import '../../Custom.css';
+import { RequestGetTotalWorkTime, RequestUserTime } from '../../Redux/Requests/TimeRequests';
+import { getCookie } from '../../Login/Api/login-logout';
+import { TimeForStatisticFromSeconds } from '../Time/TimeStatistic';
 import VacationRequests from "./VacationRequests";
-import { Time } from '../Redux/Types/Time';
-import { Absence } from '../Redux/Types/Absence';
-import { RequestAddCurrentUserAbsence, RequestCurrentUserAbsences, RequestRemoveCurrentUserAbsence } from '../Redux/Requests/AbsenceRequests';
+import { Time } from '../../Redux/Types/Time';
+import { Absence } from '../../Redux/Types/Absence';
+import { RequestAddCurrentUserAbsence, RequestCurrentUserAbsences, RequestRemoveCurrentUserAbsence } from '../../Redux/Requests/AbsenceRequests';
 
 
 function UserProfile() {

@@ -1,19 +1,28 @@
 /// <reference types="react-scripts" />
-import React, { useState, useRef, useEffect } from 'react';
-import { Container, Nav, Image, Alert, InputGroup, FloatingLabel, Modal, Accordion, Navbar, NavDropdown, Button, Offcanvas, Form, ListGroup, ListGroupItem, Card, Col, Row } from "react-bootstrap";
-import '../Custom.css';
-import NotificationModalWindow, { MasssgeType } from './NotificationModalWindow';
-import { TimeStringFromSeconds } from './TimeTracker';
-import { CalendarDay } from '../Redux/Types/Calendar';
-import { ErrorMassagePattern } from '../Redux/epics';
-import { GetEvents, addEventRange, addEvent, UpdateEvent, DeleteEvent,DeleteGlobalEvent,UpdateGlobalEvent, GetLocation, addEventGlobalRange, addGlobalEvent } from '../Redux/Requests/CalendarRequest';
-import { DateTime } from 'luxon';
-import CheckModalWindow from "./CheckModalWindow"
+import React, {useState, useRef, useEffect} from 'react';
+import {InputGroup, FloatingLabel, Modal, Button, Form, Col, Row} from "react-bootstrap";
+import '../../Custom.css';
+import NotificationModalWindow, {MessageType} from '../Service/NotificationModalWindow';
+import {TimeStringFromSeconds} from '../Time/TimeTracker';
+import {CalendarDay} from '../../Redux/Types/Calendar';
+import {ErrorMassagePattern} from '../../Redux/epics';
+import {
+    GetEvents,
+    addEventRange,
+    addEvent,
+    UpdateEvent,
+    DeleteEvent,
+    DeleteGlobalEvent,
+    UpdateGlobalEvent,
+    addEventGlobalRange,
+    addGlobalEvent
+} from '../../Redux/Requests/CalendarRequest';
+import {DateTime} from 'luxon';
 import CalendarUserslist from './CalendarUsers';
-import { RootState } from '../Redux/store';
-import { GlobalEventsViewModel } from '../Redux/Types/Calendar';
-import { GetGlobalCalendar } from '../Redux/Requests/CalendarRequest';
-import { TypeOfGlobalEvent } from '../Redux/Types/Calendar';
+import {RootState} from '../../Redux/store';
+import {GlobalEventsViewModel} from '../../Redux/Types/Calendar';
+import {GetGlobalCalendar} from '../../Redux/Requests/CalendarRequest';
+import {TypeOfGlobalEvent} from '../../Redux/Types/Calendar';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid' // a plugin!
@@ -21,10 +30,9 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from "@fullcalendar/interaction";
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import allLocales from '@fullcalendar/core/locales-all';
-import { Subscription } from 'rxjs';
+import {Subscription} from 'rxjs';
 import moment from 'moment';
-import { useSelector } from 'react-redux';
-import { DayCellContainer } from '@fullcalendar/core/internal';
+import {useSelector} from 'react-redux';
 
 export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
 export const uncorrectTimeError = `start end end dates must be correct. Theirs' values of hours must be <= 24 and >=0, minutes <=60 and >=0 and startDate must be less than endDate `
@@ -51,8 +59,8 @@ export default function Calendar() {
     const [title, setTitle] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    
-    const geoOffset = useSelector((state:RootState)=>{
+
+    const geoOffset = useSelector((state: RootState) => {
         return state.location.userOffset
     })
 
@@ -221,7 +229,7 @@ export default function Calendar() {
             typeOfGlobalEvent: selectedTypeUpdate
         }
         var date = globalCalendar.filter(cd => cd.date.toISOString() === toUpdate.toISOString())[0]
-       
+
         UpdateGlobalEvent(toUpdate, newRange).subscribe({
             next: () => {
                 setGlobalCalendar(cd => {
@@ -456,17 +464,25 @@ export default function Calendar() {
     const getSubmmitHandler = () => {
         if (userId == null || userId >= 0) {
             switch (selectedAction) {
-                case -1: return CreateRangeHandle
-                case 0: return createSubmitHandle
-                case 1: return handleDelete
-                case 2: return updateSubmitHandle
+                case -1:
+                    return CreateRangeHandle
+                case 0:
+                    return createSubmitHandle
+                case 1:
+                    return handleDelete
+                case 2:
+                    return updateSubmitHandle
             }
         } else {
             switch (selectedAction) {
-                case -1: return CreateGlobalRangeHandle
-                case 0: return createGlobalSubmitHandle
-                case 1: return handleGlobalDelete
-                case 2: return updateGlobalSubmitHandle
+                case -1:
+                    return CreateGlobalRangeHandle
+                case 0:
+                    return createGlobalSubmitHandle
+                case 1:
+                    return handleGlobalDelete
+                case 2:
+                    return updateGlobalSubmitHandle
             }
         }
     }
@@ -490,18 +506,24 @@ export default function Calendar() {
         const calendarApi = calendarRef.current!.getApi();
         var localNav = new Date();
         switch (mOrW) {
-            case MonthOrWeek.Month: setNavigateDate(d => {
-                if (d.getTime() > new Date(2023, 0, 31).getTime()) {
-                    localNav = new Date(d.setMonth(d.getMonth() - 1)); return localNav;
-                }
-                return d;
-            }); break;
-            case MonthOrWeek.Week: setNavigateDate(d => {
-                if (d.getTime() > new Date(2023, 0, 31).getTime()) {
-                    localNav = new Date(d.getTime() - 604800000); return localNav;
-                }
-                return d;
-            }); break;
+            case MonthOrWeek.Month:
+                setNavigateDate(d => {
+                    if (d.getTime() > new Date(2023, 0, 31).getTime()) {
+                        localNav = new Date(d.setMonth(d.getMonth() - 1));
+                        return localNav;
+                    }
+                    return d;
+                });
+                break;
+            case MonthOrWeek.Week:
+                setNavigateDate(d => {
+                    if (d.getTime() > new Date(2023, 0, 31).getTime()) {
+                        localNav = new Date(d.getTime() - 604800000);
+                        return localNav;
+                    }
+                    return d;
+                });
+                break;
         }
         calendarApi.prev();
     };
@@ -510,14 +532,24 @@ export default function Calendar() {
         const calendarApi = calendarRef.current!.getApi();
         var localNav = new Date();
         switch (mOrW) {
-            case MonthOrWeek.Month: setNavigateDate(d => {
-                if (d.getTime() < new Date(2023, 11, 1).getTime()) {
-                    localNav = new Date(d.setMonth(d.getMonth() + 1));
-                    return localNav;
-                }
-                return d
-            }); break;
-            case MonthOrWeek.Week: setNavigateDate(d => { if (d.getTime() <= new Date(2023, 11, 1).getTime()) { localNav = new Date(d.getTime() + 604800000); return localNav; } return d }); break;
+            case MonthOrWeek.Month:
+                setNavigateDate(d => {
+                    if (d.getTime() < new Date(2023, 11, 1).getTime()) {
+                        localNav = new Date(d.setMonth(d.getMonth() + 1));
+                        return localNav;
+                    }
+                    return d
+                });
+                break;
+            case MonthOrWeek.Week:
+                setNavigateDate(d => {
+                    if (d.getTime() <= new Date(2023, 11, 1).getTime()) {
+                        localNav = new Date(d.getTime() + 604800000);
+                        return localNav;
+                    }
+                    return d
+                });
+                break;
         }
         calendarApi.next();
     };
@@ -531,7 +563,7 @@ export default function Calendar() {
     const holidayAfterCelebrateList = useRef<GlobalEventsViewModel[]>([...defaultEventsList])
     let setNextHoliday = false;
     return <> <FullCalendar
-        ref = {calendarRef}
+        ref={calendarRef}
         dayHeaderClassNames={['calendar-head-color']}
         height={"100%"}
         dayCellContent={function (info) {
@@ -545,7 +577,8 @@ export default function Calendar() {
                     setNextHoliday = true;
                 }
 
-                return <div className='container-fluid p-0 m-0 '><div className='text-decoration-none text-center text-warning'>{info.dayNumberText}</div>
+                return <div className='container-fluid p-0 m-0 '>
+                    <div className='text-decoration-none text-center text-warning'>{info.dayNumberText}</div>
                     <div className='text-decoration-none text-secondary'>{celebrate[0].name}</div>
                 </div>
             }
@@ -554,8 +587,10 @@ export default function Calendar() {
                 return <div className='text-decoration-none text-danger'>{info.dayNumberText}</div>
 
             if ((celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Holiday && !info.isOther))
-                return <><div className='text-decoration-none text-end text-danger'>{info.dayNumberText}</div>
-                    <div className='text-secondary'>{celebrate[0].name}</div></>
+                return <>
+                    <div className='text-decoration-none text-end text-danger'>{info.dayNumberText}</div>
+                    <div className='text-secondary'>{celebrate[0].name}</div>
+                </>
 
             if (setNextHoliday) {
                 setNextHoliday = false;
@@ -568,8 +603,10 @@ export default function Calendar() {
             }
 
             if ((celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.ShortDay && !info.isOther)) {
-                return <><div className='text-decoration-none text-success'>{info.dayNumberText}</div>
-                    <div className='text-secondary'>{celebrate[0].name}</div></>
+                return <>
+                    <div className='text-decoration-none text-success'>{info.dayNumberText}</div>
+                    <div className='text-secondary'>{celebrate[0].name}</div>
+                </>
             }
 
             if (globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day - 1 === DateTime.fromJSDate(info.date).day && cg.typeOfGlobalEvent == TypeOfGlobalEvent.Celebrate)) {
@@ -615,14 +652,13 @@ export default function Calendar() {
                     && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && (cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate || cg.typeOfGlobalEvent === TypeOfGlobalEvent.Holiday))) {
                 setIsVisible(n => !n)
                 setChangedDay(info.date)
-            }
-            else if (userId != null
+            } else if (userId != null
                 && userId < 0
                 && info.date.getDay() != 0
                 && info.date.getDay() != 6
                 && info.date.getMonth() === navigateDate.getMonth()
                 && !holidayAfterCelebrateList.current.some(cg => (DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
-                    && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month&&cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate))) {
+                    && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate))) {
                 setIsVisible(n => !n)
                 setChangedDay(info.date)
             }
@@ -703,16 +739,26 @@ export default function Calendar() {
                     <div className='p-0 pt-2'>Period time manage for {`${changedDay.toDateString()}`}</div>
                     <Form.Select value={selectedAction} className='w-25' onChange={(e) => {
                         switch (parseInt(e.target.value)) {
-                            case -1: HandleChangeAction(['Create', 'outline-success'], [setButtonText, setButtonType]); break;
-                            case 0: HandleChangeAction(['Create', 'outline-success'], [setButtonText, setButtonType]); break;
-                            case 1: HandleChangeAction(['Delete', 'outline-danger'], [setButtonText, setButtonType]); break;
-                            case 2: HandleChangeAction(['Update', 'outline-success'], [setButtonText, setButtonType]); break;
+                            case -1:
+                                HandleChangeAction(['Create', 'outline-success'], [setButtonText, setButtonType]);
+                                break;
+                            case 0:
+                                HandleChangeAction(['Create', 'outline-success'], [setButtonText, setButtonType]);
+                                break;
+                            case 1:
+                                HandleChangeAction(['Delete', 'outline-danger'], [setButtonText, setButtonType]);
+                                break;
+                            case 2:
+                                HandleChangeAction(['Update', 'outline-success'], [setButtonText, setButtonType]);
+                                break;
                         }
                         setSelectedAction(parseInt(e.target.value))
-                    }}><option value={-1}>create range</option>
+                    }}>
+                        <option value={-1}>create range</option>
                         <option value={0}>create</option>
                         <option value={1}>delete</option>
-                        <option value={2}>update</option></Form.Select>
+                        <option value={2}>update</option>
+                    </Form.Select>
                 </div>
             </Modal.Header>
             {(userId == null || userId >= 0) ?
@@ -725,10 +771,12 @@ export default function Calendar() {
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
                                 <FloatingLabel label="from day">
-                                    <Form.Control type='text' onChange={(e) => setStartRangeDay(e.target.value)} value={startRangeDay}></Form.Control>
+                                    <Form.Control type='text' onChange={(e) => setStartRangeDay(e.target.value)}
+                                                  value={startRangeDay}></Form.Control>
                                 </FloatingLabel>
                                 <FloatingLabel label="until day">
-                                    <Form.Control type='text' onChange={(e) => setEndRangeDay(e.target.value)} value={endRangeDay}></Form.Control>
+                                    <Form.Control type='text' onChange={(e) => setEndRangeDay(e.target.value)}
+                                                  value={endRangeDay}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
@@ -739,15 +787,18 @@ export default function Calendar() {
                             </Col>
                             <Col className='mb-3'>
                                 <FloatingLabel label="with title">
-                                    <Form.Control type='text' onChange={(e) => setTitleRange(e.target.value)} value={titleRange}></Form.Control>
+                                    <Form.Control type='text' onChange={(e) => setTitleRange(e.target.value)}
+                                                  value={titleRange}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
                                 <FloatingLabel label="from">
-                                    <Form.Control type='text' onChange={(e) => setStartDateStringRange(e.target.value)} value={startDateStringRange}></Form.Control>
+                                    <Form.Control type='text' onChange={(e) => setStartDateStringRange(e.target.value)}
+                                                  value={startDateStringRange}></Form.Control>
                                 </FloatingLabel>
                                 <FloatingLabel label="until">
-                                    <Form.Control type='text' onChange={(e) => setEndDateStringRange(e.target.value)} value={endDateStringRange}></Form.Control>
+                                    <Form.Control type='text' onChange={(e) => setEndDateStringRange(e.target.value)}
+                                                  value={endDateStringRange}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
@@ -763,10 +814,12 @@ export default function Calendar() {
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
                                 <FloatingLabel label="from">
-                                    <Form.Control type='text' onChange={(e) => setStartDateString(e.target.value)}></Form.Control>
+                                    <Form.Control type='text'
+                                                  onChange={(e) => setStartDateString(e.target.value)}></Form.Control>
                                 </FloatingLabel>
                                 <FloatingLabel label="until">
-                                    <Form.Control type='text' onChange={(e) => setEndDateString(e.target.value)}></Form.Control>
+                                    <Form.Control type='text'
+                                                  onChange={(e) => setEndDateString(e.target.value)}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
@@ -774,73 +827,92 @@ export default function Calendar() {
                             </Col>
                         </Row>
                     }{
-                        selectedAction === 1 &&
-                        <Row>
-                            <Form.Select onChange={(e) => setToDelete(new Date(Date.parse(e.target.value)))}>
-                                <option value="">select range to delete</option>
+                    selectedAction === 1 &&
+                    <Row>
+                        <Form.Select onChange={(e) => setToDelete(new Date(Date.parse(e.target.value)))}>
+                            <option value="">select range to delete</option>
+                            {calendarDays.filter((cd) => cd.start.toDateString() === changedDay.toDateString())
+                                .map((cd) => <option key={cd.start.toISOString()}
+                                                     value={cd.start.toISOString()}>{`title: ${cd.title} start: ${cd.start.toLocaleString()}`}</option>)}
+                        </Form.Select>
+                    </Row>
+                }{
+                    selectedAction === 2 &&
+                    <Row className='d-flex flex-column justify-content-between'>
+                        <Col className='mb-3'>
+                            <Form.Select value={toUpdate?.toISOString()} onChange={(e) => {
+                                const day = calendarDays.filter(cd => cd.start.toISOString() === e.target.value)[0]
+                                setTitleToUpdate(day.title)
+                                setStartDateStringToUpdate(TimeForCalendarFromSeconds(day.start.getHours() * 60 * 60 + day.start.getMinutes() * 60))
+                                setEndDateStringToUpdate(TimeForCalendarFromSeconds(day.end.getHours() * 60 * 60 + day.end.getMinutes() * 60))
+                                setToUpdate(new Date(Date.parse(e.target.value)))
+                            }}>
+                                <option value="">select range to update</option>
                                 {calendarDays.filter((cd) => cd.start.toDateString() === changedDay.toDateString())
-                                    .map((cd) => <option key={cd.start.toISOString()} value={cd.start.toISOString()}>{`title: ${cd.title} start: ${cd.start.toLocaleString()}`}</option>)}
+                                    .map((cd) => <option key={cd.start.toISOString()}
+                                                         value={cd.start.toISOString()}>{`title: ${cd.title} start: ${cd.start.toLocaleString()} `}</option>)}
                             </Form.Select>
-                        </Row>
-                    }{
-                        selectedAction === 2 &&
-                        <Row className='d-flex flex-column justify-content-between'>
-                            <Col className='mb-3'>
-                                <Form.Select value={toUpdate?.toISOString()} onChange={(e) => {
-                                    const day = calendarDays.filter(cd => cd.start.toISOString() === e.target.value)[0]
-                                    setTitleToUpdate(day.title)
-                                    setStartDateStringToUpdate(TimeForCalendarFromSeconds(day.start.getHours() * 60 * 60 + day.start.getMinutes() * 60))
-                                    setEndDateStringToUpdate(TimeForCalendarFromSeconds(day.end.getHours() * 60 * 60 + day.end.getMinutes() * 60))
-                                    setToUpdate(new Date(Date.parse(e.target.value)))
-                                }}>
-                                    <option value="">select range to update</option>
-                                    {calendarDays.filter((cd) => cd.start.toDateString() === changedDay.toDateString())
-                                        .map((cd) => <option key={cd.start.toISOString()} value={cd.start.toISOString()}>{`title: ${cd.title} start: ${cd.start.toLocaleString()} `}</option>)}
-                                </Form.Select>
-                            </Col>
-                            <Col className='mb-3'>
-                                <InputGroup>
-                                    <InputGroup.Checkbox onChange={() => setIgnoreTitleToUp(n => !n)}></InputGroup.Checkbox>
-                                    <FloatingLabel label="with title">
-                                        <Form.Control type='text' disabled={ignoreTitleToUp} onChange={(e) => setTitleToUpdate(e.target.value)} value={titleToUpdate}></Form.Control>
-                                    </FloatingLabel>
-                                </InputGroup>
-                            </Col>
-                            <Col className='d-flex flex-row justify-content-between'>
-                                <InputGroup>
-                                    <InputGroup.Checkbox onChange={() => setIgnoreStartDateToUp(n => !n)}></InputGroup.Checkbox>
-                                    <FloatingLabel label="from">
-                                        <Form.Control type='text' disabled={ignoreDateStartToUp} onChange={(e) => setStartDateStringToUpdate(e.target.value)} value={startDateStringToUpdate}></Form.Control>
-                                    </FloatingLabel>
-                                </InputGroup>
-                                <InputGroup className='ps-2'>
-                                    <InputGroup.Checkbox onChange={() => setIgnoreDateEndToUp(n => !n)}></InputGroup.Checkbox>
-                                    <FloatingLabel label="until">
-                                        <Form.Control type='text' disabled={ignoreDateEndToUp} onChange={(e) => setEndDateStringToUpdate(e.target.value)} value={endDateStringToUpdate}></Form.Control>
-                                    </FloatingLabel>
-                                </InputGroup>
-                            </Col>
-                            <Col className='text-center'>
-                                <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32)</Form.Label>
-                            </Col>
-                        </Row>
-                    }
+                        </Col>
+                        <Col className='mb-3'>
+                            <InputGroup>
+                                <InputGroup.Checkbox onChange={() => setIgnoreTitleToUp(n => !n)}></InputGroup.Checkbox>
+                                <FloatingLabel label="with title">
+                                    <Form.Control type='text' disabled={ignoreTitleToUp}
+                                                  onChange={(e) => setTitleToUpdate(e.target.value)}
+                                                  value={titleToUpdate}></Form.Control>
+                                </FloatingLabel>
+                            </InputGroup>
+                        </Col>
+                        <Col className='d-flex flex-row justify-content-between'>
+                            <InputGroup>
+                                <InputGroup.Checkbox
+                                    onChange={() => setIgnoreStartDateToUp(n => !n)}></InputGroup.Checkbox>
+                                <FloatingLabel label="from">
+                                    <Form.Control type='text' disabled={ignoreDateStartToUp}
+                                                  onChange={(e) => setStartDateStringToUpdate(e.target.value)}
+                                                  value={startDateStringToUpdate}></Form.Control>
+                                </FloatingLabel>
+                            </InputGroup>
+                            <InputGroup className='ps-2'>
+                                <InputGroup.Checkbox
+                                    onChange={() => setIgnoreDateEndToUp(n => !n)}></InputGroup.Checkbox>
+                                <FloatingLabel label="until">
+                                    <Form.Control type='text' disabled={ignoreDateEndToUp}
+                                                  onChange={(e) => setEndDateStringToUpdate(e.target.value)}
+                                                  value={endDateStringToUpdate}></Form.Control>
+                                </FloatingLabel>
+                            </InputGroup>
+                        </Col>
+                        <Col className='text-center'>
+                            <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32)</Form.Label>
+                        </Col>
+                    </Row>
+                }
                 </Modal.Body> : <Modal.Body>
                     {selectedAction === -1 &&
                         <Row className='d-flex flex-column justify-content-between'>
                             <Col className='mb-3'>
                                 <FloatingLabel label="with title">
-                                    <Form.Control type='text' onChange={(e) => setTitleRange(e.target.value)} value={titleRange}>
+                                    <Form.Control type='text' onChange={(e) => setTitleRange(e.target.value)}
+                                                  value={titleRange}>
                                     </Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='mb-3'>
                                 <Form.Select onChange={(e) => {
                                     switch (e.target.value) {
-                                        case "": setSelectedTypeCreateRange(null); break;
-                                        case "CELEBRATE": setSelectedTypeCreateRange(TypeOfGlobalEvent.Celebrate); break;
-                                        case "HOLIDAY": setSelectedTypeCreateRange(TypeOfGlobalEvent.Holiday); break;
-                                        case "SHORT_DAY": setSelectedTypeCreateRange(TypeOfGlobalEvent.ShortDay); break;
+                                        case "":
+                                            setSelectedTypeCreateRange(null);
+                                            break;
+                                        case "CELEBRATE":
+                                            setSelectedTypeCreateRange(TypeOfGlobalEvent.Celebrate);
+                                            break;
+                                        case "HOLIDAY":
+                                            setSelectedTypeCreateRange(TypeOfGlobalEvent.Holiday);
+                                            break;
+                                        case "SHORT_DAY":
+                                            setSelectedTypeCreateRange(TypeOfGlobalEvent.ShortDay);
+                                            break;
                                     }
                                 }} value={selectedTypeCreateRange == null ? "" : selectedTypeCreateRange.toString()}>
                                     <option value="">with type</option>
@@ -851,10 +923,12 @@ export default function Calendar() {
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
                                 <FloatingLabel label="from day">
-                                    <Form.Control type='text' onChange={(e) => setStartRangeDay(e.target.value)} value={startRangeDay}></Form.Control>
+                                    <Form.Control type='text' onChange={(e) => setStartRangeDay(e.target.value)}
+                                                  value={startRangeDay}></Form.Control>
                                 </FloatingLabel>
                                 <FloatingLabel label="until day">
-                                    <Form.Control type='text' onChange={(e) => setEndRangeDay(e.target.value)} value={endRangeDay}></Form.Control>
+                                    <Form.Control type='text' onChange={(e) => setEndRangeDay(e.target.value)}
+                                                  value={endRangeDay}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
@@ -871,10 +945,18 @@ export default function Calendar() {
                             <Col className='mb-3'>
                                 <Form.Select onChange={(e) => {
                                     switch (e.target.value) {
-                                        case "": setSelectedTypeCreate(null); break;
-                                        case "CELEBRATE": setSelectedTypeCreate(TypeOfGlobalEvent.Celebrate); break;
-                                        case "HOLIDAY": setSelectedTypeCreate(TypeOfGlobalEvent.Holiday); break;
-                                        case "SHORT_DAY": setSelectedTypeCreate(TypeOfGlobalEvent.ShortDay); break;
+                                        case "":
+                                            setSelectedTypeCreate(null);
+                                            break;
+                                        case "CELEBRATE":
+                                            setSelectedTypeCreate(TypeOfGlobalEvent.Celebrate);
+                                            break;
+                                        case "HOLIDAY":
+                                            setSelectedTypeCreate(TypeOfGlobalEvent.Holiday);
+                                            break;
+                                        case "SHORT_DAY":
+                                            setSelectedTypeCreate(TypeOfGlobalEvent.ShortDay);
+                                            break;
                                     }
                                 }} value={selectedTypeCreate == null ? "" : selectedTypeCreate.toString()}>
                                     <option value="">with type</option>
@@ -885,59 +967,68 @@ export default function Calendar() {
                             </Col>
                         </Row>
                     }{
-                        selectedAction === 1 &&
-                        <Row>
+                    selectedAction === 1 &&
+                    <Row>
+                        {globalCalendar.filter((cd) => cd.date.toDateString() === changedDay.toDateString())
+                            .map((cd) => {
+                                if (!toDelete)
+                                    setToDelete(cd.date);
+                                return <></>
+                            })}
+                    </Row>
+                }{
+                    selectedAction === 2 &&
+                    <Row className='d-flex flex-column justify-content-between'>
+                        <Col className='mb-3'>
                             {globalCalendar.filter((cd) => cd.date.toDateString() === changedDay.toDateString())
                                 .map((cd) => {
-                                    if (!toDelete)
-                                        setToDelete(cd.date);
+                                    if (!toUpdate) {
+                                        setTitleToUpdate(cd.name)
+                                        setToUpdate(cd.date)
+                                        setSelectedTypeUpdate(cd.typeOfGlobalEvent)
+                                    }
                                     return <></>
                                 })}
-                        </Row>
-                    }{
-                        selectedAction === 2 &&
-                        <Row className='d-flex flex-column justify-content-between'>
-                            <Col className='mb-3'>
-                                {globalCalendar.filter((cd) => cd.date.toDateString() === changedDay.toDateString())
-                                    .map((cd) => {
-                                        if (!toUpdate) {
-                                            setTitleToUpdate(cd.name)
-                                            setToUpdate(cd.date)
-                                            setSelectedTypeUpdate(cd.typeOfGlobalEvent)
-                                        }
-                                        return <></>
-                                    })}
-                            </Col>
-                            <Col className='mb-3'>
-                                <InputGroup>
-                                    <FloatingLabel label="with title">
-                                        <Form.Control type='text' onChange={(e) => setTitleToUpdate(e.target.value)} value={titleToUpdate}></Form.Control>
-                                    </FloatingLabel>
-                                </InputGroup>
-                            </Col>
-                            <Col className='mb-3'>
-                                <Form.Select onChange={(e) => {
-                                    switch (e.target.value) {
-                                        case "": setSelectedTypeUpdate(null); break;
-                                        case "CELEBRATE": setSelectedTypeUpdate(TypeOfGlobalEvent.Celebrate); break;
-                                        case "HOLIDAY": setSelectedTypeUpdate(TypeOfGlobalEvent.Holiday); break;
-                                        case "SHORT_DAY": setSelectedTypeUpdate(TypeOfGlobalEvent.ShortDay); break;
-                                    }
-                                }} value={selectedTypeUpdate == null ? "" : selectedTypeUpdate.toString()}>
-                                    <option value="">with type</option>
-                                    <option value="CELEBRATE">Celebration</option>
-                                    <option value="HOLIDAY">Holiday</option>
-                                    <option value="SHORT_DAY">Short day</option>
-                                </Form.Select>
-                            </Col>
-                        </Row>
-                    }
+                        </Col>
+                        <Col className='mb-3'>
+                            <InputGroup>
+                                <FloatingLabel label="with title">
+                                    <Form.Control type='text' onChange={(e) => setTitleToUpdate(e.target.value)}
+                                                  value={titleToUpdate}></Form.Control>
+                                </FloatingLabel>
+                            </InputGroup>
+                        </Col>
+                        <Col className='mb-3'>
+                            <Form.Select onChange={(e) => {
+                                switch (e.target.value) {
+                                    case "":
+                                        setSelectedTypeUpdate(null);
+                                        break;
+                                    case "CELEBRATE":
+                                        setSelectedTypeUpdate(TypeOfGlobalEvent.Celebrate);
+                                        break;
+                                    case "HOLIDAY":
+                                        setSelectedTypeUpdate(TypeOfGlobalEvent.Holiday);
+                                        break;
+                                    case "SHORT_DAY":
+                                        setSelectedTypeUpdate(TypeOfGlobalEvent.ShortDay);
+                                        break;
+                                }
+                            }} value={selectedTypeUpdate == null ? "" : selectedTypeUpdate.toString()}>
+                                <option value="">with type</option>
+                                <option value="CELEBRATE">Celebration</option>
+                                <option value="HOLIDAY">Holiday</option>
+                                <option value="SHORT_DAY">Short day</option>
+                            </Form.Select>
+                        </Col>
+                    </Row>
+                }
                 </Modal.Body>}
             <Modal.Footer>
                 <Row>
                     <Col className='gap-2 d-flex'>
                         <Button variant={buttonType}
-                            onClick={getSubmmitHandler()}
+                                onClick={getSubmmitHandler()}
                         >
                             {buttonText}
                         </Button>
@@ -945,9 +1036,12 @@ export default function Calendar() {
                 </Row>
             </Modal.Footer>
         </Modal>
-        <CalendarUserslist isShowed = {isShowedUserList} setShowed={setShowedUserList} setUserIndex={setUserId}></CalendarUserslist>
-        <NotificationModalWindow isShowed={error !== ""} dropMassege={setError} messegeType={MasssgeType.Error}>{error}</NotificationModalWindow>
-        <NotificationModalWindow isShowed={success !== ""} dropMassege={setSuccess} messegeType={MasssgeType.Success}>{success}</NotificationModalWindow>
+        <CalendarUserslist isShowed={isShowedUserList} setShowed={setShowedUserList}
+                           setUserIndex={setUserId}></CalendarUserslist>
+        <NotificationModalWindow isShowed={error !== ""} dropMessage={setError}
+                                 messageType={MessageType.Error}>{error}</NotificationModalWindow>
+        <NotificationModalWindow isShowed={success !== ""} dropMessage={setSuccess}
+                                 messageType={MessageType.Success}>{success}</NotificationModalWindow>
     </>
 }
 
@@ -1068,16 +1162,60 @@ const officeTimeZone = [
 ];
 
 const defaultEventsList: GlobalEventsViewModel[] = [
-    { name: "Новий рік", date: new Date(new Date().getFullYear(), 0, 1), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "Різдво Христове за юліанським календарем", date: new Date(new Date().getFullYear(), 0, 7), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "День Соборності України", date: new Date(new Date().getFullYear(), 0, 22), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "Міжнародний жіночий день", date: new Date(new Date().getFullYear(), 2, 8), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "Міжнародний день праці", date: new Date(new Date().getFullYear(), 4, 1), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "День Конституції України", date: new Date(new Date().getFullYear(), 5, 28), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "День Української Державності", date: new Date(new Date().getFullYear(), 6, 28), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "День Державного Прапора України", date: new Date(new Date().getFullYear(), 7, 23), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "День незалежності України", date: new Date(new Date().getFullYear(), 7, 24), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "День захисників і захисниць України", date: new Date(new Date().getFullYear(), 9, 14), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "День Збройних Сил України", date: new Date(new Date().getFullYear(), 11, 6), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    { name: "Різдво Христове", date: new Date(new Date().getFullYear(), 11, 25), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
+    {name: "Новий рік", date: new Date(new Date().getFullYear(), 0, 1), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate},
+    {
+        name: "Різдво Христове за юліанським календарем",
+        date: new Date(new Date().getFullYear(), 0, 7),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "День Соборності України",
+        date: new Date(new Date().getFullYear(), 0, 22),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "Міжнародний жіночий день",
+        date: new Date(new Date().getFullYear(), 2, 8),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "Міжнародний день праці",
+        date: new Date(new Date().getFullYear(), 4, 1),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "День Конституції України",
+        date: new Date(new Date().getFullYear(), 5, 28),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "День Української Державності",
+        date: new Date(new Date().getFullYear(), 6, 28),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "День Державного Прапора України",
+        date: new Date(new Date().getFullYear(), 7, 23),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "День незалежності України",
+        date: new Date(new Date().getFullYear(), 7, 24),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "День захисників і захисниць України",
+        date: new Date(new Date().getFullYear(), 9, 14),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "День Збройних Сил України",
+        date: new Date(new Date().getFullYear(), 11, 6),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
+    {
+        name: "Різдво Христове",
+        date: new Date(new Date().getFullYear(), 11, 25),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
+    },
 ];

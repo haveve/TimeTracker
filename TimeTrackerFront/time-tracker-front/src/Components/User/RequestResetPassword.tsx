@@ -1,7 +1,6 @@
 import { Button, Card, Form, FormText } from "react-bootstrap";
-import { Error } from "./Error";
 import React, { FormEvent, useState } from "react";
-import { RequestPasswordReset } from "../Redux/Requests/UserRequests";
+import { RequestPasswordReset } from "../../Redux/Requests/UserRequests";
 
 function RequestResetPassword() {
     const [loginOrEmail, setLoginOrEmail] = useState("");

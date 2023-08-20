@@ -1,23 +1,26 @@
 import { combineEpics, Epic } from "redux-observable";
 import {
     getUsersEpic,
-    setTimeEpic,
     getCurrentUserEpic,
     getPagedUsersEpic,
     getUsersBySearchEpic,
+    getCurrentUserPermissionsEpic
+} from "./epics";
+import {
     getApproversEpic,
     addApproverEpic,
     deleteApproverEpic,
     getVacationRequestsEpic,
-    getApproversReaction,
     getApproversReactionEpic,
     cancelVacationRequestEpic,
     deleteVacationRequestEpic,
     createVacationRequestEpic, getIncomingVacationRequestsByApproverIdEpic, addApproverReactionEpic,
+} from "./VacationEpics";
+import {
+    setTimeEpic,
     setEndTimeEpic,
     setStartTimeEpic,
-    getCurrentUserPermissionsEpic
-} from "./epics";
+} from "./TimeEpics";
 import { catchError } from "rxjs";
 
 export const rootEpic: Epic = (action$, store$, dependencies) =>

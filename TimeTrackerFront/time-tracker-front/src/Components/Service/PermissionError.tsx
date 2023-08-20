@@ -1,15 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { ListGroup, Pagination, Form, InputGroup, Button, Row, Col, Overlay } from "react-bootstrap";
-import '../Custom.css';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from "../Redux/store";
-import { getPagedUsers, getUsers } from '../Redux/epics';
-import { Link, useNavigate } from 'react-router-dom';
-import { Page } from '../Redux/Types/Page';
-import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import React from 'react';
+import { Button } from "react-bootstrap";
+import '../../Custom.css';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 
 function PermissionError() {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     return (
