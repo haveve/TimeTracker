@@ -1,6 +1,8 @@
 ﻿using GraphQL;
 using GraphQL.Types;
 using System.Security.Claims;
+using System.Security.Policy;
+using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
@@ -12,7 +14,14 @@ namespace TimeTracker.GraphQL.Types.UserTypes
     {
         private readonly IUserRepository repo;
 
-        public UserQueryGraphQLType(IUserRepository Repo, IEmailSender emailSender)
+        public UserQueryGraphQLType(
+            IUserRepository Repo, 
+            IEmailSender emailSender, 
+            IConfiguration config, 
+            ICalendarRepository calendarRepo, 
+            ITimeRepository timeRepo,
+            IExcelHandler excelHandler
+            )
         {
             repo = Repo;
             Field<ListGraphType<UserType>>("users")
@@ -41,7 +50,35 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                         PageIndex = (after + first - 1) / first
                     };
                 });
+            Field<StringGraphType>("getExcelFile")
+                .Argument<StringGraphType>("search")
+                .Argument<StringGraphType>("orderField")
+                .Argument<StringGraphType>("order")
+                .Argument<StringGraphType>("enabled")
+                .Resolve(context =>
+                {
+                    string search = context.GetArgument<string>("search");
+                    string orderField = context.GetArgument<string>("orderField");
+                    string order = context.GetArgument<string>("order");
+                    string enabled = context.GetArgument<string>("enabled");
+                    if (orderField == "") orderField = null;
+                    
+                    List<User> users = repo.GetSearchedSortedfUsers(search, orderField, order, enabled).ToList();
+                    foreach (var user in users)
+                    {
+                        var timeQuery = new TimeQueryGraphqlType(timeRepo,Repo, calendarRepo);
+                        var resp = TimeQueryGraphqlType.GetTimeFromSession(
+                            timeRepo.GetTime(user.Id), new List<TimeMark>(), 0, startOfWeek.Monday,0);
+                        double hour = (double)(resp.Time.MonthSeconds) / 60/60;
+                        user.WorkedHours = hour;
+                    }
 
+                    string uuid = Guid.NewGuid().ToString(); 
+                    excelHandler.WriteExcelTable(users, uuid);
+                    string base_url = config.GetValue<string>("Urls");
+                    string url = Path.Combine(base_url, "Test", "Download", uuid);
+                    return url;
+                });
             Field<UserType>("user")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
                 .ResolveAsync(async context =>
@@ -52,6 +89,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field<UserType>("currentUser")
                 .ResolveAsync(async context =>
                 {
+                    var a = context.User!;
                     var userId = GetUserIdFromClaims(context.User!);
                     return repo.GetUser(userId);
                 });

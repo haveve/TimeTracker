@@ -16,6 +16,8 @@ export enum TimeMark
     Day = "DAY",
     Week = "WEEK",
     Month = "MONTH",
+    Year = "YEAR",
+
 }
 
 export interface TimeResponse{

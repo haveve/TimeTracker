@@ -15,5 +15,6 @@ namespace TimeTracker.Models
         public bool Enabled { get; set; } = false;
         public int WorkHours {  get; set; }
         public LasUpdatedBy TimeManagedBy { get; set; }
+        public double WorkedHours { get; set; }
     }
 }

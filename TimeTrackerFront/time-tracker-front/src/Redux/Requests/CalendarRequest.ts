@@ -19,6 +19,7 @@ const geolocationApiUrl = "https://ipgeolocation.abstractapi.com/v1/?api_key=7a5
 interface GeologationType {
   "city": string,
   "country_code": string,
+  "country":string,
   timezone: {
     name: string,
     abbreviation: string,

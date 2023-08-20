@@ -7,6 +7,7 @@ import { getPagedUsers, getUsers } from '../Redux/epics';
 import { Link } from 'react-router-dom';
 import { Page } from '../Redux/Types/Page';
 import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import CreateExcelFile from "./CreateExcelFile";
 
 function Userslist() {
     const [show, setShow] = useState(false);
@@ -50,6 +51,8 @@ function Userslist() {
         setShow(false);
         dispatch(getPagedUsers(page));
     }
+
+
     return (
         <div className='Userslist d-flex align-items-center flex-column mt-5 h-75'>
             <h5>Users</h5>
@@ -147,6 +150,7 @@ function Userslist() {
                 </Pagination>
                 : <p>No users found</p>
             }
+            <CreateExcelFile enabled={enabled} orderfield={orderfield} order={order} search={search}/>
         </div>
     );
 }

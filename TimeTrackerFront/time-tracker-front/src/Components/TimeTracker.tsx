@@ -52,8 +52,8 @@ export default function TimeTracker() {
     const clockTime = TimeStringFromSeconds(localTimeInSeconds);
 
     return <Card className='rounded-0 border-0 d-flex flex-column h-100'>
-        <Row className='p-0 m-0 justify-content-center'>
-            <Clock size={190} value={new Date(localTimeInSeconds * 1000)} ></Clock>
+        <Row className='p-0 m-0 justify-content-center h-100 w-100'>
+            <Clock size={"100%"} className = "" value={new Date(localTimeInSeconds * 1000)} ></Clock>
         </Row>
         <Card.Body className='text-center time-track-font'>{clockTime.stringTime}</Card.Body>
         <Button variant={isSuccessOrIdle ? "success" : "dark"} disabled={isSuccessOrIdle ? false : true} className='m-5 my-0 ' onClick={() => {

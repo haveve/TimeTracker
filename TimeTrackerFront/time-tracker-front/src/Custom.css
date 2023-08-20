@@ -12053,8 +12053,9 @@ body {
 }
 
 .dropdown-toggle::after {
-  display: none !important;
+  display: none !important; 
 }
+
 
 .full-width-content {
   width: 100%;
@@ -12064,3 +12065,4 @@ body {
   max-height: 250px;
   overflow-y: scroll;
 }/*# sourceMappingURL=Custom.css.map */
+

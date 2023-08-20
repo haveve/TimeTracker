@@ -41,6 +41,7 @@ import {InputApproverReaction} from "./Types/InputApproverReaction";
 import {InputVacRequest} from "./Types/InputVacRequest";
 import { RequestCurrentUserAbsences, RequestUserAbsences } from "./Requests/AbsenceRequests";
 import { Absence } from "./Types/Absence";
+import { getStartOfWeekByCountry } from "./Slices/LocationSlice";
 
 export const ErrorMassagePattern = "There is occured error from server. For details check console and turn to administrator ";
 
@@ -93,18 +94,19 @@ export interface TimePayloadType{
     timeMark:TimeMark[],
     pageNumber:number,
     itemsInPage:number,
-    offset:number
+    offset:number,
+    country:string
 }
 
-export const setTimeE = (timeMark:TimeMark[],pageNumber:number,itemsInPage:number,offset:number) => ({type: "setTime",payload:{
-    timeMark,pageNumber,itemsInPage,offset
+export const setTimeE = (timeMark:TimeMark[],pageNumber:number,itemsInPage:number,offset:number,country:string) => ({type: "setTime",payload:{
+    timeMark,pageNumber,itemsInPage,offset,country
 }})
 export const setTimeEpic: Epic = (action$:Observable<PayloadAction<TimePayloadType>>)=> {
 
     return action$.pipe(
         ofType("setTime"),
         map(a=>a.payload),
-        mergeMap((p) => RequestGetTime(p.timeMark,p.pageNumber,p.itemsInPage,p.offset).pipe(
+        mergeMap((p) => RequestGetTime(p.timeMark,p.pageNumber,p.itemsInPage,p.offset,getStartOfWeekByCountry(p.country)).pipe(
             map((res: TimeResponse) => setTime(res)),
             catchError(() => of(setErrorStatusAndErrorTime(ErrorMassagePattern)))
         )),
