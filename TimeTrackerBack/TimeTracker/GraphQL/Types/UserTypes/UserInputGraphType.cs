@@ -11,6 +11,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field(i => i.Password);
             Field(i => i.FullName);
             Field(i => i.Email);
+            Field(i => i.WorkHours);
         }
     }
 }

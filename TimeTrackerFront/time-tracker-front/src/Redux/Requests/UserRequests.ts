@@ -257,7 +257,7 @@ interface GraphqlCreateUser {
 
 export function RequestCreateUser(user: User, permissions: Permissions): Observable<string> {
     return GetAjaxObservable<GraphqlCreateUser>(`
-                mutation createUser($User: UserInputType!, $Permissions: PermissionsInputType!){
+                mutation createUser($User: UserInput!, $Permissions: PermissionsInput!){
                     user{
                         createUser(user: $User, permissions: $Permissions)
                     }
@@ -297,7 +297,7 @@ interface GraphqlUpdateUser {
 
 export function RequestUpdateUser(user: User): Observable<string> {
     return GetAjaxObservable<GraphqlUpdateUser>(`
-                mutation updateUser($Id : Int!, $User: UserInputType!){
+                mutation updateUser($Id : Int!, $User: UserInput!){
                     user{
                         updateUser(id : $Id, user: $User)
                     }
@@ -307,7 +307,8 @@ export function RequestUpdateUser(user: User): Observable<string> {
                 "login": user.login,
                 "fullName": user.fullName,
                 "password": user.password,
-                "email": user.email
+                "email": user.email,
+                "workHours": 0
             },
             "Id": Number(user.id)
         }
@@ -399,7 +400,7 @@ export function RequestUpdatePassword(id: Number, NewPassword: string, Password:
 
 export function RequestUpdateUserPermissions(permissions: Permissions): Observable<string> {
     return GetAjaxObservable<string>(`
-                mutation  updateUserPermissions($PermissionsType : PermissionsInputType!){
+                mutation  updateUserPermissions($PermissionsType : PermissionsInput!){
                     user{
                         updateUserPermissions(permissions : $PermissionsType)
                     }

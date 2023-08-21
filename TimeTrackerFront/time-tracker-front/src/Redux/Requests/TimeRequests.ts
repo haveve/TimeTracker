@@ -127,6 +127,7 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
     return GetTokenObservable().pipe(
         mergeMap(() => {
             setCookie({ name: "refresh_sent", value: "false" })
+            store.dispatch(setLoginByToken(true));
             const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
             return ajax<response<T>>({
                 url,

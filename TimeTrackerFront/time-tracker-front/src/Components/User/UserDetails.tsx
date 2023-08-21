@@ -339,7 +339,7 @@ function UserDetails() {
                                         <Form.Check
                                             type="switch"
                                             id="custom-switch-2"
-                                            label="Import excell"
+                                            label="Export excell"
                                             checked={exportExcel}
                                             onClick={() => {
                                                 setExportExcel(!exportExcel)
@@ -357,7 +357,7 @@ function UserDetails() {
                                         <Form.Check
                                             type="switch"
                                             id="custom-switch-4"
-                                            label="Manage permiters"
+                                            label="Manage approvers"
                                             checked={editApprovers}
                                             onClick={() => {
                                                 setEditApprovers(!editApprovers)

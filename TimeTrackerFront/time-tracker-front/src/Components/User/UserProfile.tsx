@@ -77,6 +77,7 @@ function UserProfile() {
             setId(user.id!)
             setFullName(user.fullName!)
             setLogin(user.login!)
+            setEmail(user.email!)
         }
     }, [user])
 

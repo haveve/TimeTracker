@@ -9,8 +9,6 @@ import { Page } from '../Redux/Types/Page';
 import { TimeForStatisticFromSeconds } from './Time/TimeStatistic';
 
 function MainMenu() {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
 
     return (
         <div className='UserDetails d-flex align-items-center flex-column m-1'>

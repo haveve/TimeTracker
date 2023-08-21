@@ -80,8 +80,8 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditApprovers, ViewUsers, EditWorkHours, ExportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode, Enabled, WorkHours)" +
-                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @CRUDUsers, @EditApprovers, @ViewUsers, @EditWorkHours, @ExportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode, 1, @WorkHours)";
+                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, ResetCode, Enabled, WorkHours)" +
+                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @ResetCode, 1, @WorkHours)";
                 db.Execute(sqlQuery, user);
                 sqlQuery = "INSERT INTO Permissions (userId, CRUDUsers, EditApprovers, ViewUsers, EditWorkHours, ExportExcel, ControlPresence, ControlDayOffs)" +
                     " VALUES ((SELECT ISNULL(MAX(userId) + 1, 1) FROM Permissions), @CRUDUsers, @EditApprovers, @ViewUsers, @EditWorkHours, @ExportExcel, @ControlPresence, @ControlDayOffs)";
@@ -92,9 +92,9 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, LastChanged = @LastChanged WHERE Id = @Id";
+                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, Email = @Email, LastChanged = @LastChanged WHERE Id = @Id";
                 var LastChanged = DateTime.UtcNow;
-                db.Execute(sqlQuery, new{user.Login,user.FullName, LastChanged });
+                db.Execute(sqlQuery, new{ user.Id ,user.Login, user.FullName, user.Email, LastChanged });
                 _authorizationRepository.DeleteAllRefreshTokens(user.Id);
             }
         }

@@ -92,7 +92,7 @@ export function ajaxForLogin(variables: {}) {
       Accept: "application/json",
     },
     body: JSON.stringify({
-      query: `query($login:LoginInputType!){
+      query: `query($login:LoginInput!){
         login(login:$login){
           access_token {
             issuedAt
