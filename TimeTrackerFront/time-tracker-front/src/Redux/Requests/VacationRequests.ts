@@ -1,17 +1,11 @@
 import { User } from "../Types/User";
 import { map, Observable } from "rxjs";
-import { ajax } from "rxjs/ajax";
 import { ApproverNode } from "../Types/ApproverNode";
 import { GetAjaxObservable } from "./TimeRequests";
-import { TimeRequest } from "../Types/Time";
-import App from "../../App";
 import { VacationRequest } from "../Types/VacationRequest";
-import { vacationState } from "../Slices/VacationSlice";
 import { InputVacationRequest } from "../Types/InputVacationRequest";
 import { InputApproverReaction } from "../Types/InputApproverReaction";
 import { InputVacRequest } from "../Types/InputVacRequest";
-
-const url = "https://localhost:7226/graphql";
 
 interface GraphQlUsers {
     vacation: {

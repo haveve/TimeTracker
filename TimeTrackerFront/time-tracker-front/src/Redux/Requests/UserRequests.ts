@@ -1,9 +1,9 @@
-import {map, Observable} from "rxjs";
-import {User} from "../Types/User";
-import {Permissions} from "../Types/Permissions";
-import {Page} from "../Types/Page";
-import {UsersPage} from "../Types/UsersPage";
-import {GetAjaxObservable} from "./TimeRequests";
+import { map, Observable } from "rxjs";
+import { User } from "../Types/User";
+import { Permissions } from "../Types/Permissions";
+import { Page } from "../Types/Page";
+import { UsersPage } from "../Types/UsersPage";
+import { GetAjaxObservable } from "./TimeRequests";
 
 interface GraphqlUsers {
     user: {
@@ -97,12 +97,12 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
             "order": page.order,
             "enabled": page.enabled
         }).pipe(
-        map(res => {
-            let page: UsersPage = res.response.data.user.pagedUsers;
+            map(res => {
+                let page: UsersPage = res.response.data.user.pagedUsers;
 
-            return page;
-        })
-    );
+                return page;
+            })
+        );
 }
 
 interface GraphqlUser {
@@ -128,10 +128,10 @@ export function RequestUser(Id: Number): Observable<User> {
         {
             "Id": Number(Id)
         }).pipe(
-        map(res => {
-            return res.response.data.user.user
-        })
-    );
+            map(res => {
+                return res.response.data.user.user
+            })
+        );
 }
 
 interface GraphqlCurrentUser {
@@ -186,10 +186,10 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
         {
             "Id": Id
         }).pipe(
-        map(res => {
-            return res.response.data.user.userPermissions
-        })
-    );
+            map(res => {
+                return res.response.data.user.userPermissions
+            })
+        );
 }
 
 interface GraphqlCurrentUserPermissions {
@@ -216,9 +216,7 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
                   }
             `, {}).pipe(
         map(res => {
-            {
-                return res.response.data.user.currentUserPermissions
-            }
+            return res.response.data.user.currentUserPermissions
         })
     );
 }
@@ -242,9 +240,7 @@ export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
         }
     ).pipe(
         map(res => {
-            {
-                return res.response.data.user.RequestPasswordReset;
-            }
+            return res.response.data.user.RequestPasswordReset;
         })
     );
 }
@@ -303,15 +299,15 @@ export function RequestUpdateUser(user: User): Observable<string> {
                     }
                   }
             `, {
-            "User": {
-                "login": user.login,
-                "fullName": user.fullName,
-                "password": user.password,
-                "email": user.email,
-                "workHours": 0
-            },
-            "Id": Number(user.id)
-        }
+        "User": {
+            "login": user.login,
+            "fullName": user.fullName,
+            "password": user.password,
+            "email": user.email,
+            "workHours": 0
+        },
+        "Id": Number(user.id)
+    }
     ).pipe(
         map(res => {
             return res.response.data.user.updateUser

@@ -18,7 +18,6 @@ import { RequestAddCurrentUserAbsence, RequestCurrentUserAbsences, RequestRemove
 
 
 function UserProfile() {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);
     const [showPassword, setShowPassword] = useState(false);

@@ -5,33 +5,26 @@ import {
   Row,
   Nav,
   Navbar,
-  NavDropdown,
   Button,
   Offcanvas,
-  Form,
   ListGroup,
-  ListGroupItem,
-  Spinner
 } from "react-bootstrap";
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
-import TimeTracker, { IsSuccessOrIdle } from './Time/TimeTracker';
-import { Subscription, timer } from 'rxjs';
 import { ajaxForLogout } from '../Login/Api/login-logout';
 
 import { GetLocation } from '../Redux/Requests/CalendarRequest';
 import CheckModalWindow from './Service/CheckModalWindow';
-import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
-import { clearErrorMessage as clearErrorMessageTime } from '../Redux/Slices/TimeSlice';
+import { MessageType } from './Service/NotificationModalWindow';
 import { deleteCookie, getCookie, setCookie } from '../Login/Api/login-logout';
 import { getCurrentUser, getCurrentUserPermissions } from '../Redux/epics';
 import { Dispatch, RootState } from '../Redux/store';
-import { clearErrorMessage as clearErrorMessageUserList, setLogout } from '../Redux/Slices/UserSlice';
-import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
+import { clearErrorMessage as setLogout } from '../Redux/Slices/UserSlice';
+import { setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
 import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
 
 import '../Custom.css';
-import { setErrorStatusAndError as setErroMassageLocation, clearErrorMessage as clearErrorMessageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
+import { setErrorStatusAndError as setErroMassageLocation } from '../Redux/Slices/LocationSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
 import { useNavigate } from 'react-router-dom';
 
@@ -80,11 +73,9 @@ function AppNavbar() {
       else if (!canUseUserIp) {
         setCanUserApi("Can we use your IP to locate you?")
       }
-
-      var id = getCookie("user_id");
     }
   }, [tokenStatus]);
-  
+
   useEffect(() => {
     dispatch(getCurrentUser());
     dispatch(getCurrentUserPermissions());

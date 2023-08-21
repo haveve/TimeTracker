@@ -1,10 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Session, TimeMark, TimeResponse } from "../Types/Time";
-import { itemsInPage } from "../../Components/Time/TimeStatistic";
-import { LocationSlicer } from "./LocationSlice";
-import { locationOffset } from "./LocationSlice";
-import { ChangeLocationPayload, Location, officeTimeZone } from "./LocationSlice";
-import { LocationPayload } from "./LocationSlice";
 import { statusType } from "./TimeSlice";
 
 type initialStateType = {

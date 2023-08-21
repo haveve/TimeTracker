@@ -24,11 +24,9 @@ import {
 import {VacationRequest} from "../../Redux/Types/VacationRequest";
 import {Error} from "../Service/Error";
 import {InputVacationRequest} from "../../Redux/Types/InputVacationRequest";
-import {getIncomingVacationRequestsListByApproverId} from "../../Redux/Slices/VacationSlice";
 import {InputApproverReaction} from "../../Redux/Types/InputApproverReaction";
 import {InputVacRequest} from "../../Redux/Types/InputVacRequest";
 import {ApproverNode} from "../../Redux/Types/ApproverNode";
-import {SliceActionCreator} from "@reduxjs/toolkit";
 
 interface ReactionReturn {
     isApproved: boolean | null,

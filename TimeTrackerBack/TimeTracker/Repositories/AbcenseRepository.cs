@@ -27,6 +27,7 @@ namespace TimeTracker.Repositories
         }
         public void RemoveAbsence(Absence absence)
         {
+            Console.WriteLine(absence.UserId + " " + absence.Date + " " + absence.Type);
             string query = "DELETE FROM Absences WHERE UserId = @UserId AND Date = @Date";
             using var dapperConnection = _dapperContext.CreateConnection();
             dapperConnection.Execute(query, absence );

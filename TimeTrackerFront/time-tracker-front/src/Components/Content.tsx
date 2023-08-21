@@ -1,5 +1,4 @@
 import '../Custom.css';
-import React, { useEffect, useState } from 'react';
 import Login from '../Login/Features/Login';
 import { createBrowserRouter, RouterProvider, Outlet, redirect } from 'react-router-dom';
 import ResetPassword from './User/ResetPassword';
@@ -16,8 +15,7 @@ import Calendar from './Calendar/Calendar';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../Redux/store';
 import PermissionError from './Service/PermissionError';
-import { RequestCurrentUser } from '../Redux/Requests/UserRequests';
-import { User } from '../Redux/Types/User';
+import { RequestCurrentUser, RequestCurrentUserPermissions } from '../Redux/Requests/UserRequests';
 
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { clearErrorMessage as clearErrorMessageTime } from '../Redux/Slices/TimeSlice';
@@ -27,7 +25,6 @@ import { clearErrorMessage as clearErrorMessageToken } from '../Redux/Slices/Tok
 
 import { Permissions } from '../Redux/Types/Permissions';
 import MainMenu from './MainMenu';
-import { getCurrentUser, getCurrentUserPermissions } from '../Redux/epics';
 
 
 const checkPermissions = (Permission: string, permissions: Permissions) => {
@@ -45,7 +42,7 @@ const checkPermissions = (Permission: string, permissions: Permissions) => {
     }
     return null;
 }
-const router = (permissions: Permissions) => createBrowserRouter([
+const router = () => createBrowserRouter([
     {
         element: <AppNavbar />,
         loader: async () => getTokenOrNavigate(),
@@ -56,17 +53,17 @@ const router = (permissions: Permissions) => createBrowserRouter([
             },
             {
                 path: "/Users",
-                loader: async () => checkPermissions("ViewUsers", permissions),
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("ViewUsers", permissions) }),
                 element: <Userslist />,
             },
             {
                 path: "/Users/:userId",
-                loader: async () => checkPermissions("UserDetails", permissions),
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("UserDetails", permissions) }),
                 element: <UserDetails />
             },
             {
                 path: "/CreateUser",
-                loader: async () => checkPermissions("CreateUsers", permissions),
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("CreateUsers", permissions) }),
                 element: <CreateUser />
             },
             {
@@ -79,7 +76,7 @@ const router = (permissions: Permissions) => createBrowserRouter([
             },
             {
                 path: "/Time",
-                loader: async () => checkPermissions("Time", permissions),
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("Time", permissions) }),
                 element: <TimeStatistic />
             },
             {
@@ -117,10 +114,9 @@ function AppContent() {
     const errorToken = useSelector((state: RootState) => state.token.error ? state.token.error : "")
 
     const dispatch = useDispatch();
-    let permissions = useSelector((state: RootState) => state.currentUser.Permissions);
     return (
         <div className='Content container-fluid p-0 h-100'>
-            <RouterProvider router={router(permissions)} />
+            <RouterProvider router={router()} />
             <NotificationModalWindow isShowed={errorTime !== ""} dropMessage={() => dispatch(clearErrorMessageTime())}
                 messageType={MessageType.Error}>{errorTime}</NotificationModalWindow>
             <NotificationModalWindow isShowed={errorUserList !== ""}

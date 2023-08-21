@@ -220,6 +220,7 @@ function UserDetails() {
     }
 
     const handleRemoveAbsence = (Absence: Absence) => {
+        Absence.userId = parseInt(userId);
         RequestRemoveUserAbsence(Absence).subscribe((x) => {
             setShowError(false);
             RequestUserAbsences(parseInt(userId)).subscribe(x => setAbsences(x));
