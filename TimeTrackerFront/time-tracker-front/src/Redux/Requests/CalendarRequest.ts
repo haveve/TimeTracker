@@ -1,7 +1,7 @@
 import { Observable, map } from "rxjs";
 import { GetAjaxObservable } from "./TimeRequests";
 import { CalendarDay } from "../Types/Calendar";
-import { CalendarDayRequest } from "../Types/Calendar";
+import { CalendarDayRequest,CalendarDayResponse } from "../Types/Calendar";
 import { MonthOrWeek } from "../../Components/Calendar/Calendar";
 import { ajax } from "rxjs/ajax";
 import { locationOffset } from "../Slices/LocationSlice";
@@ -10,7 +10,7 @@ import { DateTime } from "luxon";
 
 interface GraphqlCalendar {
   calendar: {
-    getEvents: CalendarDayRequest[]
+    getEvents: CalendarDayResponse[]
   }
 }
 
@@ -100,7 +100,8 @@ export function GetEvents(date: Date, weekOrMonth: MonthOrWeek, userId: number |
           getEvents(userId:$userId,date:$date,weekOrMonth:$weekOrMonth){
             title,
             endDate,
-            startDate
+            startDate,
+            type
           }
         }
       }`, { userId, date: date.toISOString(), weekOrMonth }).pipe(
@@ -109,7 +110,7 @@ export function GetEvents(date: Date, weekOrMonth: MonthOrWeek, userId: number |
         console.error(JSON.stringify(res.response.errors))
         throw "error"
       }
-      return res.response.data.calendar.getEvents.map(c => ({ title: c.title, end: new Date(c.endDate), start: new Date(c.startDate) }));
+      return res.response.data.calendar.getEvents.map(c => ({ title: c.title, end: new Date(c.endDate), start: new Date(c.startDate),type : c.type }));
     })
   )
 }
