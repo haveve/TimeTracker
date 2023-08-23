@@ -1,4 +1,5 @@
 import '../Custom.css';
+import React, { useEffect } from 'react';
 import Login from '../Login/Features/Login';
 import { createBrowserRouter, RouterProvider, Outlet, redirect } from 'react-router-dom';
 import ResetPassword from './User/ResetPassword';
@@ -15,6 +16,7 @@ import Calendar from './Calendar/Calendar';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../Redux/store';
 import PermissionError from './Service/PermissionError';
+import { setCookie } from '../Login/Api/login-logout';
 import { RequestCurrentUser, RequestCurrentUserPermissions } from '../Redux/Requests/UserRequests';
 
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
@@ -112,6 +114,10 @@ function AppContent() {
     const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
     const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
     const errorToken = useSelector((state: RootState) => state.token.error ? state.token.error : "")
+
+    useEffect(()=>{
+        setCookie({ name: "refresh_sent", value: "false" })
+    },[])
 
     const dispatch = useDispatch();
     return (
