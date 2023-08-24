@@ -39,6 +39,7 @@ namespace TimeTracker.Services
         private void updateFullTimersWorkTime(DateTime date)
         {
             bool bIsShortDay = false;
+            bool bIsCelebrateOrHoliday = false;
             var globalCalendar = CalendarRepository.GetAllGlobalEvents();
             globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
             globalCalendar = globalCalendar.FindAll(e => e.Date.ToString("yyyy-MM-dd") == date.ToString("yyyy-MM-dd") || e.Date.ToString("yyyy-MM-dd") == date.AddDays(1).ToString("yyyy-MM-dd"));
@@ -47,6 +48,7 @@ namespace TimeTracker.Services
                 {
                     if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate || e.TypeOfGlobalEvent == TypeOfGlobalEvent.Holiday) {
                         Console.WriteLine("No work due to selebration/holiday");
+                        bIsCelebrateOrHoliday = true;
                         return; 
                     }
                     if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay) { bIsShortDay = true; Console.WriteLine("Short day"); } 
@@ -56,6 +58,7 @@ namespace TimeTracker.Services
                     if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate ) { bIsShortDay = true; Console.WriteLine("Short day"); }
                 }
             });
+            if (bIsCelebrateOrHoliday) return;
             var users = UserRepository.GetUsers().Where(u => u.WorkHours == 100 && u.Enabled == true).ToList();
             foreach (var user in users)
             {
