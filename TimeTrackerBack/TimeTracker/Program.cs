@@ -21,6 +21,7 @@ using static TimeTracker.Controllers.TestController;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHostedService<BackgroundTasksService>();
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 
