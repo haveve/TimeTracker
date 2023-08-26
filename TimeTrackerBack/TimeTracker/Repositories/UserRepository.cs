@@ -162,13 +162,20 @@ namespace TimeTracker.Repositories
 
 
         }
-
         public void UpdateUserPermissions(Permissions permissions)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var sqlQuery = "UPDATE Permissions SET CRUDUsers = @CRUDUsers, EditApprovers = @EditApprovers, ViewUsers = @ViewUsers, EditWorkHours = @EditWorkHours, ExportExcel = @ExportExcel, ControlPresence = @ControlPresence, ControlDayOffs = @ControlDayOffs WHERE userId = @userId";
                 db.Execute(sqlQuery, permissions);
+            }
+        }
+        public void AddUsersVacationDays()
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                var sqlQuery = "UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1";
+                db.Execute(sqlQuery);
             }
         }
         public void DisableUser(int id)
