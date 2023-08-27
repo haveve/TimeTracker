@@ -19,14 +19,14 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 .ResolveAsync(async context =>
                 {
                     var userId = GetUserIdFromClaims(context.User!);
-                    return repo.GetUserAbsence(userId).Where(a => a.Date.Month == DateTime.Now.Month);
+                    return repo.GetUserAbsence(userId).Where(a => a.Date.Month >= DateTime.Now.Month);
                 });
             Field<ListGraphType<AbsenceGraphType>>("UserAbsences")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
                 .ResolveAsync(async context =>
                 {
                     int id = context.GetArgument<int>("id");
-                    return repo.GetUserAbsence(id).Where(a => a.Date.Month == DateTime.Now.Month);
+                    return repo.GetUserAbsence(id).Where(a => a.Date.Month >= DateTime.Now.Month);
                 });
         }
         public static int GetUserIdFromClaims(ClaimsPrincipal user)

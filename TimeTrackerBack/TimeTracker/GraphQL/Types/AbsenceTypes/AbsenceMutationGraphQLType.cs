@@ -23,6 +23,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 {
                     var absence = context.GetArgument<Absence>("Absence");
                     AbsenceRepository.AddAbsence(absence);
+                    if(absence.Date >= DateTime.Now) return "Absence added successfully";
                     if (UserRepository.GetUser(absence.UserId).WorkHours == 100) TimeRepository.DeleteDayTime(absence.UserId, absence.Date);
                     return "Absence added successfully";
                 });
@@ -34,6 +35,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                     var absence = context.GetArgument<Absence>("Absence");
                     absence.UserId = GetUserIdFromClaims(context.User!);
                     AbsenceRepository.AddAbsence(absence);
+                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
                     if (UserRepository.GetUser(absence.UserId).WorkHours == 100) TimeRepository.DeleteDayTime(absence.UserId, absence.Date);
                     return "Absence added successfully";
                 });
@@ -44,6 +46,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 {
                     var absence = context.GetArgument<Absence>("Absence");
                     AbsenceRepository.RemoveAbsence(absence);
+                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
                     if (UserRepository.GetUser(absence.UserId).WorkHours == 100)
                     {
                         BackgroundTasksService.updateFullTimerWorkTime(absence.UserId, absence.Date,
@@ -63,6 +66,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                     var absence = context.GetArgument<Absence>("Absence");
                     absence.UserId = GetUserIdFromClaims(context.User!);
                     AbsenceRepository.RemoveAbsence(absence);
+                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
                     if (UserRepository.GetUser(absence.UserId).WorkHours == 100)
                     {
                         BackgroundTasksService.updateFullTimerWorkTime(absence.UserId, absence.Date,
