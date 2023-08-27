@@ -102,6 +102,16 @@ namespace TimeTracker.Repositories
                 return request;
             }
         }
+        public VacationRequest GetCurrentVacationRequest(int id, DateTime date)
+        {
+            using (IDbConnection db = new SqlConnection(conectionString))
+            {
+                string daydate = date.ToString("yyyy-MM-dd");
+                string query = $"SELECT * FROM VacationRequests WHERE RequesterId = @id AND convert(varchar(10), [StartDate], 120) <= @daydate AND convert(varchar(10), [EndDate], 120) >= @daydate AND Status = 'Approved'";
+                var request = db.Query<VacationRequest>(query, new { id, daydate }).FirstOrDefault();
+                return request ?? null;
+            }
+        }
         public List<VacationRequest> GetVacationRequestsByRequesterId(int requesterId, string requestType)
         {
             using (IDbConnection db = new SqlConnection(conectionString))

@@ -20,7 +20,21 @@ namespace TimeTracker.Repositories
             var time = connection.Query<Models.Time>(query).ToList();
             return time;
         }
-
+        public List<Models.Time>? GetDayTime(int userId, DateTime date)
+        {
+            string daydate = date.ToString("yyyy-MM-dd");
+            string query = $"SELECT * FROM UserTime WHERE UserId = @userId AND convert(varchar(10), [StartTimeTrackDate], 120) = @daydate";
+            using var connection = _dapperContext.CreateConnection();
+            var time = connection.Query<Models.Time>(query, new { userId, daydate }).ToList();
+            return time;
+        }
+        public void DeleteDayTime(int userId, DateTime date)
+        {
+            string daydate = date.ToString("yyyy-MM-dd");
+            string query = $"DELETE FROM UserTime WHERE UserId = @userId AND convert(varchar(10), [StartTimeTrackDate], 120) = @daydate";
+            using var connection = _dapperContext.CreateConnection();
+            connection.Execute(query, new { userId, daydate });
+        }
         public void SetEndTrackDate(DateTime date, int userId)
         {
             string query = $"UPDATE TOP (1) UserTime SET EndTimeTrackDate = @date WHERE UserId = {userId} AND EndTimeTrackDate IS NULL ";
