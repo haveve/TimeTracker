@@ -23,8 +23,9 @@ namespace TimeTracker.Repositories
         public void DeleteUser(int id);
         User? GetUserByEmailOrLogin(string LoginOrEmail);
         void UpdateUserResetCodeById(int id, string code);
-        void UpdateUserPasswordAndCode(int id, string code, string password);
+        void UpdateUserPasswordAndCode(int id, string password);
         public bool ComparePasswords(int id, string password);
         List<User> GetUsersByFullName(string loginOrFullName);
+        public void SetUsersVacationDays(int userId, int daysCount);
     }
 }

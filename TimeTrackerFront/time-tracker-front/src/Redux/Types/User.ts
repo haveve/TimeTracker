@@ -11,6 +11,7 @@ export interface User {
     exportExcel?: boolean,
     controlPresence?: boolean,
     controlDayOffs?: boolean,
+    vacationDays?: string,
     daySeconds?: number,
     weekSeconds?: number,
     monthSeconds?: number,

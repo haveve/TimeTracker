@@ -129,7 +129,7 @@ export function RequestIncomingVacationRequestsByApproverId(inputVacRequest: Inp
                             id,
       requesterId, 
       requester{
-        id,login,fullName, email
+        id,login,fullName, email, vacationDays
       }
       infoAboutRequest,
       status,

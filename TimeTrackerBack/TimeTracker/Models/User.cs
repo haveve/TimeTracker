@@ -14,6 +14,7 @@ namespace TimeTracker.Models
         public string ResetCode { get; set; } = null;
         public bool Enabled { get; set; } = false;
         public int WorkHours {  get; set; }
+        public int VacationDays { get; set; }
         public LasUpdatedBy TimeManagedBy { get; set; }
         public double WorkedHours { get; set; }
     }

@@ -300,6 +300,7 @@ export default function VacationRequests(props: { user: User }) {
                         <Modal.Title>Create vacation request</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
+                        <Form.Label>Remaining days - {props.user.vacationDays}</Form.Label>
                         <Form.Group className="mb-3">
                             <Form.Label>Some info about request</Form.Label>
                             <Form.Control
@@ -452,7 +453,7 @@ export default function VacationRequests(props: { user: User }) {
                                             {vacationRequest.infoAboutRequest}
                                         </p>
                                         <p className="m-0 fs-5">
-                                            Requester - {vacationRequest.requester.fullName}
+                                            Requester - {vacationRequest.requester.fullName} - Remaining days = {vacationRequest.requester.vacationDays}
                                         </p>
                                     </Col>
                                     <Col>

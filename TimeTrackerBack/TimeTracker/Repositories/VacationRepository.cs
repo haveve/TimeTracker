@@ -299,6 +299,14 @@ namespace TimeTracker.Repositories
                     nodes.Approver = _userRepository.GetUser(nodes.UserIdApprover);
                 }
                 User user = _userRepository.GetUser(vacationRequest.RequesterId);
+
+                if (status == "Approved")
+                {
+                    int vacationDuration = (int)vacationRequest.EndDate.Subtract(vacationRequest.StartDate).TotalDays;
+                    int count = user.VacationDays - vacationDuration;
+                    _userRepository.SetUsersVacationDays(user.Id, count);
+                }
+
                 _emailSender.SendResponseOfVacationRequest(vacationRequest, user.Email);
             }
         }

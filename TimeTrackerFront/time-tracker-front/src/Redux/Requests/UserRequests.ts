@@ -1,9 +1,11 @@
-import { map, Observable } from "rxjs";
-import { User } from "../Types/User";
-import { Permissions } from "../Types/Permissions";
-import { Page } from "../Types/Page";
-import { UsersPage } from "../Types/UsersPage";
-import { GetAjaxObservable } from "./TimeRequests";
+import {map, Observable} from "rxjs";
+import {User} from "../Types/User";
+import {Permissions} from "../Types/Permissions";
+import {Page} from "../Types/Page";
+import {UsersPage} from "../Types/UsersPage";
+import {GetAjaxObservable} from "./TimeRequests";
+import {ajax} from "rxjs/ajax";
+import {LoginType} from "../../Login/Api/login-logout";
 
 interface GraphqlUsers {
     user: {
@@ -97,12 +99,12 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
             "order": page.order,
             "enabled": page.enabled
         }).pipe(
-            map(res => {
-                let page: UsersPage = res.response.data.user.pagedUsers;
+        map(res => {
+            let page: UsersPage = res.response.data.user.pagedUsers;
 
-                return page;
-            })
-        );
+            return page;
+        })
+    );
 }
 
 interface GraphqlUser {
@@ -121,6 +123,7 @@ export function RequestUser(Id: Number): Observable<User> {
                         fullName
                         email
                         enabled
+                        vacationDays
                       }
                     }
                   }
@@ -128,10 +131,10 @@ export function RequestUser(Id: Number): Observable<User> {
         {
             "Id": Number(Id)
         }).pipe(
-            map(res => {
-                return res.response.data.user.user
-            })
-        );
+        map(res => {
+            return res.response.data.user.user
+        })
+    );
 }
 
 interface GraphqlCurrentUser {
@@ -150,6 +153,7 @@ export function RequestCurrentUser(): Observable<User> {
                         fullName
                         email
                         enabled
+                        vacationDays
                       }
                     }
                   }
@@ -186,10 +190,10 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
         {
             "Id": Id
         }).pipe(
-            map(res => {
-                return res.response.data.user.userPermissions
-            })
-        );
+        map(res => {
+            return res.response.data.user.userPermissions
+        })
+    );
 }
 
 interface GraphqlCurrentUserPermissions {
@@ -220,27 +224,62 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
         })
     );
 }
-
-interface GraphqlRequestPasswordReset {
+interface GraphqlUserVacationDays {
     user: {
-        RequestPasswordReset: string
+        user: User
     }
 }
-
-export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
-    return GetAjaxObservable<GraphqlRequestPasswordReset>(`
-                query sentResetPasswordEmail($LoginOrEmail: String!){
+export function RequestUserVacationDays(Id: Number): Observable<User> {
+    return GetAjaxObservable<GraphqlUserVacationDays>(`
+                query GetUser($Id: Int!){
                     user{
-                        sentResetPasswordEmail(loginOrEmail: $LoginOrEmail)
+                        user(id: $Id){
+                        id
+                        login
+                        fullName
+                        email
+                        enabled
+                        vacationDays
+                      }
                     }
                   }
             `,
         {
-            "LoginOrEmail": LoginOrEmail
-        }
-    ).pipe(
+            "Id": Number(Id)
+        }).pipe(
         map(res => {
-            return res.response.data.user.RequestPasswordReset;
+            return res.response.data.user.user
+        })
+    );
+}
+interface GraphqlRequestPasswordReset {
+    data: {
+        RequestPasswordReset: string;
+    }
+}
+
+export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
+    return ajax<GraphqlRequestPasswordReset>({
+        url: "https://localhost:7226/graphql-login",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            query: `query sentResetPasswordEmail($LoginOrEmail: String!){
+                    
+                        sentResetPasswordEmail(loginOrEmail: $LoginOrEmail)
+                    
+                  }`,
+            variables:
+                {
+                    "LoginOrEmail": LoginOrEmail
+                }
+        }),
+
+    }).pipe(
+        map(res => {
+            return res.response.data.RequestPasswordReset;
         })
     );
 }
@@ -299,15 +338,15 @@ export function RequestUpdateUser(user: User): Observable<string> {
                     }
                   }
             `, {
-        "User": {
-            "login": user.login,
-            "fullName": user.fullName,
-            "password": user.password,
-            "email": user.email,
-            "workHours": 0
-        },
-        "Id": Number(user.id)
-    }
+            "User": {
+                "login": user.login,
+                "fullName": user.fullName,
+                "password": user.password,
+                "email": user.email,
+                "workHours": 0
+            },
+            "Id": Number(user.id)
+        }
     ).pipe(
         map(res => {
             return res.response.data.user.updateUser
@@ -343,27 +382,33 @@ export function RequestRegisterUserByCode(Password: string, Login: string, Code:
 }
 
 interface GraphqlUpdatePasswordByCode {
-    user: {
+    data: {
         resetUserPasswordByCode: string
     }
 }
 
 export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, Email: string): Observable<string> {
-    return GetAjaxObservable<GraphqlUpdatePasswordByCode>(`
-                mutation resetUserPasswordByCode($Code : String!, $NewPassword: String!, $Email: String!){
-                    user{
+    return ajax<GraphqlUpdatePasswordByCode>({
+        url: "https://localhost:7226/graphql-login",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            query: `query resetUserPasswordByCode($Code : String!, $NewPassword: String!, $Email: String!){
                         resetUserPasswordByCode(code : $Code, password: $NewPassword, email: $Email)
-                    }
-                  }
-            `,
-        {
-            "Code": Code,
-            "NewPassword": NewPassword,
-            "Email": Email,
-        }
-    ).pipe(
+                  }`,
+            variables:
+                {
+                    "Code": Code,
+                    "NewPassword": NewPassword,
+                    "Email": Email,
+                }
+        }),
+
+    }).pipe(
         map(res => {
-            return res.response.data.user.resetUserPasswordByCode
+            return res.response.data.resetUserPasswordByCode;
         })
     );
 }
