@@ -44,6 +44,8 @@ namespace TimeTracker.GraphQL.Types.Calendar
 
 
                     var events = _calendarRepository.GetAllEvents(userId);
+                    events.AddRange(_calendarRepository.GetAllUsersAbsences(userId));
+                    events.AddRange(_calendarRepository.GetAllUsersVacations(userId));
                     switch (weekOrMonth)
                     {
                         case MonthOrWeek.Month:
