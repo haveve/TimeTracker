@@ -29,7 +29,7 @@ namespace TimeTracker.Services
                 if (hourSpan == 24)
                 {
                     //do something
-                    updateFullTimersWorkTime(DateTime.Now.AddHours(-1));
+                    updateFullTimersWorkTime(DateTime.Now.AddHours(-1), AbsenceRepository, VacationRepository);
                     if (DateTime.Now.Day == 1)
                     {
                         UserRepository.AddUsersVacationDays();
