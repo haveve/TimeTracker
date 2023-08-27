@@ -19,6 +19,14 @@ namespace TimeTracker.Repositories
             var absences = dapperConnection.Query<Absence>(query).ToList();
             return absences ?? new();
         }
+        public Absence GetUserDayAbsence(int userId, DateTime date)
+        {
+            string daydate = date.ToString("yyyy-MM-dd");
+            string query = $"SELECT * FROM Absences WHERE UserId = @userId AND convert(varchar(10), [Date], 120) = @daydate";
+            using var dapperConnection = _dapperContext.CreateConnection();
+            var absence = dapperConnection.Query<Absence>(query, new { userId, daydate }).FirstOrDefault();
+            return absence ?? null;
+        }
         public void AddAbsence(Absence absence)
         {
             string query = $"INSERT INTO Absences (UserId, Type, Date) VALUES(@UserId, @Type, @Date)";

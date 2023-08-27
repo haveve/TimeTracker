@@ -1,16 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { ListGroup, Pagination, Form, InputGroup, Button, Row, Col, Overlay, Card } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 import '../Custom.css';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from "../Redux/store";
-import { getPagedUsers, getUsers } from '../Redux/epics';
-import { Link, useNavigate } from 'react-router-dom';
-import { Page } from '../Redux/Types/Page';
-import { TimeForStatisticFromSeconds } from './TimeStatistic';
+import { Link } from 'react-router-dom';
 
 function MainMenu() {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
 
     return (
         <div className='UserDetails d-flex align-items-center flex-column m-1'>

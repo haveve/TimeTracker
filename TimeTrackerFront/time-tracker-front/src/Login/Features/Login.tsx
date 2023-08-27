@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
-import * as Yup from 'yup';
-import { Formik } from 'formik';
+import { useState } from 'react';
 import type { Login } from '../Models/ViewModels';
-import { Container, Nav, Navbar, NavDropdown, Button, Card, Table, Form } from "react-bootstrap";
+import { Button, Card, Table, Form } from "react-bootstrap";
 import {
   useNavigate,
 } from "react-router-dom";
 import { ajaxForLogin, getQueryObserver } from "../Api/login-logout";
-import { Error } from '../../Components/Error';
+import { Error } from '../../Components/Service/Error';
 import { useDispatch } from 'react-redux';
 import { setLoginByToken } from '../../Redux/Slices/TokenSlicer';
 

@@ -16,7 +16,7 @@ namespace TimeTracker.GraphQL.Types.Vacation
             vacRepo = vacationRepoitory;
 
 
-            Field<ListGraphType<UserType>>("approvers")
+            Field<ListGraphType<UserGraphType>>("approvers")
                 .Argument<NonNullGraphType<IntGraphType>>("requesterId")
                 .Resolve(context =>
                 {
@@ -24,7 +24,7 @@ namespace TimeTracker.GraphQL.Types.Vacation
                     var tempList = vacRepo.GetApproversByRequesterId(requesterUserId);
                     return tempList;
                 });
-            Field<ListGraphType<UserType>>("requesters")
+            Field<ListGraphType<UserGraphType>>("requesters")
                 .Argument<NonNullGraphType<IntGraphType>>("approverId")
                 .Resolve(context =>
                 {

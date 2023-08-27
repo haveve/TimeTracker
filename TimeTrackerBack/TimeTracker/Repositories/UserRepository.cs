@@ -80,11 +80,11 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs, DaySeconds, WeekSeconds, MonthSeconds, ResetCode, Enabled, WorkHours)" +
-                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs, @DaySeconds, @WeekSeconds, @MonthSeconds, @ResetCode, 1, @WorkHours)";
+                var sqlQuery = "INSERT INTO Users (Id, Login, Password, Email, FullName, ResetCode, Enabled, WorkHours)" +
+                    " VALUES((SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), (SELECT ISNULL(MAX(ID) + 1, 1) FROM Users), @Password, @Email, @FullName, @ResetCode, 1, @WorkHours)";
                 db.Execute(sqlQuery, user);
-                sqlQuery = "INSERT INTO Permissions (userId, CRUDUsers, EditPermiters, ViewUsers, EditWorkHours, ImportExcel, ControlPresence, ControlDayOffs)" +
-                    " VALUES ((SELECT ISNULL(MAX(userId) + 1, 1) FROM Permissions), @CRUDUsers, @EditPermiters, @ViewUsers, @EditWorkHours, @ImportExcel, @ControlPresence, @ControlDayOffs)";
+                sqlQuery = "INSERT INTO Permissions (userId, CRUDUsers, EditApprovers, ViewUsers, EditWorkHours, ExportExcel, ControlPresence, ControlDayOffs)" +
+                    " VALUES ((SELECT ISNULL(MAX(userId) + 1, 1) FROM Permissions), @CRUDUsers, @EditApprovers, @ViewUsers, @EditWorkHours, @ExportExcel, @ControlPresence, @ControlDayOffs)";
                 db.Execute(sqlQuery, permissions );
             }
         }
@@ -92,9 +92,9 @@ namespace TimeTracker.Repositories
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, LastChanged = @LastChanged WHERE Id = @Id";
+                var sqlQuery = "UPDATE Users SET Login = @Login, FullName = @FullName, Email = @Email, LastChanged = @LastChanged WHERE Id = @Id";
                 var LastChanged = DateTime.UtcNow;
-                db.Execute(sqlQuery, new{user.Login,user.FullName, LastChanged });
+                db.Execute(sqlQuery, new{ user.Id ,user.Login, user.FullName, user.Email, LastChanged });
                 _authorizationRepository.DeleteAllRefreshTokens(user.Id);
             }
         }
@@ -103,7 +103,7 @@ namespace TimeTracker.Repositories
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var LastChanged = DateTime.UtcNow;
-                db.Execute("UPDATE Users SET ResetCode = @code, LastChanged = @LastChange WHERE Id = @id", new { id, code, LastChanged });
+                db.Execute("UPDATE Users SET ResetCode = @code, LastChanged = @LastChanged WHERE Id = @id", new { id, code, LastChanged });
                 _authorizationRepository.DeleteAllRefreshTokens(id);
             }
         }
@@ -133,7 +133,7 @@ namespace TimeTracker.Repositories
                 _authorizationRepository.DeleteAllRefreshTokens(Id);
             }
         }
-        public void UpdateUserPasswordAndCode(int id, string code, string password)
+        public void UpdateUserPasswordAndCode(int id, string password)
         {
             var salt = PasswordHasher.GenerateSalt();
             var papper = _configuration.GetSection("Hash:Papper").Value;
@@ -142,33 +142,28 @@ namespace TimeTracker.Repositories
             var LastChanged = DateTime.UtcNow;
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                string sqlQuery;
-                if (code == null)
-                {
-                    sqlQuery = $"UPDATE Users SET ResetCode = NULL, Password = '{password}', Salt = {salt}, LastChanged = @LastChange WHERE Id = {id}";
-                    db.Execute(sqlQuery, new { id, password, LastChanged });
-
-                }
-
-                else
-                {
-                    sqlQuery = $"UPDATE Users SET ResetCode = @code, Password = @password, Salt = {salt}, LastChanged = @LastChange WHERE Id = @id";
-                    db.Execute(sqlQuery, new { id, code, password,LastChanged });
-
-                }
+                string sqlQuery = "UPDATE Users SET ResetCode = NULL, Password = @password, Salt = @salt, LastChanged = @LastChanged WHERE Id = @id";
+                db.Execute(sqlQuery, new { id, password,LastChanged,salt });
 
                 _authorizationRepository.DeleteAllRefreshTokens(id);
             }
 
 
         }
-
         public void UpdateUserPermissions(Permissions permissions)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                var sqlQuery = "UPDATE Permissions SET CRUDUsers = @CRUDUsers, EditPermiters = @EditPermiters, ViewUsers = @ViewUsers, EditWorkHours = @EditWorkHours, ImportExcel = @ImportExcel, ControlPresence = @ControlPresence, ControlDayOffs = @ControlDayOffs WHERE userId = @userId";
+                var sqlQuery = "UPDATE Permissions SET CRUDUsers = @CRUDUsers, EditApprovers = @EditApprovers, ViewUsers = @ViewUsers, EditWorkHours = @EditWorkHours, ExportExcel = @ExportExcel, ControlPresence = @ControlPresence, ControlDayOffs = @ControlDayOffs WHERE userId = @userId";
                 db.Execute(sqlQuery, permissions);
+            }
+        }
+        public void AddUsersVacationDays()
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                var sqlQuery = "UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1";
+                db.Execute(sqlQuery);
             }
         }
         public void DisableUser(int id)
@@ -201,6 +196,14 @@ namespace TimeTracker.Repositories
                 var iteration = int.Parse(_configuration.GetSection("Hash:Iteration").Value);
                 var hashedPassword = PasswordHasher.ComputeHash(password, salt, papper, iteration);
                 return (hashedPassword == db.Query<User>($"SELECT * FROM Users WHERE  id = {id}").First().Password);
+            }
+        }
+        public void SetUsersVacationDays(int userId, int daysCount)
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                string sqlQuery = $"UPDATE Users SET VacationDays = {daysCount} WHERE Id = {userId}";
+                db.Execute(sqlQuery);
             }
         }
     }

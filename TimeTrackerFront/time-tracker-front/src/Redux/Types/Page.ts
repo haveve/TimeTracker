@@ -2,7 +2,7 @@ export interface Page {
     first?: number,
     after?: number,
     search?: string,
-    orderfield?: string,
+    orderField?: string,
     order?: string,
     enabled?: string,
 }

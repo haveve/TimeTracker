@@ -19,9 +19,9 @@ namespace TimeTracker.GraphQL.Queries
             repo = Repo;
             Field<UserQueryGraphQLType>("user")
             .Resolve(context => new { });
-            Field<TimeQueryGraphqlType>("time")
+            Field<TimeQueryGraphQLType>("time")
             .Resolve(context => new { });
-            Field<CalendarQueryGraphqlType>("calendar")
+            Field<CalendarQueryGraphQLType>("calendar")
                 .Resolve(context => new { });
             Field<VacationQuery>("vacation")
             .Resolve(context => new { });

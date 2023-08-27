@@ -16,8 +16,8 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             repo = Repo;
 
             Field<StringGraphType>("createUser")
-                .Argument<NonNullGraphType<UserInputType>>("User")
-                .Argument<NonNullGraphType<PermissionsInputType>>("Permissions")
+                .Argument<NonNullGraphType<UserInputGraphType>>("User")
+                .Argument<NonNullGraphType<PermissionsInputGraphType>>("Permissions")
                 .ResolveAsync(async context =>
                 {
                     var user = context.GetArgument<User>("User");
@@ -33,7 +33,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
 
             Field<StringGraphType>("updateUser")
                 .Argument<NonNullGraphType<IntGraphType>>("Id")
-                .Argument<NonNullGraphType<UserInputType>>("User")
+                .Argument<NonNullGraphType<UserInputGraphType>>("User")
                 .ResolveAsync(async context =>
                 {
                     var Id = context.GetArgument<int>("Id");
@@ -81,27 +81,10 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     return "Password updated successfully";
                 });
 
-            Field<StringGraphType>("resetUserPasswordByCode")
-                .Argument<NonNullGraphType<StringGraphType>>("Code")
-                .Argument<NonNullGraphType<StringGraphType>>("Password")
-                .Argument<NonNullGraphType<StringGraphType>>("Email")
-                .ResolveAsync(async context =>
-                {
-                    string code = context.GetArgument<string>("Code");
-                    string password = context.GetArgument<string>("Password");
-                    string email = context.GetArgument<string>("Email");
-                    User? user = repo.GetUserByEmailOrLogin(email);
-                    if (user == null) return "User not found";
-                    if (user.ResetCode == null) return "User was not requesting password change";
-                    if (user.ResetCode != code) return "Reset code not match";
-
-                    repo.UpdateUserPasswordAndCode(user.Id, null, password);
-
-                    return "Password reseted successfully";
-                });
+           
 
             Field<StringGraphType>("updateUserPermissions")
-                .Argument<NonNullGraphType<PermissionsInputType>>("Permissions")
+                .Argument<NonNullGraphType<PermissionsInputGraphType>>("Permissions")
                 .ResolveAsync(async context =>
                 {
                     var permissions = context.GetArgument<Permissions>("Permissions");

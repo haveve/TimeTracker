@@ -1,16 +1,6 @@
-import {ajax} from "rxjs/internal/ajax/ajax";
-import {map, Observable} from "rxjs";
-import {User} from "../Types/User";
-import {Permissions} from "../Types/Permissions";
-import {getCookie} from "../../Login/Api/login-logout";
-import {response} from "../Types/ResponseType";
-import {number} from "yup";
-import {Page} from "../Types/Page";
-import {UsersPage} from "../Types/UsersPage";
-import {Absence} from "../Types/Absence";
-import {GetAjaxObservable} from "./TimeRequests";
-
-const url = "https://localhost:7226/graphql";
+import { map, Observable } from "rxjs";
+import { Absence } from "../Types/Absence";
+import { GetAjaxObservable } from "./TimeRequests";
 
 interface GraphqlUserAbsences {
     absence: {
@@ -73,7 +63,7 @@ interface GraphqlAddUserAbsence {
 
 export function RequestAddUserAbsence(absence: Absence): Observable<string> {
     return GetAjaxObservable<GraphqlAddUserAbsence>(`
-            mutation addUserAbsence($Absence: AbsenceInputType!){
+            mutation addUserAbsence($Absence: AbsenceInput!){
                 absence{
                     addUserAbsence(absence: $Absence)
                 }
@@ -99,7 +89,7 @@ interface GraphqlAddCurrentUserAbsence {
 
 export function RequestAddCurrentUserAbsence(absence: Absence): Observable<string> {
     return GetAjaxObservable<GraphqlAddCurrentUserAbsence>(`
-            mutation addCurrentUserAbsence($Absence: AbsenceInputType!){
+            mutation addCurrentUserAbsence($Absence: AbsenceInput!){
                 absence{
                     addCurrentUserAbsence(absence: $Absence)
                 }
@@ -112,10 +102,10 @@ export function RequestAddCurrentUserAbsence(absence: Absence): Observable<strin
                 "date": absence.date!.toISOString().slice(0, 10)
             },
         }).pipe(
-        map(res => {
-            return res.response.data.absence.addCurrentUserAbsence
-        })
-    );
+            map(res => {
+                return res.response.data.absence.addCurrentUserAbsence
+            })
+        );
 }
 
 interface GraphqlRemoveUserAbsence {
@@ -126,7 +116,7 @@ interface GraphqlRemoveUserAbsence {
 
 export function RequestRemoveUserAbsence(absence: Absence): Observable<string> {
     return GetAjaxObservable<GraphqlRemoveUserAbsence>(`
-            mutation removeUserAbsence($Absence: AbsenceInputType!){
+            mutation removeUserAbsence($Absence: AbsenceInput!){
                 absence{
                     removeUserAbsence(absence: $Absence)
                 }
@@ -154,7 +144,7 @@ interface GraphqlRemoveCurrentUserAbsence {
 
 export function RequestRemoveCurrentUserAbsence(absence: Absence): Observable<string> {
     return GetAjaxObservable<GraphqlRemoveCurrentUserAbsence>(`
-            mutation removeCurrentUserAbsence($Absence: AbsenceInputType!){
+            mutation removeCurrentUserAbsence($Absence: AbsenceInput!){
                 absence{
                     removeCurrentUserAbsence(absence: $Absence)
                 }

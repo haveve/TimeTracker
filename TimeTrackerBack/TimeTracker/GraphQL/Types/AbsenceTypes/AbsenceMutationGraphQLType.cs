@@ -10,47 +10,72 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
 {
     public class AbsenceMutationGraphQLType : ObjectGraphType
     {
-        private readonly IAbsenceRepository repo;
-
-        public AbsenceMutationGraphQLType(IAbsenceRepository Repo)
+        public AbsenceMutationGraphQLType(
+            ICalendarRepository CalendarRepository,
+            IUserRepository UserRepository,
+            ITimeRepository TimeRepository,
+            IAbsenceRepository AbsenceRepository,
+            IVacationRepository VacationRepository)
         {
-            repo = Repo;
-
             Field<StringGraphType>("addUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");
-                    repo.AddAbsence(absence);
+                    AbsenceRepository.AddAbsence(absence);
+                    if(absence.Date >= DateTime.Now) return "Absence added successfully";
+                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100) TimeRepository.DeleteDayTime(absence.UserId, absence.Date);
                     return "Absence added successfully";
                 });
 
             Field<StringGraphType>("addCurrentUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");
                     absence.UserId = GetUserIdFromClaims(context.User!);
-                    repo.AddAbsence(absence);
+                    AbsenceRepository.AddAbsence(absence);
+                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
+                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100) TimeRepository.DeleteDayTime(absence.UserId, absence.Date);
                     return "Absence added successfully";
                 });
 
             Field<StringGraphType>("removeUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");
-                    repo.RemoveAbsence(absence);
+                    AbsenceRepository.RemoveAbsence(absence);
+                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
+                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100)
+                    {
+                        BackgroundTasksService.updateFullTimerWorkTime(absence.UserId, absence.Date,
+                        CalendarRepository,
+                        UserRepository,
+                        TimeRepository,
+                        AbsenceRepository,
+                        VacationRepository);
+                    }
                     return "Absence removed successfully";
                 }).AuthorizeWithPolicy("ControlPresence");
 
             Field<StringGraphType>("removeCurrentUserAbsence")
-                .Argument<NonNullGraphType<AbsenceInputType>>("Absence")
+                .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
                 .ResolveAsync(async context =>
                 {
                     var absence = context.GetArgument<Absence>("Absence");
                     absence.UserId = GetUserIdFromClaims(context.User!);
-                    repo.RemoveAbsence(absence);
+                    AbsenceRepository.RemoveAbsence(absence);
+                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
+                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100)
+                    {
+                        BackgroundTasksService.updateFullTimerWorkTime(absence.UserId, absence.Date,
+                        CalendarRepository,
+                        UserRepository,
+                        TimeRepository,
+                        AbsenceRepository,
+                        VacationRepository);
+                    }
                     return "Absence removed successfully";
                 });
         }

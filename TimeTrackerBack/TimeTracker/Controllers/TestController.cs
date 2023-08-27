@@ -1,6 +1,4 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
-using TimeTracker.Models;
 using TimeTracker.Services;
 
 
@@ -8,17 +6,15 @@ namespace TimeTracker.Controllers;
 
 public class TestController : Controller
 {
-    private IHostEnvironment Environment;
-    private readonly IConfiguration Config; 
-    public TestController(IHostEnvironment _environment, IConfiguration _config)
+    private readonly IHostEnvironment _environment;
+    public TestController(IHostEnvironment environment)
     {
-        Environment = _environment;
-        Config = _config;
+        _environment = environment;
     }
     public IActionResult Download(string id)  
     {  
-        ExcelHandler ExcelHandler = new ExcelHandler(Environment);
-        var excelFile = ExcelHandler.GetExcelTable(id);
+        var excelHandler = new ExcelHandler(_environment);
+        var excelFile = excelHandler.GetExcelTable(id);
         return File(excelFile, "application/vnd.ms-excel", $"ExcelExport-{id}.xlsx");
     }
 }

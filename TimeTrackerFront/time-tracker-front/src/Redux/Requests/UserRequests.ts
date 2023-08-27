@@ -1,13 +1,11 @@
-import {ajax} from "rxjs/internal/ajax/ajax";
 import {map, Observable} from "rxjs";
 import {User} from "../Types/User";
 import {Permissions} from "../Types/Permissions";
-import {getCookie} from "../../Login/Api/login-logout";
-import {response} from "../Types/ResponseType";
-import {number} from "yup";
 import {Page} from "../Types/Page";
 import {UsersPage} from "../Types/UsersPage";
 import {GetAjaxObservable} from "./TimeRequests";
+import {ajax} from "rxjs/ajax";
+import {LoginType} from "../../Login/Api/login-logout";
 
 interface GraphqlUsers {
     user: {
@@ -15,7 +13,6 @@ interface GraphqlUsers {
     }
 }
 
-const url = "https://localhost:7226/graphql";
 
 export function RequestUsers(): Observable<User[]> {
     return GetAjaxObservable<GraphqlUsers>(
@@ -26,18 +23,14 @@ export function RequestUsers(): Observable<User[]> {
                             id
                             login
                             fullName
-                            daySeconds
-                            weekSeconds
-                            monthSeconds
                           }
                     }
                   }
             `, {})
         .pipe(
             map(res => {
-                let users: User[] = res.response.data.user.users;
 
-                return users;
+                return res.response.data.user.users;
             })
         );
 }
@@ -64,9 +57,7 @@ export function RequestUsersBySearch(search: String): Observable<User[]> {
         "search": search
     }).pipe(
         map(res => {
-            let users: User[] = res.response.data.user.usersBySearch;
-
-            return users;
+            return res.response.data.user.usersBySearch;
         })
     );
 }
@@ -104,7 +95,7 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
             "first": page.first,
             "after": page.after,
             "search": page.search,
-            "orderfield": page.orderfield,
+            "orderfield": page.orderField,
             "order": page.order,
             "enabled": page.enabled
         }).pipe(
@@ -132,6 +123,7 @@ export function RequestUser(Id: Number): Observable<User> {
                         fullName
                         email
                         enabled
+                        vacationDays
                       }
                     }
                   }
@@ -140,9 +132,7 @@ export function RequestUser(Id: Number): Observable<User> {
             "Id": Number(Id)
         }).pipe(
         map(res => {
-            {
-                return res.response.data.user.user
-            }
+            return res.response.data.user.user
         })
     );
 }
@@ -163,14 +153,13 @@ export function RequestCurrentUser(): Observable<User> {
                         fullName
                         email
                         enabled
+                        vacationDays
                       }
                     }
                   }
             `, {}).pipe(
         map(res => {
-            {
-                return res.response.data.user.currentUser
-            }
+            return res.response.data.user.currentUser
         })
     );
 }
@@ -190,8 +179,8 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
                         cRUDUsers
                         viewUsers
                         editWorkHours
-                        editPermiters
-                        importExcel
+                        editApprovers
+                        exportExcel
                         controlPresence
                         controlDayOffs
                       }
@@ -202,9 +191,7 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
             "Id": Id
         }).pipe(
         map(res => {
-            {
-                return res.response.data.user.userPermissions
-            }
+            return res.response.data.user.userPermissions
         })
     );
 }
@@ -224,8 +211,8 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
                         cRUDUsers
                         viewUsers
                         editWorkHours
-                        editPermiters
-                        importExcel
+                        editApprovers
+                        exportExcel
                         controlPresence
                         controlDayOffs
                       }
@@ -233,35 +220,66 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
                   }
             `, {}).pipe(
         map(res => {
-            {
-                return res.response.data.user.currentUserPermissions
-            }
+            return res.response.data.user.currentUserPermissions
         })
     );
 }
-
-interface GraphqlRequestPasswordReset {
+interface GraphqlUserVacationDays {
     user: {
-        RequestPasswordReset: string
+        user: User
     }
 }
-
-export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
-    return GetAjaxObservable<GraphqlRequestPasswordReset>(`
-                query sentResetPasswordEmail($LoginOrEmail: String!){
+export function RequestUserVacationDays(Id: Number): Observable<User> {
+    return GetAjaxObservable<GraphqlUserVacationDays>(`
+                query GetUser($Id: Int!){
                     user{
-                        sentResetPasswordEmail(loginOrEmail: $LoginOrEmail)
+                        user(id: $Id){
+                        id
+                        login
+                        fullName
+                        email
+                        enabled
+                        vacationDays
+                      }
                     }
                   }
             `,
         {
-            "LoginOrEmail": LoginOrEmail
-        }
-    ).pipe(
+            "Id": Number(Id)
+        }).pipe(
         map(res => {
-            {
-                return res.response.data.user.RequestPasswordReset;
-            }
+            return res.response.data.user.user
+        })
+    );
+}
+interface GraphqlRequestPasswordReset {
+    data: {
+        RequestPasswordReset: string;
+    }
+}
+
+export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
+    return ajax<GraphqlRequestPasswordReset>({
+        url: "https://localhost:7226/graphql-login",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            query: `query sentResetPasswordEmail($LoginOrEmail: String!){
+                    
+                        sentResetPasswordEmail(loginOrEmail: $LoginOrEmail)
+                    
+                  }`,
+            variables:
+                {
+                    "LoginOrEmail": LoginOrEmail
+                }
+        }),
+
+    }).pipe(
+        map(res => {
+            return res.response.data.RequestPasswordReset;
         })
     );
 }
@@ -274,7 +292,7 @@ interface GraphqlCreateUser {
 
 export function RequestCreateUser(user: User, permissions: Permissions): Observable<string> {
     return GetAjaxObservable<GraphqlCreateUser>(`
-                mutation createUser($User: UserInputType!, $Permissions: PermissionsInputType!){
+                mutation createUser($User: UserInput!, $Permissions: PermissionsInput!){
                     user{
                         createUser(user: $User, permissions: $Permissions)
                     }
@@ -291,10 +309,10 @@ export function RequestCreateUser(user: User, permissions: Permissions): Observa
             "Permissions": {
                 "userId": permissions.userId,
                 "cRUDUsers": permissions.cRUDUsers,
-                "editPermiters": permissions.editPermiters,
+                "editApprovers": permissions.editApprovers,
                 "viewUsers": permissions.viewUsers,
                 "editWorkHours": permissions.editWorkHours,
-                "importExcel": permissions.importExcel,
+                "exportExcel": permissions.exportExcel,
                 "controlPresence": permissions.controlPresence,
                 "controlDayOffs": permissions.controlDayOffs,
             }
@@ -314,7 +332,7 @@ interface GraphqlUpdateUser {
 
 export function RequestUpdateUser(user: User): Observable<string> {
     return GetAjaxObservable<GraphqlUpdateUser>(`
-                mutation updateUser($Id : Int!, $User: UserInputType!){
+                mutation updateUser($Id : Int!, $User: UserInput!){
                     user{
                         updateUser(id : $Id, user: $User)
                     }
@@ -324,7 +342,8 @@ export function RequestUpdateUser(user: User): Observable<string> {
                 "login": user.login,
                 "fullName": user.fullName,
                 "password": user.password,
-                "email": user.email
+                "email": user.email,
+                "workHours": 0
             },
             "Id": Number(user.id)
         }
@@ -363,27 +382,33 @@ export function RequestRegisterUserByCode(Password: string, Login: string, Code:
 }
 
 interface GraphqlUpdatePasswordByCode {
-    user: {
+    data: {
         resetUserPasswordByCode: string
     }
 }
 
 export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, Email: string): Observable<string> {
-    return GetAjaxObservable<GraphqlUpdatePasswordByCode>(`
-                mutation resetUserPasswordByCode($Code : String!, $NewPassword: String!, $Email: String!){
-                    user{
+    return ajax<GraphqlUpdatePasswordByCode>({
+        url: "https://localhost:7226/graphql-login",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            query: `query resetUserPasswordByCode($Code : String!, $NewPassword: String!, $Email: String!){
                         resetUserPasswordByCode(code : $Code, password: $NewPassword, email: $Email)
-                    }
-                  }
-            `,
-        {
-            "Code": Code,
-            "NewPassword": NewPassword,
-            "Email": Email,
-        }
-    ).pipe(
+                  }`,
+            variables:
+                {
+                    "Code": Code,
+                    "NewPassword": NewPassword,
+                    "Email": Email,
+                }
+        }),
+
+    }).pipe(
         map(res => {
-            return res.response.data.user.resetUserPasswordByCode
+            return res.response.data.resetUserPasswordByCode;
         })
     );
 }
@@ -416,7 +441,7 @@ export function RequestUpdatePassword(id: Number, NewPassword: string, Password:
 
 export function RequestUpdateUserPermissions(permissions: Permissions): Observable<string> {
     return GetAjaxObservable<string>(`
-                mutation  updateUserPermissions($PermissionsType : PermissionsInputType!){
+                mutation  updateUserPermissions($PermissionsType : PermissionsInput!){
                     user{
                         updateUserPermissions(permissions : $PermissionsType)
                     }
@@ -426,10 +451,10 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
             "PermissionsType": {
                 "userId": permissions.userId,
                 "cRUDUsers": permissions.cRUDUsers,
-                "editPermiters": permissions.editPermiters,
+                "editApprovers": permissions.editApprovers,
                 "viewUsers": permissions.viewUsers,
                 "editWorkHours": permissions.editWorkHours,
-                "importExcel": permissions.importExcel,
+                "exportExcel": permissions.exportExcel,
                 "controlPresence": permissions.controlPresence,
                 "controlDayOffs": permissions.controlDayOffs
             }
@@ -471,7 +496,7 @@ export function RequestExportExcel(page: Page): Observable<string> {
             `,
         {
             "search": page.search,
-            "orderField": page.orderfield,
+            "orderField": page.orderField,
             "order": page.order,
             "enabled": page.enabled
         })

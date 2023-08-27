@@ -24,9 +24,9 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             )
         {
             repo = Repo;
-            Field<ListGraphType<UserType>>("users")
+            Field<ListGraphType<UserGraphType>>("users")
                 .ResolveAsync(async context => repo.GetUsers());
-            Field<UserPageType>("pagedUsers")
+            Field<UserPageGraphType>("pagedUsers")
                 .Argument<NonNullGraphType<IntGraphType>>("first")
                 .Argument<NonNullGraphType<IntGraphType>>("after")
                 .Argument<StringGraphType>("search")
@@ -66,8 +66,8 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     List<User> users = repo.GetSearchedSortedfUsers(search, orderField, order, enabled).ToList();
                     foreach (var user in users)
                     {
-                        var timeQuery = new TimeQueryGraphqlType(timeRepo,Repo, calendarRepo);
-                        var resp = TimeQueryGraphqlType.GetTimeFromSession(
+                        var timeQuery = new TimeQueryGraphQLType(timeRepo,Repo, calendarRepo);
+                        var resp = TimeQueryGraphQLType.GetTimeFromSession(
                             timeRepo.GetTime(user.Id), new List<TimeMark>(), 0, startOfWeek.Monday,0);
                         double hour = (double)(resp.Time.MonthSeconds) / 60/60;
                         user.WorkedHours = hour;
@@ -79,34 +79,34 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     string url = Path.Combine(base_url, "Test", "Download", uuid);
                     return url;
                 });
-            Field<UserType>("user")
+            Field<UserGraphType>("user")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
                 .ResolveAsync(async context =>
                 {
                     int id = context.GetArgument<int>("id");
                     return repo.GetUser(id);
                 });
-            Field<UserType>("currentUser")
+            Field<UserGraphType>("currentUser")
                 .ResolveAsync(async context =>
                 {
                     var a = context.User!;
                     var userId = GetUserIdFromClaims(context.User!);
                     return repo.GetUser(userId);
                 });
-            Field<PermissionsType>("userPermissions")
+            Field<PermissionsGraphType>("userPermissions")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
                 .ResolveAsync(async context =>
                 {
                     int id = context.GetArgument<int>("id");
                     return repo.GetUserPermissions(id);
                 });
-            Field<PermissionsType>("currentUserPermissions")
+            Field<PermissionsGraphType>("currentUserPermissions")
                 .ResolveAsync(async context =>
                 {
                     var userId = GetUserIdFromClaims(context.User!);
                     return repo.GetUserPermissions(userId);
                 });
-            Field<ListGraphType<UserType>>("usersBySearch")
+            Field<ListGraphType<UserGraphType>>("usersBySearch")
                 .Argument<NonNullGraphType<StringGraphType>>("name")
                 .Resolve(context =>
                 {
@@ -114,23 +114,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     return repo.GetUsersByFullName(name);
                 });
 
-            Field<StringGraphType>("sentResetPasswordEmail")
-                .Argument<StringGraphType>("LoginOrEmail")
-                .ResolveAsync(async context =>
-                {
-                    string LoginOrEmail = context.GetArgument<string>("LoginOrEmail");
-                    User? user = repo.GetUserByEmailOrLogin(LoginOrEmail);
-                    if (user == null)
-                        return "User was not found!";
-
-                    //string code = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                    string code = Guid.NewGuid().ToString();
-                    repo.UpdateUserResetCodeById(user.Id, code);
-
-                    emailSender.SendResetPassEmail(code, user.Email);
-
-                    return "Email has sent!";
-                });
+            
         }
         public static int GetUserIdFromClaims(ClaimsPrincipal user)
         {

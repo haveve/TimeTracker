@@ -1,7 +1,7 @@
 import { ajax } from "rxjs/internal/ajax/ajax";
 import { catchError, map, mergeMap, Observable, of, timer } from "rxjs";
 import { getCookie, IsRefreshError, RefreshError, setCookie } from "../../Login/Api/login-logout";
-import { Time, TimeResponse, TimeRequest, TimeMark } from "../Types/Time";
+import { TimeResponse, TimeRequest, TimeMark } from "../Types/Time";
 import { response } from "../Types/ResponseType";
 import { locationOffset, startOfWeek } from "../Slices/LocationSlice";
 import { Session } from "../Types/Time";
@@ -127,6 +127,7 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
     return GetTokenObservable().pipe(
         mergeMap(() => {
             setCookie({ name: "refresh_sent", value: "false" })
+            store.dispatch(setLoginByToken(true));
             const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
             return ajax<response<T>>({
                 url,

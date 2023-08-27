@@ -21,6 +21,7 @@ using static TimeTracker.Controllers.TestController;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHostedService<BackgroundTasksService>();
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 
@@ -90,8 +91,8 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
                                   {
                                       setting.AddPolicy("CRUDUsers", p => p.RequireClaim("CRUDUsers", "True"));
                                       setting.AddPolicy("ViewUsers", p => p.RequireClaim("ViewUsers", "True"));
-                                      setting.AddPolicy("EditPermiters", p => p.RequireClaim("EditPermiters", "True"));
-                                      setting.AddPolicy("ImportExcel", p => p.RequireClaim("ImportExcel", "True"));
+                                      setting.AddPolicy("EditApprovers", p => p.RequireClaim("EditApprovers", "True"));
+                                      setting.AddPolicy("ExportExcel", p => p.RequireClaim("ExportExcel", "True"));
                                       setting.AddPolicy("ControlPresence", p => p.RequireClaim("ControlPresence", "True"));
                                       setting.AddPolicy("EditWorkHours", p => p.RequireClaim("EditWorkHours", "True"));
                                       setting.AddPolicy("ControlDayOffs", p => p.RequireClaim("ControlDayOffs", "True"));
