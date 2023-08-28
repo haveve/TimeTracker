@@ -89,7 +89,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 {
                     var permissions = context.GetArgument<Permissions>("Permissions");
                     repo.UpdateUserPermissions(permissions);
-                    return "permissions updated successfully";
+                    return "Permissions updated successfully";
                 }).AuthorizeWithPolicy("CRUDUsers");
 
             Field<StringGraphType>("disableUser")

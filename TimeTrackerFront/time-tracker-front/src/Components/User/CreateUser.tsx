@@ -5,8 +5,12 @@ import { User } from '../../Redux/Types/User';
 import { RequestCreateUser } from '../../Redux/Requests/UserRequests';
 import { Error } from '../Service/Error';
 import { Permissions } from '../../Redux/Types/Permissions';
+import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
+import { ErrorMassagePattern } from '../../Redux/epics';
 
 function CreateUser() {
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -48,7 +52,12 @@ function CreateUser() {
             controlPresence: controlPresence,
             controlDayOffs: controlDayOffs
         }
-        RequestCreateUser(user, permissions).subscribe()
+        RequestCreateUser(user, permissions).subscribe({
+            next: () => {
+                setSuccess("User created successfully")
+            },
+            error: () => setError(ErrorMassagePattern)
+        })
         setFullName("")
         setEmail("")
         setWorkHours(100)
@@ -87,7 +96,7 @@ function CreateUser() {
                             <Form.Control type='number' min={1} max={100}
                                 onChange={(e) => setWorkHours(parseInt(e.target.value))}
                                 value={workHours}
-                                />
+                            />
                         </InputGroup>
                         <p className='m-0'>Permissions</p>
                         <InputGroup className="mb-3 d-flex flex-column">
@@ -148,6 +157,10 @@ function CreateUser() {
                     </Form >
                 </Card.Body>
             </Card>
+            <NotificationModalWindow isShowed={error !== ""} dropMessage={setError}
+                messageType={MessageType.Error}>{error}</NotificationModalWindow>
+            <NotificationModalWindow isShowed={success !== ""} dropMessage={setSuccess}
+                messageType={MessageType.Success}>{success}</NotificationModalWindow>
         </div>
     );
 }
