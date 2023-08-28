@@ -1,11 +1,11 @@
-import {map, Observable} from "rxjs";
-import {User} from "../Types/User";
-import {Permissions} from "../Types/Permissions";
-import {Page} from "../Types/Page";
-import {UsersPage} from "../Types/UsersPage";
-import {GetAjaxObservable} from "./TimeRequests";
-import {ajax} from "rxjs/ajax";
-import {LoginType} from "../../Login/Api/login-logout";
+import { map, Observable } from "rxjs";
+import { User } from "../Types/User";
+import { Permissions } from "../Types/Permissions";
+import { Page } from "../Types/Page";
+import { UsersPage } from "../Types/UsersPage";
+import { GetAjaxObservable } from "./TimeRequests";
+import { ajax } from "rxjs/ajax";
+import { LoginType } from "../../Login/Api/login-logout";
 
 interface GraphqlUsers {
     user: {
@@ -29,7 +29,10 @@ export function RequestUsers(): Observable<User[]> {
             `, {})
         .pipe(
             map(res => {
-
+                if (res.response.errors) {
+                    console.error(JSON.stringify(res.response.errors))
+                    throw "error"
+                }
                 return res.response.data.user.users;
             })
         );
@@ -57,6 +60,10 @@ export function RequestUsersBySearch(search: String): Observable<User[]> {
         "search": search
     }).pipe(
         map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
             return res.response.data.user.usersBySearch;
         })
     );
@@ -99,12 +106,16 @@ export function RequestPagedUsers(page: Page): Observable<UsersPage> {
             "order": page.order,
             "enabled": page.enabled
         }).pipe(
-        map(res => {
-            let page: UsersPage = res.response.data.user.pagedUsers;
+            map(res => {
+                if (res.response.errors) {
+                    console.error(JSON.stringify(res.response.errors))
+                    throw "error"
+                }
+                let page: UsersPage = res.response.data.user.pagedUsers;
 
-            return page;
-        })
-    );
+                return page;
+            })
+        );
 }
 
 interface GraphqlUser {
@@ -131,10 +142,14 @@ export function RequestUser(Id: Number): Observable<User> {
         {
             "Id": Number(Id)
         }).pipe(
-        map(res => {
-            return res.response.data.user.user
-        })
-    );
+            map(res => {
+                if (res.response.errors) {
+                    console.error(JSON.stringify(res.response.errors))
+                    throw "error"
+                }
+                return res.response.data.user.user
+            })
+        );
 }
 
 interface GraphqlCurrentUser {
@@ -159,6 +174,10 @@ export function RequestCurrentUser(): Observable<User> {
                   }
             `, {}).pipe(
         map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
             return res.response.data.user.currentUser
         })
     );
@@ -190,10 +209,14 @@ export function RequestUserPermissions(Id: Number): Observable<Permissions> {
         {
             "Id": Id
         }).pipe(
-        map(res => {
-            return res.response.data.user.userPermissions
-        })
-    );
+            map(res => {
+                if (res.response.errors) {
+                    console.error(JSON.stringify(res.response.errors))
+                    throw "error"
+                }
+                return res.response.data.user.userPermissions
+            })
+        );
 }
 
 interface GraphqlCurrentUserPermissions {
@@ -220,6 +243,10 @@ export function RequestCurrentUserPermissions(): Observable<Permissions> {
                   }
             `, {}).pipe(
         map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
             return res.response.data.user.currentUserPermissions
         })
     );
@@ -247,10 +274,14 @@ export function RequestUserVacationDays(Id: Number): Observable<User> {
         {
             "Id": Number(Id)
         }).pipe(
-        map(res => {
-            return res.response.data.user.user
-        })
-    );
+            map(res => {
+                if (res.response.errors) {
+                    console.error(JSON.stringify(res.response.errors))
+                    throw "error"
+                }
+                return res.response.data.user.user
+            })
+        );
 }
 interface GraphqlRequestPasswordReset {
     data: {
@@ -272,9 +303,9 @@ export function RequestPasswordReset(LoginOrEmail: String): Observable<string> {
                     
                   }`,
             variables:
-                {
-                    "LoginOrEmail": LoginOrEmail
-                }
+            {
+                "LoginOrEmail": LoginOrEmail
+            }
         }),
 
     }).pipe(
@@ -319,6 +350,10 @@ export function RequestCreateUser(user: User, permissions: Permissions): Observa
         }
     ).pipe(
         map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
             return res.response.data.user.createUser
         })
     );
@@ -338,17 +373,21 @@ export function RequestUpdateUser(user: User): Observable<string> {
                     }
                   }
             `, {
-            "User": {
-                "login": user.login,
-                "fullName": user.fullName,
-                "password": user.password,
-                "email": user.email,
-                "workHours": 0
-            },
-            "Id": Number(user.id)
-        }
+        "User": {
+            "login": user.login,
+            "fullName": user.fullName,
+            "password": user.password,
+            "email": user.email,
+            "workHours": 0
+        },
+        "Id": Number(user.id)
+    }
     ).pipe(
         map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
             return res.response.data.user.updateUser
         })
     );
@@ -376,6 +415,10 @@ export function RequestRegisterUserByCode(Password: string, Login: string, Code:
         }
     ).pipe(
         map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
             return res.response.data.user.registerUserByCode
         })
     );
@@ -399,11 +442,11 @@ export function RequestUpdatePasswordByCode(NewPassword: string, Code: string, E
                         resetUserPasswordByCode(code : $Code, password: $NewPassword, email: $Email)
                   }`,
             variables:
-                {
-                    "Code": Code,
-                    "NewPassword": NewPassword,
-                    "Email": Email,
-                }
+            {
+                "Code": Code,
+                "NewPassword": NewPassword,
+                "Email": Email,
+            }
         }),
 
     }).pipe(
@@ -434,13 +477,23 @@ export function RequestUpdatePassword(id: Number, NewPassword: string, Password:
         }
     ).pipe(
         map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw JSON.stringify(res.response.errors[0])
+            }
             return res.response.data.user.updateUserPassword
         })
     );
 }
 
+interface GraphqlUpdateUserPermissions {
+    user: {
+        updateUserPermissions: string
+    }
+}
+
 export function RequestUpdateUserPermissions(permissions: Permissions): Observable<string> {
-    return GetAjaxObservable<string>(`
+    return GetAjaxObservable<GraphqlUpdateUserPermissions>(`
                 mutation  updateUserPermissions($PermissionsType : PermissionsInput!){
                     user{
                         updateUserPermissions(permissions : $PermissionsType)
@@ -460,7 +513,14 @@ export function RequestUpdateUserPermissions(permissions: Permissions): Observab
             }
         }
     ).pipe(
-        map(res => res.response.data)
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+            return res.response.data.user.updateUserPermissions
+        }
+        )
     );
 }
 
@@ -476,7 +536,14 @@ export function RequestDisableUser(id: number): Observable<string> {
             "id": Number(id)
         }
     ).pipe(
-        map(res => res.response.data)
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+            return res.response.data
+        }
+        )
     );
 }
 
@@ -502,6 +569,10 @@ export function RequestExportExcel(page: Page): Observable<string> {
         })
         .pipe(
             map(res => {
+                if (res.response.errors) {
+                    console.error(JSON.stringify(res.response.errors))
+                    throw "error"
+                }
                 const response: string = res.response.data.user.getExcelFile;
                 console.log(response);
                 return response;
