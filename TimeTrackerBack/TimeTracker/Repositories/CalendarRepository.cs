@@ -103,8 +103,8 @@ namespace TimeTracker.Repositories
         {
             switch (eventStringType)
             {
-                case "Ill": return SpecialEventType.Ill;
-                case "Absent": return SpecialEventType.Ansent;
+                case "Illness": return SpecialEventType.Ill;
+                case "Absence": return SpecialEventType.Ansent;
                 case "Vacation": return SpecialEventType.Vacation;
             }
             throw new ArgumentException("event type is invalid");

@@ -24,7 +24,7 @@ interface GraphqlUserTime {
     }
 }
 
-const url = "https://time-tracker3.azurewebsites.net/graphql";
+const url = "https://localhost:7226/graphql";
 
 export enum RefreshStatus {
     DoRefresh,
