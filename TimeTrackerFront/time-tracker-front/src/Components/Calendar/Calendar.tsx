@@ -649,7 +649,7 @@ export default function Calendar() {
             end: '2023-12-31'
         }}
         dateClick={(info) => {
-            if (calendarDays.map(cd => cd.start.getTime() <= info.date.getTime() && cd.end.getTime() >= info.date.getTime())[0]) {
+            if (calendarDays.some(cd => GetDaysFromMilsec(cd.start.getTime()) <= GetDaysFromMilsec(info.date.getTime()) && GetDaysFromMilsec(cd.end.getTime()) >= GetDaysFromMilsec(info.date.getTime())&&cd.type)) {
                 return;
             }
             if (info.date.getDay() != 0
@@ -1237,4 +1237,8 @@ export function getEventColor(eventType: SpecialEventType | null) {
         case SpecialEventType.Ill: return "#2a9d8f";
         case SpecialEventType.Vacation: return "#283618";
     }
+}
+
+export function GetDaysFromMilsec(milsec:number){
+    return Math.ceil(milsec/86400000);
 }
