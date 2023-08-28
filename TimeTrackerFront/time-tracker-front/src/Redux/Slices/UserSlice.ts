@@ -1,23 +1,22 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../Types/User";
 import { UsersPage } from "../Types/UsersPage";
-import { TimeRequest } from "../Types/Time";
 import { statusType } from "./TimeSlice";
 
 export interface usersState {
     Users: User[],
     UsersBySearch: User[]
     UsersPage: UsersPage,
-    status:statusType,
-    error?:string,
-    isLogin:boolean,
+    status: statusType,
+    error?: string,
+    isLogin: boolean,
 }
 const initialState: usersState = {
     Users: [],
     UsersBySearch: [],
     UsersPage: {} as UsersPage,
     status: "idle",
-    isLogin:false,
+    isLogin: false,
 };
 
 export const userSlice = createSlice({
@@ -29,7 +28,7 @@ export const userSlice = createSlice({
             state.Users = action.payload
         },
         getUsersListBySearch: (state,
-                             action: PayloadAction<User[]>) => {
+            action: PayloadAction<User[]>) => {
             state.UsersBySearch = action.payload
         },
         getUsersPage: (state,
@@ -37,7 +36,7 @@ export const userSlice = createSlice({
             state.UsersPage = action.payload
             state.isLogin = true;
         },
-        setLogout:(state)=>{
+        setLogout: (state) => {
             state.isLogin = false;
         },
         setloadingStatus: (state) => {

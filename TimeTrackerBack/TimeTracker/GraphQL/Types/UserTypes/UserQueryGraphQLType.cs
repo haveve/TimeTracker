@@ -114,23 +114,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     return repo.GetUsersByFullName(name);
                 });
 
-            Field<StringGraphType>("sentResetPasswordEmail")
-                .Argument<StringGraphType>("LoginOrEmail")
-                .ResolveAsync(async context =>
-                {
-                    string LoginOrEmail = context.GetArgument<string>("LoginOrEmail");
-                    User? user = repo.GetUserByEmailOrLogin(LoginOrEmail);
-                    if (user == null)
-                        return "User was not found!";
-
-                    //string code = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                    string code = Guid.NewGuid().ToString();
-                    repo.UpdateUserResetCodeById(user.Id, code);
-
-                    emailSender.SendResetPassEmail(code, user.Email);
-
-                    return "Email has sent!";
-                });
+            
         }
         public static int GetUserIdFromClaims(ClaimsPrincipal user)
         {

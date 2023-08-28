@@ -9,10 +9,12 @@ namespace TimeTracker.Repositories
     public class CalendarRepository : ICalendarRepository
     {
         private readonly DapperContext _dapperContext;
+        private readonly IAbsenceRepository _absenceRepository;
 
-        public CalendarRepository(DapperContext context) 
+        public CalendarRepository(DapperContext context, IAbsenceRepository absenceRepository)
         {
             _dapperContext = context;
+            _absenceRepository = absenceRepository;
         }
 
         public void AddEvent(int userId, CalendarEventViewModel addEvent)
@@ -33,8 +35,8 @@ namespace TimeTracker.Repositories
         {
             string query = $"SELECT * FROM CalendarEvents WHERE UserId = {userId}";
             using var dapperConnection = _dapperContext.CreateConnection();
-            var events =  dapperConnection.Query<CalendarEvent>(query).ToList();
-            return events?? new();
+            var events = dapperConnection.Query<CalendarEvent>(query).ToList();
+            return events ?? new();
         }
 
         public List<GlobalEventsViewModel> GetAllGlobalEvents()
@@ -68,20 +70,44 @@ namespace TimeTracker.Repositories
         {
             string query = "DELETE FROM CalendarEvents WHERE UserId = @userId AND StartDate = @startDate";
             using var dapperConnection = _dapperContext.CreateConnection();
-            dapperConnection.Execute(query, new {userId,startDate});
+            dapperConnection.Execute(query, new { userId, startDate });
         }
 
         public void UpdateEvent(int userId, DateTime oldStartDate, CalendarEventViewModel updatedData)
         {
             string query = $"UPDATE CalendarEvents SET Title = @Title, StartDate = @StartDate, EndDate = @EndDate WHERE UserId = {userId} AND StartDate = @oldStartDate";
             using var dapperConnection = _dapperContext.CreateConnection();
-            dapperConnection.Execute(query, new { oldStartDate, updatedData.StartDate, updatedData.EndDate,updatedData.Title });
+            dapperConnection.Execute(query, new { oldStartDate, updatedData.StartDate, updatedData.EndDate, updatedData.Title });
         }
         public void AddEvenGlobaltRange(List<GlobalEventsViewModel> addEventRange)
         {
             string query = $"INSERT INTO GlobalCalendar (Name, Date, TypeOfGlobalEvent) VALUES(@Name, @Date, @TypeOfGlobalEvent)";
             using var dapperConnection = _dapperContext.CreateConnection();
             dapperConnection.Execute(query, addEventRange);
+        }
+        public List<CalendarEvent> GetAllUsersVacations(int userId)
+        {
+            string query = $"Select StartDate, EndDate FROM VacationRequests Where RequesterId = {userId} AND Status = 'Approved'";
+            using var dapperConnection = _dapperContext.CreateConnection();
+            var vacations = dapperConnection.Query<CalendarEvent>(query).ToList();
+            vacations.ForEach(v => { v.Type = SpecialEventType.Vacation;v.Title = "Vacation"; });
+            return vacations;
+        }
+        public List<CalendarEvent> GetAllUsersAbsences(int userId)
+        {
+            List<Absence> userAbsences = _absenceRepository.GetUserAbsence(userId);
+            return userAbsences.Select(ab => new CalendarEvent() { StartDate = ab.Date, EndDate = ab.Date, Title = ab.Type, Type = GetSpecialEventType(ab.Type) }).ToList();
+        }
+
+        public SpecialEventType GetSpecialEventType(string eventStringType)
+        {
+            switch (eventStringType)
+            {
+                case "Illness": return SpecialEventType.Ill;
+                case "Absence": return SpecialEventType.Ansent;
+                case "Vacation": return SpecialEventType.Vacation;
+            }
+            throw new ArgumentException("event type is invalid");
         }
     }
 }

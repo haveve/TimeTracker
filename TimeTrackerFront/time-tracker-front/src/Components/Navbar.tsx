@@ -5,33 +5,26 @@ import {
   Row,
   Nav,
   Navbar,
-  NavDropdown,
   Button,
   Offcanvas,
-  Form,
   ListGroup,
-  ListGroupItem,
-  Spinner
 } from "react-bootstrap";
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
-import TimeTracker, { IsSuccessOrIdle } from './Time/TimeTracker';
-import { Subscription, timer } from 'rxjs';
 import { ajaxForLogout } from '../Login/Api/login-logout';
 
 import { GetLocation } from '../Redux/Requests/CalendarRequest';
 import CheckModalWindow from './Service/CheckModalWindow';
-import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
-import { clearErrorMessage as clearErrorMessageTime } from '../Redux/Slices/TimeSlice';
+import { MessageType } from './Service/NotificationModalWindow';
 import { deleteCookie, getCookie, setCookie } from '../Login/Api/login-logout';
 import { getCurrentUser, getCurrentUserPermissions } from '../Redux/epics';
 import { Dispatch, RootState } from '../Redux/store';
-import { clearErrorMessage as clearErrorMessageUserList, setLogout } from '../Redux/Slices/UserSlice';
-import { setErrorStatusAndError, setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
+import { clearErrorMessage as setLogout } from '../Redux/Slices/UserSlice';
+import { setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
 import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
 
 import '../Custom.css';
-import { setErrorStatusAndError as setErroMassageLocation, clearErrorMessage as clearErrorMessageLocation, setloadingStatus as setloadingStatusLocation } from '../Redux/Slices/LocationSlice';
+import { setErrorStatusAndError as setErroMassageLocation } from '../Redux/Slices/LocationSlice';
 import { ErrorMassagePattern } from '../Redux/epics';
 import { useNavigate } from 'react-router-dom';
 
@@ -59,32 +52,34 @@ function AppNavbar() {
     if (tokenStatus) {
       const canUseUserIp = getCookie("canUseUserIp")
 
-    if (canUseUserIp && canUseUserIp === "true") {
-      GetLocation().subscribe({
-        next: (value) => {
+      if (canUseUserIp && canUseUserIp === "true") {
+        GetLocation().subscribe({
+          next: (value) => {
 
-          dispatch(setLocation({
-            oldOffset: geoOffset,
-            userOffset: value.timezone.gmt_offset * 60,
-            timeZone: {
-              name: `${value.city} (${value.country_code})`,
-              value: value.timezone.gmt_offset * 60
-            },
-            country:value.country
-          }))
-          setCookie({ name: "canUseUserIp", value: 'true' })
-        },
-        error: () => setErroMassageLocation(ErrorMassagePattern)
-      })
+            dispatch(setLocation({
+              oldOffset: geoOffset,
+              userOffset: value.timezone.gmt_offset * 60,
+              timeZone: {
+                name: `${value.city} (${value.country_code})`,
+                value: value.timezone.gmt_offset * 60
+              },
+              country: value.country
+            }))
+            setCookie({ name: "canUseUserIp", value: 'true' })
+          },
+          error: () => setErroMassageLocation(ErrorMassagePattern)
+        })
+      }
+      else if (!canUseUserIp) {
+        setCanUserApi("Can we use your IP to locate you?")
+      }
     }
-    else if (!canUseUserIp) {
-      setCanUserApi("Can we use your IP to locate you?")
-    }
+  }, [tokenStatus]);
 
-    var id = getCookie("user_id");
+  useEffect(() => {
     dispatch(getCurrentUser());
     dispatch(getCurrentUserPermissions());
-  }}, [tokenStatus]);
+  }, []);
 
   let user = useSelector((state: RootState) => state.currentUser.User);
 
@@ -106,7 +101,7 @@ function AppNavbar() {
               return list[1] ? list[1].name : list[0].name
             })()}
           </Button>
-          <Nav.Link as={Link} to={user ? "/User/" + user.login : "/Login"} className='ms-auto'>{user ? user.login : "sign in"}</Nav.Link>
+          <Nav.Link as={Link} to={user ? "/User/" + user.login : "/Login"} className='ms-auto'>{user.login}</Nav.Link>
           <Navbar.Offcanvas
             id={`offcanvasNavbar-expand-false`}
             aria-labelledby={`offcanvasNavbarLabel-expand-false`}
@@ -158,10 +153,10 @@ function AppNavbar() {
                   onClick={() => {
                     ajaxForLogout(getCookie("refresh_token")!).subscribe({
                       next: () => {
-                        Logout(dispatch,navigate)
+                        Logout(dispatch, navigate)
                       },
                       error: () => {
-                        Logout(dispatch,navigate)
+                        Logout(dispatch, navigate)
                       }
                     });
                   }}>
@@ -179,8 +174,8 @@ function AppNavbar() {
 
       <Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
         <Col className={`p-0 m-0 h-100`}>
-            <Outlet />
-          </Col>
+          <Outlet />
+        </Col>
       </Row >
       <CheckModalWindow isShowed={canUserApi !== ""} dropMessage={setCanUserApi} messageType={MessageType.Warning} agree={() => {
         GetLocation().subscribe({
@@ -193,7 +188,7 @@ function AppNavbar() {
                 name: `${value.city} (${value.country_code})`,
                 value: value.timezone.gmt_offset * 60,
               },
-              country:value.country
+              country: value.country
 
             }))
             setCookie({ name: "canUseUserIp", value: 'true' })
@@ -203,18 +198,18 @@ function AppNavbar() {
       }} reject={() => {
         setCookie({ name: "canUseUserIp", value: 'false' })
       }}>{canUserApi}</CheckModalWindow>
- </Container>
+    </Container>
   );
 }
 
-export function Logout(dispatch:Dispatch,navigate:ReturnType<typeof useNavigate>){
+export function Logout(dispatch: Dispatch, navigate: ReturnType<typeof useNavigate>) {
   dispatch(setLogout());
   LogoutDeleteCookie();
   dispatch(setLoginByToken(false));
   navigate("/Login")
 }
 
-export function LogoutDeleteCookie(){
+export function LogoutDeleteCookie() {
   deleteCookie("refresh_token");
   deleteCookie("access_token");
   deleteCookie("user_id");

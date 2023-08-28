@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { User } from '../../Redux/Types/User';
 import { RequestUpdateUser, RequestUpdatePassword, RequestUser, RequestCurrentUser } from '../../Redux/Requests/UserRequests';
 import { RootState } from '../../Redux/store';
-import { getCurrentUser, getUsers } from '../../Redux/epics';
+import { ErrorMassagePattern, getCurrentUser, getUsers } from '../../Redux/epics';
 import { Error } from '../Service/Error';
 import '../../Custom.css';
 import { RequestGetTotalWorkTime, RequestUserTime } from '../../Redux/Requests/TimeRequests';
@@ -15,11 +15,13 @@ import VacationRequests from "./VacationRequests";
 import { Time } from '../../Redux/Types/Time';
 import { Absence } from '../../Redux/Types/Absence';
 import { RequestAddCurrentUserAbsence, RequestCurrentUserAbsences, RequestRemoveCurrentUserAbsence } from '../../Redux/Requests/AbsenceRequests';
+import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
 
 
 function UserProfile() {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [showEdit, setShowEdit] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showAbsence, setShowAbsence] = useState(false);
@@ -56,7 +58,7 @@ function UserProfile() {
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
 
-    
+
     const [date, setDate] = useState<Date>();
     const [type, setType] = useState('Absent');
 
@@ -77,6 +79,7 @@ function UserProfile() {
             setId(user.id!)
             setFullName(user.fullName!)
             setLogin(user.login!)
+            setEmail(user.email!)
         }
     }, [user])
 
@@ -91,18 +94,21 @@ function UserProfile() {
             email: email,
             password: password
         }
-        RequestUpdateUser(User).subscribe((x) => {
-            if (x === "User updated successfully") {
-                setShowEdit(false);
-                RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
-                    setUser(x);
-                })
-                setShowError(false);
-            }
-            else {
-                setErrorMessage(x);
-                setShowError(true);
-            }
+        RequestUpdateUser(User).subscribe({
+            next(x) {
+                if (x === "User updated successfully") {
+                    setShowEdit(false);
+                    RequestUser(parseInt(getCookie("user_id")!)).subscribe((x) => {
+                        setUser(x);
+                    })
+                    setShowError(false);
+                    setSuccess(x)
+                }
+                else {
+                    setError(x);
+                }
+            },
+            error(error) { setError(ErrorMassagePattern) }
         });
     }
 
@@ -110,15 +116,18 @@ function UserProfile() {
         e.preventDefault()
         if (newPassword != newPasswordRepeat) { setShowError(true); setErrorMessage("Type in same passwords"); return; }
         if (newPassword.length < 8) { setShowError(true); setErrorMessage("Password should be at least 8 characters"); return; }
-        RequestUpdatePassword(id, newPassword, password).subscribe((x) => {
-            if (x === "Password updated successfully") {
-                setShowPassword(false);
-                setShowError(false);
-            }
-            else {
-                setErrorMessage("Wrong password");
-                setShowError(true);
-            }
+        RequestUpdatePassword(id, newPassword, password).subscribe({
+            next(x) {
+                if (x === "Password updated successfully") {
+                    setShowPassword(false);
+                    setShowError(false);
+                    setSuccess(x)
+                }
+                else {
+                    setError(x);
+                }
+            },
+            error(error) { setError(ErrorMassagePattern) }
         });
     }
 
@@ -137,7 +146,7 @@ function UserProfile() {
         });
     }
 
-    const handleRemoveAbsence = (Absence : Absence) => {
+    const handleRemoveAbsence = (Absence: Absence) => {
         RequestRemoveCurrentUserAbsence(Absence).subscribe((x) => {
             setShowError(false);
             RequestCurrentUserAbsences().subscribe(x => setAbsences(x));
@@ -275,50 +284,54 @@ function UserProfile() {
                         data-bs-theme="dark"
                         onHide={handleCloseAbcense}
                     >
-                            <Modal.Header closeButton>
-                                <Modal.Title>Presence</Modal.Title>
-                            </Modal.Header>
-                            <Modal.Body>
-                                <Form className='mb-2' onSubmit={e => handleAddAbsence(e)}>
-                                    <InputGroup>
-                                        <Form.Control type="date" onChange={e => setDate(new Date(e.target.value))}/>
-                                        <Form.Select onChange={e => setType(e.target.value)}>
-                                            <option value="Absent">Absent</option>
-                                            <option value="Ill">Ill</option>
-                                        </Form.Select>
-                                        <Button variant='success' type='submit'>Add</Button>
-                                    </InputGroup>
-                                    <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
-                                </Form>
-                                <ListGroup className='w-100 d-flex scroll pe-2'>
-                                    {
-                                        absences?.map((absence, index) =>
-                                            <ListGroup.Item key={index} className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
-                                                <Row className='w-100'>
-                                                    <Col sm={4} className='d-flex align-items-center'>
-                                                        <p className='m-0 fs-5'>{absence.date!.toLocaleString()}</p>
-                                                    </Col>
-                                                    <Col sm={4} className='d-flex align-items-center'>
-                                                        <p className='m-0 fs-5'>{absence.type}</p>
-                                                    </Col>
-                                                    <Col className='d-flex align-items-center pe-0'>
-                                                        <Button variant="outline-danger" onClick={() => handleRemoveAbsence(absence)} className='ms-auto'>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-trash mb-1" viewBox="0 0 16 16">
-                                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
-                                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
-                                                            </svg>
-                                                        </Button>
-                                                    </Col>
-                                                </Row>
-                                            </ListGroup.Item>
-                                        )
-                                    }
-                                </ListGroup>
-                            </Modal.Body>
-                            <Modal.Footer>
-                                <Button variant="secondary" onClick={handleCloseAbcense}>Close</Button>
-                            </Modal.Footer>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Presence</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form className='mb-2' onSubmit={e => handleAddAbsence(e)}>
+                                <InputGroup>
+                                    <Form.Control type="date" onChange={e => setDate(new Date(e.target.value))} />
+                                    <Form.Select onChange={e => setType(e.target.value)}>
+                                        <option value="Absence">Absence</option>
+                                        <option value="Illness">Illness</option>
+                                    </Form.Select>
+                                    <Button variant='success' type='submit'>Add</Button>
+                                </InputGroup>
+                                <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
+                            </Form>
+                            <ListGroup className='w-100 d-flex scroll pe-2'>
+                                {
+                                    absences?.map((absence, index) =>
+                                        <ListGroup.Item key={index} className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
+                                            <Row className='w-100'>
+                                                <Col sm={4} className='d-flex align-items-center'>
+                                                    <p className='m-0 fs-5'>{absence.date!.toLocaleString()}</p>
+                                                </Col>
+                                                <Col sm={4} className='d-flex align-items-center'>
+                                                    <p className='m-0 fs-5'>{absence.type}</p>
+                                                </Col>
+                                                <Col className='d-flex align-items-center pe-0'>
+                                                    <Button variant="outline-danger" onClick={() => handleRemoveAbsence(absence)} className='ms-auto'>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-trash mb-1" viewBox="0 0 16 16">
+                                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
+                                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
+                                                        </svg>
+                                                    </Button>
+                                                </Col>
+                                            </Row>
+                                        </ListGroup.Item>
+                                    )
+                                }
+                            </ListGroup>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={handleCloseAbcense}>Close</Button>
+                        </Modal.Footer>
                     </Modal>
+                    <NotificationModalWindow isShowed={error !== ""} dropMessage={setError}
+                        messageType={MessageType.Error}>{error}</NotificationModalWindow>
+                    <NotificationModalWindow isShowed={success !== ""} dropMessage={setSuccess}
+                        messageType={MessageType.Success}>{success}</NotificationModalWindow>
                 </>
             )
                 : (

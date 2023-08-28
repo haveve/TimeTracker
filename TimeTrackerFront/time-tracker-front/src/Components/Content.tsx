@@ -1,31 +1,31 @@
 import '../Custom.css';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect } from 'react';
 import Login from '../Login/Features/Login';
-import {createBrowserRouter, RouterProvider, Outlet, redirect} from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, redirect } from 'react-router-dom';
 import ResetPassword from './User/ResetPassword';
 import Userslist from './User/UsersList';
 import AppNavbar from './Navbar';
 import UserDetails from './User/UserDetails';
 import CreateUser from './User/CreateUser';
 import UserProfile from './User/UserProfile';
-import {getCookie, getTokenOrNavigate} from '../Login/Api/login-logout';
+import { getCookie, getTokenOrNavigate } from '../Login/Api/login-logout';
 import TimeStatistic from "./Time/TimeStatistic"
 import RequestResetPassword from "./User/RequestResetPassword";
 import UserRegistration from './User/UserRegistration';
 import Calendar from './Calendar/Calendar';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '../Redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../Redux/store';
 import PermissionError from './Service/PermissionError';
-import {RequestCurrentUser} from '../Redux/Requests/UserRequests';
-import {User} from '../Redux/Types/User';
+import { setCookie } from '../Login/Api/login-logout';
+import { RequestCurrentUser, RequestCurrentUserPermissions } from '../Redux/Requests/UserRequests';
 
-import NotificationModalWindow, {MessageType} from './Service/NotificationModalWindow';
-import {clearErrorMessage as clearErrorMessageTime} from '../Redux/Slices/TimeSlice';
-import {clearErrorMessage as clearErrorMessageUserList} from '../Redux/Slices/UserSlice';
-import {clearErrorMessage as clearErrorMessageLocation} from '../Redux/Slices/LocationSlice';
-import {clearErrorMessage as clearErrorMessageToken} from '../Redux/Slices/TokenSlicer';
+import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
+import { clearErrorMessage as clearErrorMessageTime } from '../Redux/Slices/TimeSlice';
+import { clearErrorMessage as clearErrorMessageUserList } from '../Redux/Slices/UserSlice';
+import { clearErrorMessage as clearErrorMessageLocation } from '../Redux/Slices/LocationSlice';
+import { clearErrorMessage as clearErrorMessageToken } from '../Redux/Slices/TokenSlicer';
 
-import {Permissions} from '../Redux/Types/Permissions';
+import { Permissions } from '../Redux/Types/Permissions';
 import MainMenu from './MainMenu';
 
 
@@ -44,65 +44,65 @@ const checkPermissions = (Permission: string, permissions: Permissions) => {
     }
     return null;
 }
-const router = (permissions: Permissions) => createBrowserRouter([
+const router = () => createBrowserRouter([
     {
-        element: <AppNavbar/>,
+        element: <AppNavbar />,
         loader: async () => getTokenOrNavigate(),
         children: [
             {
                 path: "/",
-                element: <MainMenu/>
+                element: <MainMenu />
             },
             {
                 path: "/Users",
-                loader: async () => checkPermissions("ViewUsers", permissions),
-                element: <Userslist/>,
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("ViewUsers", permissions) }),
+                element: <Userslist />,
             },
             {
                 path: "/Users/:userId",
-                loader: async () => checkPermissions("UserDetails", permissions),
-                element: <UserDetails/>
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("UserDetails", permissions) }),
+                element: <UserDetails />
             },
             {
                 path: "/CreateUser",
-                loader: async () => checkPermissions("CreateUsers", permissions),
-                element: <CreateUser/>
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("CreateUsers", permissions) }),
+                element: <CreateUser />
             },
             {
                 path: "/User/:login",
-                element: <UserProfile/>
+                element: <UserProfile />
             },
             {
                 path: "/Calendar",
-                element: <Calendar/>
+                element: <Calendar />
             },
             {
                 path: "/Time",
-                loader: async () => checkPermissions("Time", permissions),
-                element: <TimeStatistic/>
+                loader: async () => RequestCurrentUserPermissions().subscribe((permissions) => { checkPermissions("Time", permissions) }),
+                element: <TimeStatistic />
             },
             {
                 path: "/PermissionError",
-                element: <PermissionError/>
+                element: <PermissionError />
             },
         ]
     },
     {
         path: "/Login",
-        element: <Login/>,
+        element: <Login />,
         loader: async () => getTokenOrNavigate(true),
     },
     {
         path: "/ResetPassword",
-        element: <ResetPassword/>
+        element: <ResetPassword />
     },
     {
         path: "/RequestResetPassword",
-        element: <RequestResetPassword/>
+        element: <RequestResetPassword />
     },
     {
         path: "/UserRegistration",
-        element: <UserRegistration/>
+        element: <UserRegistration />
     }
 ])
 
@@ -115,21 +115,24 @@ function AppContent() {
     const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
     const errorToken = useSelector((state: RootState) => state.token.error ? state.token.error : "")
 
+    useEffect(()=>{
+        setCookie({ name: "refresh_sent", value: "false" })
+    },[])
+
     const dispatch = useDispatch();
-    let permissions = useSelector((state: RootState) => state.currentUser.Permissions);
     return (
         <div className='Content container-fluid p-0 h-100'>
-            <RouterProvider router={router(permissions)}/>
+            <RouterProvider router={router()} />
             <NotificationModalWindow isShowed={errorTime !== ""} dropMessage={() => dispatch(clearErrorMessageTime())}
-                                     messageType={MessageType.Error}>{errorTime}</NotificationModalWindow>
+                messageType={MessageType.Error}>{errorTime}</NotificationModalWindow>
             <NotificationModalWindow isShowed={errorUserList !== ""}
-                                     dropMessage={() => dispatch(clearErrorMessageUserList())}
-                                     messageType={MessageType.Error}>{errorUserList}</NotificationModalWindow>
+                dropMessage={() => dispatch(clearErrorMessageUserList())}
+                messageType={MessageType.Error}>{errorUserList}</NotificationModalWindow>
             <NotificationModalWindow isShowed={errorLocation !== ""}
-                                     dropMessage={() => dispatch(clearErrorMessageLocation())}
-                                     messageType={MessageType.Error}>{errorLocation}</NotificationModalWindow>
+                dropMessage={() => dispatch(clearErrorMessageLocation())}
+                messageType={MessageType.Error}>{errorLocation}</NotificationModalWindow>
             <NotificationModalWindow isShowed={errorToken !== ""} dropMessage={() => dispatch(clearErrorMessageToken())}
-                                     messageType={MessageType.Error}>{errorToken}</NotificationModalWindow>
+                messageType={MessageType.Error}>{errorToken}</NotificationModalWindow>
         </div>
     );
 }

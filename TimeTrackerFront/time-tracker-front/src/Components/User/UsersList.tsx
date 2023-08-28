@@ -3,10 +3,9 @@ import { ListGroup, Pagination, Form, InputGroup, Button, Row, Col, Overlay } fr
 import '../../Custom.css';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from "../../Redux/store";
-import { getPagedUsers, getUsers } from '../../Redux/epics';
+import { getPagedUsers } from '../../Redux/epics';
 import { Link } from 'react-router-dom';
 import { Page } from '../../Redux/Types/Page';
-import { TimeForStatisticFromSeconds } from '../Time/TimeStatistic';
 import CreateExcelFile from "./CreateExcelFile";
 
 function Userslist() {
@@ -143,9 +142,9 @@ function Userslist() {
             {page.totalCount > 0 ?
                 <Pagination className='mt-auto'>
                     <Pagination.First onClick={() => setAfter(0)} />
-                    <Pagination.Prev onClick={() => { if (page.pageIndex != 0) setAfter(after - first) }} />
+                    <Pagination.Prev onClick={() => { if (page.pageIndex !== 0) setAfter(after - first) }} />
                     <Pagination.Item active>{page.pageIndex + 1}</Pagination.Item>
-                    <Pagination.Next onClick={() => { if (page.pageIndex != page.totalCount - 1) setAfter(after + first) }} />
+                    <Pagination.Next onClick={() => { if (page.pageIndex !== page.totalCount - 1) setAfter(after + first) }} />
                     <Pagination.Last onClick={() => setAfter((page.totalCount - 1) * first)} />
                 </Pagination>
                 : <p>No users found</p>

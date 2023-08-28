@@ -24,11 +24,9 @@ import {
 import {VacationRequest} from "../../Redux/Types/VacationRequest";
 import {Error} from "../Service/Error";
 import {InputVacationRequest} from "../../Redux/Types/InputVacationRequest";
-import {getIncomingVacationRequestsListByApproverId} from "../../Redux/Slices/VacationSlice";
 import {InputApproverReaction} from "../../Redux/Types/InputApproverReaction";
 import {InputVacRequest} from "../../Redux/Types/InputVacRequest";
 import {ApproverNode} from "../../Redux/Types/ApproverNode";
-import {SliceActionCreator} from "@reduxjs/toolkit";
 
 interface ReactionReturn {
     isApproved: boolean | null,
@@ -302,6 +300,7 @@ export default function VacationRequests(props: { user: User }) {
                         <Modal.Title>Create vacation request</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
+                        <Form.Label>Remaining days - {props.user.vacationDays}</Form.Label>
                         <Form.Group className="mb-3">
                             <Form.Label>Some info about request</Form.Label>
                             <Form.Control
@@ -454,7 +453,7 @@ export default function VacationRequests(props: { user: User }) {
                                             {vacationRequest.infoAboutRequest}
                                         </p>
                                         <p className="m-0 fs-5">
-                                            Requester - {vacationRequest.requester.fullName}
+                                            Requester - {vacationRequest.requester.fullName} - Remaining days = {vacationRequest.requester.vacationDays}
                                         </p>
                                     </Col>
                                     <Col>

@@ -16,6 +16,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
             Field(i => i.ResetCode, type: typeof(StringGraphType));
             Field(t => t.TimeManagedBy, nullable: false);
             Field(i => i.Enabled, type: typeof(BooleanGraphType));
+            Field(i => i.VacationDays);
         }
     }
 }

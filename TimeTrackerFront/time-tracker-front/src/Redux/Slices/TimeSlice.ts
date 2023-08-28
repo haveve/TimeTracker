@@ -1,16 +1,16 @@
-import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {Session, TimeMark, TimeResponse} from "../Types/Time";
-import {itemsInPage} from "../../Components/Time/TimeStatistic";
-import {LocationSlicer} from "./LocationSlice";
-import {ChangeLocationPayload, Location, officeTimeZone} from "./LocationSlice";
-import {LocationPayload} from "./LocationSlice";
-import {UpdateTimeReturnType} from "../Requests/TimeRequests";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Session, TimeMark, TimeResponse } from "../Types/Time";
+import { itemsInPage } from "../../Components/Time/TimeStatistic";
+import { LocationSlicer } from "./LocationSlice";
+import { ChangeLocationPayload } from "./LocationSlice";
+import { LocationPayload } from "./LocationSlice";
+import { UpdateTimeReturnType } from "../Requests/TimeRequests";
 
 export type ErrorGraphql = [
     {
         "message": string
         "locations":
-            { "line": number, "column": number }[],
+        { "line": number, "column": number }[],
         "path": string[],
         "extensions": { "code": string, "codes": string }
     }

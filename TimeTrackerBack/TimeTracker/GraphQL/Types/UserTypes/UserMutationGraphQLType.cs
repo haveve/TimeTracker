@@ -81,24 +81,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     return "Password updated successfully";
                 });
 
-            Field<StringGraphType>("resetUserPasswordByCode")
-                .Argument<NonNullGraphType<StringGraphType>>("Code")
-                .Argument<NonNullGraphType<StringGraphType>>("Password")
-                .Argument<NonNullGraphType<StringGraphType>>("Email")
-                .ResolveAsync(async context =>
-                {
-                    string code = context.GetArgument<string>("Code");
-                    string password = context.GetArgument<string>("Password");
-                    string email = context.GetArgument<string>("Email");
-                    User? user = repo.GetUserByEmailOrLogin(email);
-                    if (user == null) return "User not found";
-                    if (user.ResetCode == null) return "User was not requesting password change";
-                    if (user.ResetCode != code) return "Reset code not match";
-
-                    repo.UpdateUserPasswordAndCode(user.Id, null, password);
-
-                    return "Password reseted successfully";
-                });
+           
 
             Field<StringGraphType>("updateUserPermissions")
                 .Argument<NonNullGraphType<PermissionsInputGraphType>>("Permissions")
@@ -106,7 +89,7 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 {
                     var permissions = context.GetArgument<Permissions>("Permissions");
                     repo.UpdateUserPermissions(permissions);
-                    return "permissions updated successfully";
+                    return "Permissions updated successfully";
                 }).AuthorizeWithPolicy("CRUDUsers");
 
             Field<StringGraphType>("disableUser")

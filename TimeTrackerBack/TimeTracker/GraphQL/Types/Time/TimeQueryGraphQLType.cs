@@ -52,7 +52,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 .Resolve(context =>
                 {
                     int id = context.GetArgument<int>("id");
-                    return GetMonthWorkTime(id, userRepository, _calendarRepository);
+                    return GetMonthWorkTime(id, DateTime.Now, userRepository, _calendarRepository);
                 });
         }
 
@@ -135,15 +135,15 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             return dateTime;
         }
 
-        public int GetMonthWorkTime(int id, IUserRepository userRepository, ICalendarRepository calendarRepository)
+        public int GetMonthWorkTime(int id, DateTime d,IUserRepository userRepository, ICalendarRepository calendarRepository)
         {
             User user = userRepository.GetUser(id);
-            DateTime d = DateTime.Now.AddDays(1 - DateTime.Now.Day);
+            d = d.AddDays(1 - d.Day);
             DateTime nd = new DateTime(d.AddMonths(1).Year, d.AddMonths(1).Month, 1);
             int[] days = new int[DateTime.DaysInMonth(d.Year, d.Month) + 1];
             var globalCalendar = _calendarRepository.GetAllGlobalEvents();
             globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
-            globalCalendar = globalCalendar.FindAll(e => e.Date.Month == DateTime.Now.Month || (e.Date.Month == DateTime.Now.AddMonths(1).Month && e.Date.Day == 1));
+            globalCalendar = globalCalendar.FindAll(e => e.Date.Month == d.Month || (e.Date.Month == d.AddMonths(1).Month && e.Date.Day == 1));
             Array.Fill(days, 8);
             int MonthWorkTime = 0;
             for (int i = 0; i < days.Length; i++)
@@ -155,13 +155,13 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             }
             globalCalendar.ForEach(e => {
                 //Console.WriteLine(e.Date + " - " + e.TypeOfGlobalEvent);
-                int day = e.Date.Month == DateTime.Now.Month ? e.Date.Day - 1 : days.Length - 1;
+                int day = e.Date.Month == d.Month ? e.Date.Day - 1 : days.Length - 1;
                 if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Holiday) days[day] = 0;
                 if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.ShortDay) days[day] = 7;
                 if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Celebrate)
                 {
                     days[day] = 0;
-                    if (e.Date.Day != 1 || e.Date.Month == DateTime.Now.AddMonths(1).Month)
+                    if (e.Date.Day != 1 || e.Date.Month == d.AddMonths(1).Month)
                     {
                         if (days[day - 1] != 0)
                         {

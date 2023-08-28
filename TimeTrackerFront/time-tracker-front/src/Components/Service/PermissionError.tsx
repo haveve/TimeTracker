@@ -1,7 +1,5 @@
-import React from 'react';
 import { Button } from "react-bootstrap";
 import '../../Custom.css';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 

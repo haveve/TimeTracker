@@ -3,7 +3,9 @@ using GraphQL.Types;
 using TimeTracker.GraphQL.Types.IdentityTipes;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using TimeTracker.Models;
 using TimeTracker.Repositories;
+using TimeTracker.Services;
 
 namespace TimeTracker.GraphQL.Queries
 {
@@ -12,12 +14,17 @@ namespace TimeTracker.GraphQL.Queries
         private readonly IAuthorizationManager _authorizationManager;
         private readonly IAuthorizationRepository _authorizationRepository;
         private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
+        private readonly IEmailSender _emailSender;
 
-        public IdentityQuery(IConfiguration configuration, IAuthorizationManager authorizationManager, IAuthorizationRepository authorizationRepository)
+
+        public IdentityQuery(IConfiguration configuration, IAuthorizationManager authorizationManager, IAuthorizationRepository authorizationRepository, IUserRepository userRepository, IEmailSender emailSender)
         {
             _authorizationManager = authorizationManager;
             _authorizationRepository = authorizationRepository;
             _configuration = configuration;
+            _userRepository = userRepository;
+            _emailSender = emailSender;
 
             Field<IdentityOutPutGraphType>("login")
                 .Argument<NonNullGraphType<LoginInputGraphType>>("login")
@@ -105,6 +112,41 @@ namespace TimeTracker.GraphQL.Queries
                   return "Successfully";
               });
 
+            Field<StringGraphType>("sentResetPasswordEmail")
+                .Argument<StringGraphType>("LoginOrEmail")
+                .ResolveAsync(async context =>
+                {
+                    string LoginOrEmail = context.GetArgument<string>("LoginOrEmail");
+                    User? user = _userRepository.GetUserByEmailOrLogin(LoginOrEmail);
+                    if (user == null)
+                        return "User was not found!";
+
+                    //string code = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                    string code = Guid.NewGuid().ToString();
+                    _userRepository.UpdateUserResetCodeById(user.Id, code);
+
+                    _emailSender.SendResetPassEmail(code, user.Email);
+
+                    return "Email has sent!";
+                });
+            Field<StringGraphType>("resetUserPasswordByCode")
+               .Argument<NonNullGraphType<StringGraphType>>("Code")
+               .Argument<NonNullGraphType<StringGraphType>>("Password")
+               .Argument<NonNullGraphType<StringGraphType>>("Email")
+               .ResolveAsync(async context =>
+               {
+                   string code = context.GetArgument<string>("Code");
+                   string password = context.GetArgument<string>("Password");
+                   string email = context.GetArgument<string>("Email");
+                   User? user = _userRepository.GetUserByEmailOrLogin(email);
+                   if (user == null) return "User not found";
+                   if (user.ResetCode == null) return "User was not requesting password change";
+                   if (user.ResetCode != code) return "Reset code not match";
+
+                   _userRepository.UpdateUserPasswordAndCode(user.Id, password);
+
+                   return "Password reseted successfully";
+               });
         }
 
         public LoginOutput ExpiredSessionError(IResolveFieldContext<object?> context)
