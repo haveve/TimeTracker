@@ -642,7 +642,8 @@ export default function Calendar() {
                 start: day.start,
                 end: day.end,
                 color: getEventColor(day.type),
-                textColor: 'white'
+                textColor: 'white',
+                allDay:day.type?true:false
             }))}
         validRange={{
             start: '2023-01-01',

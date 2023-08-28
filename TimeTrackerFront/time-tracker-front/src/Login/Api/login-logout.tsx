@@ -9,7 +9,7 @@ import { LogoutDeleteCookie } from '../../Components/Navbar';
 
 export const accessTokenLiveTime = 60;
 
-const url = "https://localhost:7226/graphql-login";
+const url = "https://time-tracker3.azurewebsites.net/graphql-login";
 /*    "errors": [
         {
             "message": "User does not auth"
