@@ -292,8 +292,8 @@ function UserProfile() {
                                 <InputGroup>
                                     <Form.Control type="date" onChange={e => setDate(new Date(e.target.value))} />
                                     <Form.Select onChange={e => setType(e.target.value)}>
-                                        <option value="Absent">Absent</option>
-                                        <option value="Ill">Ill</option>
+                                        <option value="Absence">Absence</option>
+                                        <option value="Illness">Illness</option>
                                     </Form.Select>
                                     <Button variant='success' type='submit'>Add</Button>
                                 </InputGroup>
