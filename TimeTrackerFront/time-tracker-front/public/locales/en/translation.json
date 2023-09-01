@@ -1,0 +1,157 @@
+{
+  "agree": "Agree",
+  "reject": "Reject",
+  "update": "Update",
+  "cancel": "Cancel",
+  "add": "Add",
+  "create": "Create",
+  "submit": "Submit",
+  "close" : "Close",
+  "chooseLang": "Choose language",
+  "Login": {
+    "header": "Sign in to TimeTracker",
+    "username": "Username or email adress",
+    "password": "Password",
+    "submitButton": "Sign in",
+    "resetPass": "Reset via login or email",
+    "fillFieldsError": "Fill all fields",
+    "wrongCredentialsError": "Wrong login/email or password",
+    "disabledUser": "User was disabled"
+  },
+  "RequestResetPassword": {
+    "header": "Request password reset",
+    "credentials": "Login or Email",
+    "submitButton": "Reset password",
+    "submittedText": "Request has been sent",
+    "fillFieldsError": "Fill field!"
+  },
+  "ResetPassword": {
+    "header": "Reset password",
+    "password": "New password",
+    "repeatPassword": "Repeat new password",
+    "submitButton": "Reset password",
+    "passMatchError": "Both passwords should match!",
+    "passValidationError": "Path length must be between 8 and 50!",
+    "Responses": {
+      "userNotFoundError": "User not found",
+      "noRequestError": "User was not requesting password change",
+      "noMatchCodeError": "Reset code not match",
+      "successful": "Password reseted successfully"
+    }
+  },
+  "Navbar": {
+    "questionIP": "Can we use your IP to locate you?",
+    "timeItem": "Time",
+    "usersItem": "Users",
+    "createUserItem": "Create User",
+    "calendarItem": "Calendar",
+    "logoutItem": "Logout"
+  },
+  "MainMenu": {
+    "welcome": "Welcome to TimeTracker",
+    "timeItem": "Time",
+    "usersItem": "Users",
+    "createUserItem": "Create User",
+    "calendarItem": "Calendar"
+  },
+  "UserProfile": {
+    "editButton": "Edit",
+    "changePassButton": "Change Password",
+    "presence": "Presence",
+    "workedToday": "Worked today",
+    "workedWeek": "Worked this week",
+    "workedMonth": "Worked this month",
+    "EditModal": {
+      "header": "Edit your information",
+      "fullName": "Full Name",
+      "login": "Login",
+      "email": "Email",
+      "password": "Password",
+      "hintPassword": "Type in your password to confirm changes",
+      "fillFieldsError": "Fill all fields",
+      "Responses": {
+        "success": "User updated successfully",
+        "incorrectPassword": "Password is incorrect",
+        "takenLogin": "Login is already used"
+      }
+    },
+    "ChangePasswordModal": {
+      "header": "Change password",
+      "newPass": "New password",
+      "repeatNewPass": "Repeat new password",
+      "oldPass": "Old password",
+      "hintPassword": "Type in your password to confirm changes",
+      "passMatchError": "Both passwords should match!",
+      "passValidationError": "Path length must be between 8 and 50!",
+      "Responses": {
+        "incorrectPassError": "Password is incorrect",
+        "successful": "Password updated successfully"
+      }
+    },
+    "AbsenceModal": {
+      "header": "Presence",
+      "absenceItem": "Absence",
+      "illnessItem": "Illness",
+      "fillFieldsError": "Fill all fields",
+      "takenDayError": "Already absent on this date"
+    }
+  },
+  "VacationRequests" : {
+    "myRequestsHeader" : "My requests",
+    "incomingRequestHeader": "Incoming requests",
+    "VacationType" : {
+      "selectTypeHeader": "Select type",
+      "allItem": "All",
+      "pendingItem": "Pending",
+      "canceledItem": "Canceled",
+      "approvedItem": "Approved",
+      "declinedItem": "Declined"
+    },
+    "createVacReqButton" : "Create vacation request",
+    "CreateVacReqModal" : {
+      "header": "Create vacation request",
+      "remainingDays": "Remaining days",
+      "requestInfo" : "Some info about request",
+      "startDate": "Start date",
+      "finishDate": "Finish date",
+      "fillDateFieldsError" : "Fill date fields",
+      "incorrectDateIntervalError": "Select correct interval"
+    },
+    "VacReq": {
+      "Status": {
+        "approved": "Approved",
+        "declined": "Declined",
+        "canceled": "Canceled",
+        "pending": "Pending"
+      },
+      "approve": "Approve",
+      "decline": "Decline",
+      "reactionList": "Reaction",
+      "ReactionList": {
+        "header": "Approvers reaction",
+        "noReaction": "No reaction yet",
+        "approved": "Approved",
+        "declined": "Declined"
+      },
+      "cancelRequest": "Cancel request",
+      "requester": "Requester",
+      "remainingDays": "Remaining days",
+      "yourReaction": "Your reaction",
+      "reactionMessage": "Reaction message",
+      "changeReactionButton": "Change reaction",
+      "ChangeReactionModal": {
+        "header": "Change reaction",
+        "reaction": "Choose reaction",
+        "selectHeader": "Select reaction",
+        "approve": "Approve",
+        "decline" : "Decline",
+        "reactionMessage": "Reaction message"
+      },
+      "ReactionMessageModal": {
+        "header": "Add reaction message",
+        "reactionMessage": "Reaction message"
+      }
+
+    }
+  }
+}

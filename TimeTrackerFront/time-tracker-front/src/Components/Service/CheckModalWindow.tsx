@@ -2,6 +2,7 @@ import React from 'react';
 import {Alert, Modal, Button, Col, Row} from "react-bootstrap";
 import '../../Custom.css';
 import {MessageType} from './NotificationModalWindow';
+import {TFunction} from "i18next";
 
 export default function CheckModalWindow(props: {
     children: string,
@@ -9,7 +10,8 @@ export default function CheckModalWindow(props: {
     dropMessage: (message: string) => void,
     messageType: MessageType,
     agree: () => void,
-    reject: () => void
+    reject: () => void,
+    t: TFunction
 }) {
 
     let pict = <svg></svg>;
@@ -67,11 +69,11 @@ export default function CheckModalWindow(props: {
                     <Button variant='danger' onClick={() => {
                         props.dropMessage("")
                         props.reject();
-                    }}>Reject</Button>
+                    }}>{props.t("reject")}</Button>
                     <Button variant='success' onClick={() => {
                         props.dropMessage("")
                         props.agree();
-                    }}>Agree</Button>
+                    }}>{props.t("agree")}</Button>
                 </Col>
             </Row>
         </Alert>

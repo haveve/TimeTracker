@@ -1,0 +1,155 @@
+{
+  "agree": "Погоджуюсь",
+  "reject": "Відмовлююсь",
+  "update": "Оновити",
+  "cancel": "Відміна",
+  "add": "Додати",
+  "create": "Створити",
+  "submit": "Відправити",
+  "close": "Закрити",
+  "chooseLang": "Виберіть мову",
+  "Login": {
+    "header": "Вхід до TimeTracker",
+    "username": "Ім'я або електронна пошта користувача",
+    "password": "Пароль",
+    "submitButton": "Увійти",
+    "resetPass": "Скинути пароль через ім'я або елекронну пошту",
+    "fillFieldsError": "Заповніть усі поля!",
+    "wrongCredentialsError": "Неправильний логін/емейл або пароль",
+    "disabledUser": "Юзер був відключений"
+  },
+  "RequestResetPassword": {
+    "header": "Запит на зміну пароля",
+    "credentials": "Логін або електронна пошта",
+    "submitButton": "Змінити пароль",
+    "submittedText": "Запит надісланий",
+    "fillFieldsError": "Заповніть поле!"
+  },
+  "ResetPassword": {
+    "header": "Зміна пароля",
+    "password": "Новий пароль",
+    "repeatPassword": "Повторіть новий пароль",
+    "submitButton": "Змінити пароль",
+    "passMatchError": "Обидва паролі повинні співпадати",
+    "passValidationError": "Довжина паролю повинна бути від 8 до 50 символів!",
+    "userNotFoundError": "Користувач не знайдений",
+    "noRequestError": "У користувача немає запиту на зміну паролю",
+    "noMatchCodeError": "Коди відновлення не співпадають",
+    "successful": "Пароль змінено успішно!"
+  },
+  "Navbar": {
+    "questionIP": "Ми можемо використати ваш IP, щоб визначити ваше місцеположення?",
+    "timeItem": "Час",
+    "usersItem": "Користувачі",
+    "createUserItem": "Створити користувача",
+    "calendarItem": "Календар",
+    "logoutItem": "Вийти"
+  },
+  "MainMenu": {
+    "welcome": "Вітаємо TimeTracker",
+    "timeItem": "Час",
+    "usersItem": "Користувачі",
+    "createUserItem": "Створити користувача",
+    "calendarItem": "Календар"
+  },
+  "UserProfile": {
+    "editButton": "Редагувати",
+    "changePassButton": "Змінити пароль",
+    "presence": "Відсутності",
+    "workedToday": "Відпрацьовано сьогодні",
+    "workedWeek": "Відпрацьовано цього тижня",
+    "workedMonth": "Відпрацьовано цього місяця",
+    "EditModal": {
+      "header": "Зміна вашої інформації",
+      "fullName": "ПІБ",
+      "login": "Логін",
+      "email": "Електронна пошта",
+      "password": "Пароль",
+      "hintPassword": "Введіть ваш пароль, щоб підтвердити зміни",
+      "fillFieldsError": "Заповніть усі поля!",
+      "Responses": {
+        "success": "Користувач успішно змінений!",
+        "incorrectPassword": "Неправильний пароль",
+        "takenLogin": "Логін вже зайнятий"
+      }
+    },
+    "ChangePasswordModal": {
+      "header": "Зміна паролю",
+      "newPass": "Новий пароль",
+      "repeatNewPass": "Повторіть новий пароль",
+      "oldPass": "Старий пароль",
+      "hintPassword": "Введіть ваш старий пароль, щоб підтвердити зміни",
+      "passMatchError": "Обидва паролі повинні співпадати!",
+      "passValidationError": "Довжина паролю повинна бути від 8 до 50 символів!",
+      "Responses": {
+        "incorrectPassError": "Пароль невірний",
+        "successful": "Пароль змінено успішно"
+      }
+    },
+    "AbsenceModal": {
+      "header": "Присутність",
+      "absenceItem": "Відсутність",
+      "illnessItem": "Хвороба",
+      "fillFieldsError": "Заповніть усі поля!",
+      "takenDayError": "Вже є відсутність у цей день"
+    }
+  },
+  "VacationRequests" : {
+    "myRequestsHeader" : "Мої запити",
+    "incomingRequestHeader": "Вхідні запити",
+    "VacationType" : {
+      "selectTypeHeader": "Виберіть тип",
+      "allItem": "Усі",
+      "pendingItem": "В очікуванні",
+      "canceledItem": "Відміненні",
+      "approvedItem": "Схвалені",
+      "declinedItem": "Відхилені"
+    },
+    "createVacReqButton" : "Створити запит на відпуску",
+    "CreateVacReqModal" : {
+      "header": "Створення запиту на відпуску",
+      "remainingDays": "Залишилося днів",
+      "requestInfo" : "Інформація до запиту",
+      "startDate": "Дата початку",
+      "finishDate": "Дата кінця",
+      "fillDateFieldsError" : "Заповніть поля з датою",
+      "incorrectDateIntervalError": "Виберіть коректний інтервал часу"
+    },
+    "VacReq": {
+      "Status": {
+        "approved": "Схвалений",
+        "declined": "Відхилений",
+        "canceled": "Відмінений",
+        "pending": "У очікуванні"
+      },
+      "approve": "Схвалити",
+      "decline": "Відхилити",
+      "reactionList": "Реакції",
+      "ReactionList": {
+        "header": "Реакції апруверів",
+        "noReaction": "Ще немає реакції",
+        "approved": "Схвалено",
+        "declined": "Відхилено"
+      },
+      "cancelRequest": "Відмінити запит",
+      "requester": "Запитувач",
+      "remainingDays": "Залишилося днів",
+      "yourReaction": "Ваша реакція",
+      "reactionMessage": "Повідомлення до реакції ",
+      "changeReactionButton": "Змінити реакцію",
+      "ChangeReactionModal": {
+        "header": "Зміна реакції",
+        "reaction": "Виберіть реакцію",
+        "selectHeader": "Виберіть реакцію",
+        "approve": "Схвалити",
+        "decline" : "Відхилити",
+        "reactionMessage": "Повідомлення до реакції"
+
+      },
+      "ReactionMessageModal": {
+        "header": "Додати повідомлення до реакціЇ",
+        "reactionMessage": "Повідомлення до реакціЇ"
+      }
+    }
+  }
+}
