@@ -219,7 +219,7 @@ export default function TimeStatistic() {
                 <TimeTracker/>
             </Col>
             {selected != null ?
-                <TimeManage selected={selected!} setShow={setShow} isShowed={show}
+                <TimeManage userId={0} selected={selected!} setShow={setShow} isShowed={show}
                             setSelected={SetSelected}></TimeManage> : null}
         </Row>
     </Container>

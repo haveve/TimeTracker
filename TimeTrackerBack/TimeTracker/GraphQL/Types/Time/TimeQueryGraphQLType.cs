@@ -24,11 +24,21 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
             Field<TimeWithFlagOutPutGraphType>("getUserTime")
                 .Argument<NonNullGraphType<IntGraphType>>("id")
+                .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")
+                .Argument<NonNullGraphType<IntGraphType>>("pageNumber")
+                .Argument<IntGraphType>("offSet")
+                .Argument<NonNullGraphType<EnumerationGraphType<startOfWeek>>>("startOfWeek")
+                .Argument<NonNullGraphType<IntGraphType>>("itemsInPage")
                 .Resolve(context =>
                 {
-                    var id = context.GetArgument<int>("id");
-                    var time = _timeRepository.GetTime(id);
-                    return GetTimeFromSession(time, new List<TimeMark>(), 1,startOfWeek.Monday);
+                    var userId = context.GetArgument<int>("id");
+                    int pageNumber = context.GetArgument<int>("pageNumber");
+                    int itemsInPage = context.GetArgument<int>("itemsInPage");
+                    var timeMark = context.GetArgument<List<TimeMark>>("timeMark");
+                    var startOfWeek = context.GetArgument<startOfWeek>("startOfWeek");
+                    var offSet = context.GetArgument<int?>("offSet") ?? 0;
+                    var time = _timeRepository.GetTime(userId);
+                    return GetTimeFromSession(time, timeMark, offSet, startOfWeek, itemsInPage, pageNumber);
                 });
             Field<TimeWithFlagOutPutGraphType>("getTime")
                 .Argument<NonNullGraphType<ListGraphType<NonNullGraphType<EnumerationGraphType<TimeMark>>>>>("timeMark")
@@ -94,7 +104,6 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                             time.Time.MonthSeconds += seconds;
                             break;
                         }
-
                     case TimeMark.Year:
                         {
                             break;
@@ -142,7 +151,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             DateTime nd = new DateTime(d.AddMonths(1).Year, d.AddMonths(1).Month, 1);
             int[] days = new int[DateTime.DaysInMonth(d.Year, d.Month) + 1];
             var globalCalendar = _calendarRepository.GetAllGlobalEvents();
-            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
+            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents);
             globalCalendar = globalCalendar.FindAll(e => e.Date.Month == d.Month || (e.Date.Month == d.AddMonths(1).Month && e.Date.Day == 1));
             Array.Fill(days, 8);
             int MonthWorkTime = 0;

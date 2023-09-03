@@ -12,7 +12,7 @@ namespace TimeTracker.GraphQL.Types.Calendar
     {
         private readonly ICalendarRepository _calendarRepository;
 
-        public static readonly List<GlobalEventsViewModel> ukraineGovernmentCelebrations = new List<GlobalEventsViewModel>
+        public static readonly List<GlobalEventsViewModel> ukraineGovernmentGlobalEvents = new List<GlobalEventsViewModel>
         {
             new GlobalEventsViewModel("Новий рік", new DateTime(DateTime.Now.Year, 1, 1),TypeOfGlobalEvent.Celebrate),
             new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateTime(DateTime.Now.Year, 1, 7), TypeOfGlobalEvent.Celebrate),
@@ -26,6 +26,24 @@ namespace TimeTracker.GraphQL.Types.Calendar
             new GlobalEventsViewModel("День захисників і захисниць України", new DateTime(DateTime.Now.Year, 10, 14), TypeOfGlobalEvent.Celebrate),
             new GlobalEventsViewModel("День Збройних Сил України", new DateTime(DateTime.Now.Year, 12, 6), TypeOfGlobalEvent.Celebrate),
             new GlobalEventsViewModel("Різдво Христове", new DateTime(DateTime.Now.Year, 12, 25), TypeOfGlobalEvent.Celebrate),
+
+            new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateTime(DateTime.Now.Year, 1, 6), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("День Соборності України", new DateTime(DateTime.Now.Year, 1, 21), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("Міжнародний жіночий день", new DateTime(DateTime.Now.Year, 3, 7), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("Міжнародний день праці", new DateTime(DateTime.Now.Year, 4, 30), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("День Конституції України", new DateTime(DateTime.Now.Year, 6, 27), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("День Української Державності", new DateTime(DateTime.Now.Year, 7, 27), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("День Державного Прапора України", new DateTime(DateTime.Now.Year, 8, 22), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("День незалежності України", new DateTime(DateTime.Now.Year, 8, 23), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("День захисників і захисниць України", new DateTime(DateTime.Now.Year, 10, 13), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("День Збройних Сил України", new DateTime(DateTime.Now.Year, 12, 5), TypeOfGlobalEvent.ShortDay),
+            new GlobalEventsViewModel("Різдво Христове", new DateTime(DateTime.Now.Year, 12, 24), TypeOfGlobalEvent.ShortDay),
+
+            new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateTime(DateTime.Now.Year, 1, 2), TypeOfGlobalEvent.Holiday),
+            new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateTime(DateTime.Now.Year, 1, 9), TypeOfGlobalEvent.Holiday),
+            new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateTime(DateTime.Now.Year, 1, 23), TypeOfGlobalEvent.Holiday),
+            new GlobalEventsViewModel("День захисників і захисниць України", new DateTime(DateTime.Now.Year, 10, 16), TypeOfGlobalEvent.Holiday),
+
         };
 
         public CalendarQueryGraphQLType(ICalendarRepository calendarRepository)

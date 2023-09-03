@@ -13,11 +13,11 @@ import {RootState} from '../../Redux/store';
 import {ErrorMassagePattern, getCurrentUser, getUsers} from '../../Redux/epics';
 import {Error} from '../Service/Error';
 import '../../Custom.css';
-import {RequestGetTotalWorkTime, RequestUserTime} from '../../Redux/Requests/TimeRequests';
+import {RequestGetTimeInSeconds, RequestGetTotalWorkTime, RequestUserTime} from '../../Redux/Requests/TimeRequests';
 import {getCookie} from '../../Login/Api/login-logout';
 import {TimeForStatisticFromSeconds} from '../Time/TimeStatistic';
 import VacationRequests from "./VacationRequests";
-import {Time} from '../../Redux/Types/Time';
+import {Time, TimeRequest} from '../../Redux/Types/Time';
 import {Absence} from '../../Redux/Types/Absence';
 import {
 	RequestAddCurrentUserAbsence,
@@ -26,6 +26,7 @@ import {
 } from '../../Redux/Requests/AbsenceRequests';
 import NotificationModalWindow, {MessageType} from '../Service/NotificationModalWindow';
 import {useTranslation} from "react-i18next";
+import { startOfWeek } from '../../Redux/Slices/LocationSlice';
 
 
 function UserProfile() {
@@ -66,11 +67,17 @@ function UserProfile() {
 	const handleShowVacationRequests = () => setShowVacationRequests(true);
 	const handleCloseVacationRequests = () => setShowVacationRequests(false);
 
-
-	const [user, setUser] = useState({} as User);
-	const [time, setTime] = useState({} as Time);
-	const [absences, setAbsences] = useState([] as Absence[]);
-	const [totalWorkTime, setTotalWorkTime] = useState(0);
+    const [user, setUser] = useState({} as User);
+    const [time, setTime] = useState<TimeRequest>({
+        time: {
+            daySeconds: 0,
+            weekSeconds: 0,
+            monthSeconds: 0,
+            sessions: []
+        }
+    });
+    const [absences, setAbsences] = useState([] as Absence[]);
+    const [totalWorkTime, setTotalWorkTime] = useState(0);
 
 	const [id, setId] = useState(0);
 	const [login, setLogin] = useState('');
@@ -85,17 +92,17 @@ function UserProfile() {
 	const [date, setDate] = useState<Date>();
 	const [type, setType] = useState('Absent');
 
-	useEffect(() => {
-		RequestCurrentUser().subscribe((x) => {
-			setUser(x);
-		})
-		RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
-			setTotalWorkTime(x);
-		})
-		RequestUserTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
-			setTime(x.time);
-		})
-	}, []);
+    useEffect(() => {
+        RequestCurrentUser().subscribe((x) => {
+            setUser(x);
+        })
+        RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
+            setTotalWorkTime(x);
+        })
+        RequestGetTimeInSeconds([], 1, 1, 0, startOfWeek.Monday).subscribe((x) => {
+            setTime(x);
+        })
+    }, []);
 
 	useEffect(() => {
 		if (user) {
@@ -242,22 +249,21 @@ function UserProfile() {
                                     <span
 	                                    className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>{t("UserProfile.workedToday")}</p>
-	                                        {TimeForStatisticFromSeconds(time.daySeconds)}
+                                            <p className='m-0'>Worked today</p>
+                                            {TimeForStatisticFromSeconds(time!.time.daySeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>{t("UserProfile.workedWeek")}</p>
-	                                        {TimeForStatisticFromSeconds(time.weekSeconds!)}
+                                            <p className='m-0'>Worked this week</p>
+                                            {TimeForStatisticFromSeconds(time!.time.weekSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>{t("UserProfile.workedMonth")}</p>
-	                                        {TimeForStatisticFromSeconds(time.monthSeconds!)}
+                                            <p className='m-0'>Worked this month</p>
+                                            {TimeForStatisticFromSeconds(time!.time.monthSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <ProgressBar now={(time.monthSeconds! / totalWorkTime) * 100} animated
-                                                         className='w-75 mt-1'
-                                                         variant='success'/>
-	                                        {TimeForStatisticFromSeconds(totalWorkTime)}
+                                            <ProgressBar now={(time!.time.monthSeconds / totalWorkTime) * 100} animated className='w-75 mt-1'
+                                                variant='success' />
+                                            {TimeForStatisticFromSeconds(totalWorkTime)}
                                         </div>
                                     </span>
 									</Col>
