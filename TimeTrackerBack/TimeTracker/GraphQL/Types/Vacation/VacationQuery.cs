@@ -79,18 +79,7 @@ namespace TimeTracker.GraphQL.Types.Vacation
                             var request = requests[j];
 
                             request.ApproversNodes = vacRepo.GetApproversNodes(request.Id);
-                            /*
-                            for (int i = 0; i < request.ApproversNodes.Count; i++)
-                            {
-                                if (request.ApproversNodes[i].IsRequestApproved != null && request.ApproversNodes[i].UserIdApprover == approverId)
-                                {
-                                    requests.Remove(request);
-                                    j--;
-                                    continue;
-                                }
-                                //request.ApproversNodes[i].Requester = userRepo.GetUser(request.ApproversNodes[i].UserIdRequester);
-                            }
-                            */
+                           
                             request.Requester = userRepo.GetUser(request.RequesterId);
                         }
 

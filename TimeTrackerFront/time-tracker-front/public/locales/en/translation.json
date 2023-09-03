@@ -153,5 +153,21 @@
       }
 
     }
+  },
+  "UserCreate": {
+    "header": "Create user",
+    "fullName": "User full name",
+    "email": "User email address",
+    "workHours": "Work hours",
+    "permissions": "Permissions",
+    "viewUsers": "View users",
+    "exportExcel": "Export excel",
+    "manageUsers": "Manage users",
+    "manageApprovers": "Manage approvers",
+    "manageWorkHours": "Manage work hours",
+    "managePresence": "Manage presence",
+    "manageDayOffs": "Manage day offs",
+    "sendEmailButton": "Send email",
+    "userCreated": "User created successfully"
   }
 }
