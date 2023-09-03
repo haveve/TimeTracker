@@ -32,7 +32,7 @@ namespace TimeTracker.GraphQL.Types.Time
                      return endDay;
                  });
             Field<ManageTimeMutationGraphType>("manageTime")
-                .Resolve(context => new { }).AuthorizeWithPolicy("ControlPresence"); ;
+                .Resolve(context => new { }).AuthorizeWithPolicy("ControlPresence");
         }
     }
 }

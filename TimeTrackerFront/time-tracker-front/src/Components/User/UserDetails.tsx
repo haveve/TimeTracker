@@ -10,15 +10,19 @@ import {
     Col,
     ListGroupItem,
     ListGroup,
-    Overlay, Pagination
+    Overlay, Pagination, Image, Alert
 } from "react-bootstrap";
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import '../../Custom.css';
+import dayImg from '../../Pictures/day-session-img.png'
+import weekImg from '../../Pictures/week-session-img.png'
+import monthImg from '../../Pictures/month-session-img.png'
+import yearImg from '../../Pictures/year-session-img.png'
 import { ErrorMassagePattern, getUsers } from '../../Redux/epics';
-import { TimeForStatisticFromSeconds } from '../Time/TimeStatistic';
-import { RequestGetTotalWorkTime, RequestUserTime } from '../../Redux/Requests/TimeRequests';
+import { TimeForStatisticFromSeconds, itemsInPage } from '../Time/TimeStatistic';
+import { RequestCreateUserDate, RequestDeleteUserDate, RequestGetTime, RequestGetTotalWorkTime, RequestUserTime } from '../../Redux/Requests/TimeRequests';
 import { User } from '../../Redux/Types/User';
 import {
     RequestDisableUser,
@@ -31,7 +35,7 @@ import { addApprover, deleteApprover, getApprovers } from "../../Redux/VacationE
 import { getPagedUsers } from "../../Redux/epics"
 import { ApproverNode } from "../../Redux/Types/ApproverNode";
 import { Page } from "../../Redux/Types/Page";
-import { Time } from '../../Redux/Types/Time';
+import { Session, Time, TimeMark, TimeRequest, TimeResponse } from '../../Redux/Types/Time';
 import {
     RequestAddUserAbsence,
     RequestRemoveUserAbsence,
@@ -40,6 +44,9 @@ import {
 import { Absence } from '../../Redux/Types/Absence';
 import { Error } from '../Service/Error';
 import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
+import { getStartOfWeekByCountry, startOfWeek, startWeekOfCountry } from '../../Redux/Slices/LocationSlice';
+import { getCookie } from '../../Login/Api/login-logout';
+import TimeManage from '../Time/TimeManage';
 
 function UserDetails() {
     const { userId = "" } = useParams();
@@ -49,8 +56,20 @@ function UserDetails() {
     const [showPermissions, setShowPermissions] = useState(false);
     const [showApprovers, setShowApprovers] = useState(false);
     const [showAbsence, setShowAbsence] = useState(false);
+    const [showCreateSession, setShowCreateSession] = useState(false);
     const [user, setUser] = useState({} as User);
-    const [time, setTime] = useState({} as Time);
+    const [time, setTime] = useState<TimeResponse>({
+        time: {
+            daySeconds: 0,
+            weekSeconds: 0,
+            monthSeconds: 0,
+            sessions: []
+        },
+        itemsCount: 0,
+        isStarted: false
+    });
+    const [createSessionStart, setCreateSessionStart] = useState<Date>();
+    const [createSessionEnd, setCreateSessionEnd] = useState<Date>();
     const [absences, setAbsences] = useState([] as Absence[]);
     const [totalWorkTime, setTotalWorkTime] = useState(0);
 
@@ -72,8 +91,6 @@ function UserDetails() {
     const [orderfield, setOrderfield] = useState('');
     const [enabled, setEnabled] = useState('1');
     const [order, setOrder] = useState("ASC");
-    const target = useRef(null);
-    const [show, setShow] = useState(false);
 
     const first = 6;
     const [after, setAfter] = useState(0);
@@ -89,6 +106,19 @@ function UserDetails() {
 
     let currentUserPermissions = useSelector((state: RootState) => state.currentUser.Permissions);
 
+    const [sessionPage, setSessionPage] = useState(0);
+
+    const [selected, SetSelected] = useState<Session | null>(null);
+    const [timeShow, setTimeShow] = useState(false)
+    const [showTimeDelete, setShowTimeDelete] = useState(false);
+
+    const offset = useSelector((state: RootState) => {
+        return state.location.userOffset;
+    })
+
+    const country = useSelector((state: RootState) => {
+        return state.location.country;
+    })
     useEffect(() => {
         RequestUser(parseInt(userId)).subscribe((x) => {
             setUser(x);
@@ -96,10 +126,16 @@ function UserDetails() {
         RequestGetTotalWorkTime(parseInt(userId)).subscribe((x) => {
             setTotalWorkTime(x);
         })
-        RequestUserTime(parseInt(userId)).subscribe((x) => {
-            setTime(x.time);
+        RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+            setTime(x);
         })
     }, []);
+
+    useEffect(() => {
+        RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+            setTime(x);
+        })
+    }, [sessionPage]);
 
     useEffect(() => {
         const page: Page = {
@@ -128,8 +164,19 @@ function UserDetails() {
         setShowAbsence(true);
     };
 
+    const handleCloseCreateSession = () => {
+        setShowCreateSession(false);
+        setShowError(false);
+    };
+    const handleShowCreateSession = () => {
+        setShowCreateSession(true);
+    };
+
     const handleCloseDisable = () => setShowDisable(false);
     const handleShowDisable = () => setShowDisable(true);
+
+    const handleCloseTimeDelete = () => setShowTimeDelete(false);
+    const handleShowTimeDelete = () => setShowTimeDelete(true);
 
     const handleClosePermissions = () => setShowPermissions(false);
     const handleShowPermissions = () => {
@@ -240,6 +287,56 @@ function UserDetails() {
         });
     }
 
+    const handleTimeDelete = () => {
+        RequestDeleteUserDate(parseInt(userId), selected!, offset).subscribe({
+            next: () => {
+                setSuccess("Session deleted succesfully");
+                RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+                    setTime(x);
+                });
+                setShowTimeDelete(false);
+            },
+            error(error) {
+                setError(error);
+            }
+        })
+    }
+
+    const handleCreateSession = () => {
+        if (createSessionStart === undefined || createSessionEnd === undefined) {
+            setShowError(true);
+            setErrorMessage("Fill date fields");
+            return;
+        }
+        if (createSessionStart! >= createSessionEnd!) {
+            setShowError(true);
+            setErrorMessage("Select correct interval");
+            return;
+        }
+
+        let session: Session = {
+            startTimeTrackDate: createSessionStart,
+            endTimeTrackDate: createSessionEnd,
+            timeMark: TimeMark.Year
+        }
+        RequestCreateUserDate(parseInt(userId), session, offset).subscribe({
+            next(x) {
+                if (x === "Session was deleted successfully") {
+                    setSuccess(x);
+                    RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+                        setTime(x);
+                    });
+                }
+                else {
+                    setShowError(true);
+                    setErrorMessage(x);
+                }
+            },
+            error(x) {
+                setError(x);
+            }
+        })
+    }
     return (
 
         <div className='UserDetails d-flex align-items-center flex-column m-1'>
@@ -285,28 +382,85 @@ function UserDetails() {
                                     <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                                             <p className='m-0'>Worked today</p>
-                                            {TimeForStatisticFromSeconds(time.daySeconds)}
+                                            {TimeForStatisticFromSeconds(time.time.daySeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                                             <p className='m-0'>Worked this week</p>
-                                            {TimeForStatisticFromSeconds(time.weekSeconds!)}
+                                            {TimeForStatisticFromSeconds(time.time.weekSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
                                             <p className='m-0'>Worked this month</p>
-                                            {TimeForStatisticFromSeconds(time.monthSeconds!)}
+                                            {TimeForStatisticFromSeconds(time.time.monthSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <ProgressBar now={(time.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'
+                                            <ProgressBar now={(time.time.monthSeconds / totalWorkTime) * 100} animated className='w-75 mt-1'
                                                 variant='success' />
                                             {TimeForStatisticFromSeconds(totalWorkTime)}
                                         </div>
                                     </span>
                                 </Col>
                             </Row>
-                            <div className='ms-auto'>
-                            </div>
+                            <Row className='mt-4 p-0 m-0'>
+                                <Row className='flex flex-column p-0 m-0 justify-content-center'>
+                                    <Pagination className='mt-auto  justify-content-between p-0 m-0 d-flex'>
+                                        <Col className='mt-auto justify-content-start ms-3 mb-3 p-0 m-0 d-flex'>
+                                            <Pagination.First onClick={() => setSessionPage(0)} />
+                                            <Pagination.Prev onClick={() => {
+                                                if (sessionPage !== 0) setSessionPage(n => n - 1)
+                                            }} />
+                                        </Col>
+                                        <Col className='h3 text-center text-secondary gap-2 d-flex flex-row justify-content-center'>
+                                            <Col xs={7} className='d-flex flex-row justify-content-end'> Time session</Col>
+                                            <Col xs={7} className='d-flex flex-row justify-content-start'><Button variant='success' onClick={handleShowCreateSession}>Create</Button></Col>
+                                        </Col>
+                                        <Col className='mt-auto justify-content-end me-3 p-0 d-flex mb-3'>
+                                            <Pagination.Next onClick={() => {
+                                                if (sessionPage !== Math.ceil(time.itemsCount / itemsInPage) - 1) setSessionPage(n => n + 1)
+                                            }} />
+                                            <Pagination.Last onClick={() => setSessionPage(Math.ceil(time.itemsCount / itemsInPage) - 1)} />
+                                        </Col>
+                                    </Pagination>
+                                    {time.time.sessions.map(s => {
+                                        const image = <Image height={45}
+                                            src={s.timeMark === TimeMark.Day ? dayImg : s.timeMark === TimeMark.Week ? weekImg : s.timeMark === TimeMark.Month ? monthImg : yearImg}></Image>
+                                        const bgColor = s.endTimeTrackDate ? "primary" : "danger";
+                                        const endDate = s.endTimeTrackDate ? s.endTimeTrackDate.toLocaleString() : "----------"
+                                        return <Col className={`m-0 `} key={s.startTimeTrackDate.toISOString()}><Alert
+                                            className={`pt-3 ps-2 mb-2 m-0 p-2`} variant={bgColor}>
+                                            <Row className='p-0 m-0'>
+                                                <Col sm={1}>
+                                                    {image}
+                                                </Col>
+                                                <Col>
+                                                    <span>Start Date<br />{s.startTimeTrackDate.toLocaleString()}</span>
+                                                </Col>
+                                                <Col>
+                                                    <span>End Date<br /><span>{endDate}</span></span>
+                                                </Col>
+                                                <Col sm={2} className='d-flex align-items-center justify-content-end '>
+                                                    <Button
+                                                        variant={`${s.endTimeTrackDate ? "outline-info" : "outline-danger"} h-75 me-2`}
+                                                        disabled={!s.endTimeTrackDate} onClick={() => {
+                                                            setTimeShow(true);
+                                                            SetSelected(s);
+                                                        }}>Edit</Button>
+                                                    <Button
+                                                        variant="outline-danger h-75"
+                                                        disabled={!s.endTimeTrackDate} onClick={() => {
+                                                            SetSelected(s);
+                                                            setShowTimeDelete(true);
+                                                        }}>Delete</Button>
+                                                </Col>
+                                            </Row>
+                                        </Alert></Col>
+                                    })}
+                                </Row>
+                            </Row>
                         </Card.Body>
                     </Card>
+                    {selected !== null ?
+                        <TimeManage userId={parseInt(userId)} selected={selected!} setShow={setTimeShow} isShowed={timeShow}
+                            setSelected={SetSelected}></TimeManage> : null}
                     <Modal
                         show={showDisable}
                         onHide={handleCloseDisable}
@@ -491,7 +645,6 @@ function UserDetails() {
                                                 </svg>
                                             }
                                         </Button>
-
                                     </InputGroup>
                                 </Col>
                             </Row>
@@ -513,8 +666,6 @@ function UserDetails() {
                                                     Pick
                                                 </Button>
                                             </Col>
-
-
                                         </ListGroup.Item>
                                     )
                                 }
@@ -596,6 +747,72 @@ function UserDetails() {
                         </Modal.Body>
                         <Modal.Footer>
                             <Button variant="secondary" onClick={handleCloseAbcense}>Close</Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <Modal
+                        show={showTimeDelete}
+                        onHide={handleCloseTimeDelete}
+                        backdrop="static"
+                        keyboard={false}
+                        centered
+                        data-bs-theme="dark"
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>Delete session</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            {selected ? <>
+                                <>Are you sure you want to delete session </>
+                                <div>{selected!.startTimeTrackDate.toLocaleString()} - {selected!.endTimeTrackDate!.toLocaleString()}?</div></>
+                                : <></>
+                            }
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={handleCloseTimeDelete}>Cancel</Button>
+                            <Button variant="danger" onClick={handleTimeDelete}>Delete</Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <Modal show={showCreateSession}
+                        onHide={handleCloseCreateSession}
+                        backdrop="static"
+                        keyboard={false}
+                        aria-labelledby="contained-modal-title-vcenter"
+                        centered
+                        data-bs-theme="dark"
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>
+                                Create Session
+                            </Modal.Title>
+                        </Modal.Header>
+
+                        <Modal.Body>
+                            <Row>
+                                <Col>
+                                    <Form.Label>StartDate</Form.Label>
+                                    <input type="datetime-local"
+                                        className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
+                                        onChange={(e) => {
+                                            setCreateSessionStart(new Date(e.target.value))
+                                        }}>
+
+                                    </input>
+                                </Col>
+                                <Col>
+                                    <Form.Label>EndDate</Form.Label>
+                                    <input type="datetime-local"
+                                        className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
+                                        onChange={(e) => {
+                                            setCreateSessionEnd(new Date(e.target.value))
+                                        }}>
+                                    </input>
+                                </Col>
+                            </Row>
+                            <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant='outline-secondary' onClick={handleCloseCreateSession}>Cancel</Button>
+                            <Button variant='outline-success' onClick={handleCreateSession}>Submit</Button>
                         </Modal.Footer>
                     </Modal>
                     <NotificationModalWindow isShowed={error !== ""} dropMessage={setError}

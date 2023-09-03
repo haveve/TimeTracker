@@ -20,20 +20,18 @@ namespace TimeTracker.Repositories
             var time = connection.Query<Models.Time>(query).ToList();
             return time;
         }
-        public List<Models.Time>? GetDayTime(int userId, DateTime date)
+        public Models.Time GetTimeByStartDate(int userId, DateTime date)
         {
-            string daydate = date.ToString("yyyy-MM-dd");
-            string query = $"SELECT * FROM UserTime WHERE UserId = @userId AND convert(varchar(10), [StartTimeTrackDate], 120) = @daydate";
+            string query = $"SELECT * FROM UserTime WHERE UserId = @userId AND StartTimeTrackDate = @date";
             using var connection = _dapperContext.CreateConnection();
-            var time = connection.Query<Models.Time>(query, new { userId, daydate }).ToList();
-            return time;
+            var time = connection.Query<Models.Time>(query, new { userId, date }).FirstOrDefault();
+            return time ?? null;
         }
-        public void DeleteDayTime(int userId, DateTime date)
+        public void DeleteTime(int userId, DateTime date)
         {
-            string daydate = date.ToString("yyyy-MM-dd");
-            string query = $"DELETE FROM UserTime WHERE UserId = @userId AND convert(varchar(10), [StartTimeTrackDate], 120) = @daydate";
+            string query = $"DELETE FROM UserTime WHERE UserId = @userId AND StartTimeTrackDate = @date";
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query, new { userId, daydate });
+            connection.Execute(query, new { userId, date });
         }
         public void SetEndTrackDate(DateTime date, int userId)
         {
@@ -41,7 +39,12 @@ namespace TimeTracker.Repositories
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query, new { date});
         }
-
+        public void CreateTimeWithEnd(Models.Time time, int userId)
+        {
+            string query = "INSERT INTO UserTime (StartTimeTrackDate, EndTimeTrackDate, UserId) VALUES (@StartTimeTrackDate, @EndTimeTrackDate, @userId)";
+            using var connection = _dapperContext.CreateConnection();
+            connection.Execute(query, new { time.StartTimeTrackDate, time.EndTimeTrackDate, userId });
+        }
         public void CreateTime(DateTime startDate, int userId)
         {
             string query = "INSERT INTO UserTime (StartTimeTrackDate, UserId) VALUES (@startDate, @userId)";

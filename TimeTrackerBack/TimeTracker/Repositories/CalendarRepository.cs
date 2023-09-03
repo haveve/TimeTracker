@@ -46,6 +46,14 @@ namespace TimeTracker.Repositories
             var events = dapperConnection.Query<GlobalEventsViewModel>(query).ToList();
             return events ?? new();
         }
+        public GlobalEventsViewModel GetDateGlobalEvent(DateTime date)
+        {
+            string daydate = date.ToString("yyyy-MM-dd");
+            string query = $"SELECT * FROM GlobalCalendar WHERE convert(varchar(10), [Date], 120) = @daydate";
+            using var dapperConnection = _dapperContext.CreateConnection();
+            var globalevent = dapperConnection.Query<GlobalEventsViewModel>(query, new { daydate }).FirstOrDefault();
+            return globalevent ?? null;
+        }
         public void RemoveGlobalEvent(DateTime date)
         {
             string query = "DELETE FROM GlobalCalendar WHERE Date = @date";
