@@ -249,15 +249,15 @@ function UserProfile() {
                                     <span
 	                                    className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>Worked today</p>
+                                            <p className='m-0'>{t("UserProfile.workedToday")}</p>
                                             {TimeForStatisticFromSeconds(time!.time.daySeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>Worked this week</p>
+                                            <p className='m-0'>{t("UserProfile.workedWeek")}</p>
                                             {TimeForStatisticFromSeconds(time!.time.weekSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>Worked this month</p>
+                                            <p className='m-0'>{t("UserProfile.workedMonth")}</p>
                                             {TimeForStatisticFromSeconds(time!.time.monthSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
