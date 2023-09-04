@@ -452,6 +452,24 @@ export default function Calendar() {
             return;
         }
 
+        if (newRange.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate) {
+
+            const shortDayForCelebrate: GlobalEventsViewModel = {
+                name: "",
+                date: new Date(newRange.date.getTime() - 84600000),
+                typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+            }
+
+            addEventGlobalRange([newRange, shortDayForCelebrate]).subscribe({
+                next: () => {
+                    setGlobalCalendar([...globalCalendar, newRange, shortDayForCelebrate])
+                    setSuccess(successfullyCreated);
+                },
+                error: () => setError(ErrorMassagePattern)
+            })
+            return;
+        }
+
         addGlobalEvent(newRange).subscribe({
             next: () => {
                 setGlobalCalendar(cd => [...cd, newRange])
@@ -567,8 +585,6 @@ export default function Calendar() {
         calendarApi.today()
     }
 
-    const holidayAfterCelebrateList = useRef<GlobalEventsViewModel[]>([...defaultEventsList])
-    let setNextHoliday = false;
     return <> <FullCalendar
         ref={calendarRef}
         dayHeaderClassNames={['calendar-head-color']}
@@ -579,11 +595,6 @@ export default function Calendar() {
             })
 
             if (celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate && !info.isOther) {
-
-                if (celebrate[0].date.getDay() === 0 || celebrate[0].date.getDay() === 6) {
-                    setNextHoliday = true;
-                }
-
                 return <div className='container-fluid p-0 m-0 '>
                     <div className='text-decoration-none text-center text-warning'>{info.dayNumberText}</div>
                     <div className='text-decoration-none text-secondary'>{celebrate[0].name}</div>
@@ -599,32 +610,11 @@ export default function Calendar() {
                     <div className='text-secondary'>{celebrate[0].name}</div>
                 </>
 
-            if (setNextHoliday) {
-                setNextHoliday = false;
-                holidayAfterCelebrateList.current = [...holidayAfterCelebrateList.current, {
-                    date: info.date,
-                    name: "holiday",
-                    typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
-                }]
-                return <div className='text-decoration-none text-danger'>{info.dayNumberText}</div>
-            }
-
             if ((celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.ShortDay && !info.isOther)) {
                 return <>
                     <div className='text-decoration-none text-success'>{info.dayNumberText}</div>
                     <div className='text-secondary'>{celebrate[0].name}</div>
                 </>
-            }
-
-            if (globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day - 1 === DateTime.fromJSDate(info.date).day && cg.typeOfGlobalEvent == TypeOfGlobalEvent.Celebrate)) {
-
-                holidayAfterCelebrateList.current = [...holidayAfterCelebrateList.current, {
-                    date: info.date,
-                    name: "ShortDay",
-                    typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-                }]
-
-                return <div className='text-decoration-none text-success'>{info.dayNumberText}</div>
             }
 
             return <div className='text-decoration-none text-primary'>{info.dayNumberText}</div>
@@ -643,14 +633,14 @@ export default function Calendar() {
                 end: day.end,
                 color: getEventColor(day.type),
                 textColor: 'white',
-                allDay:day.type?true:false
+                allDay: day.type ? true : false
             }))}
         validRange={{
             start: '2023-01-01',
             end: '2023-12-31'
         }}
         dateClick={(info) => {
-            if (calendarDays.some(cd => GetDaysFromMilsec(cd.start.getTime()) <= GetDaysFromMilsec(info.date.getTime()) && GetDaysFromMilsec(cd.end.getTime()) >= GetDaysFromMilsec(info.date.getTime())&&cd.type)) {
+            if (calendarDays.some(cd => GetDaysFromMilsec(cd.start.getTime()) <= GetDaysFromMilsec(info.date.getTime()) && GetDaysFromMilsec(cd.end.getTime()) >= GetDaysFromMilsec(info.date.getTime()) && cd.type)) {
                 return;
             }
             if (info.date.getDay() != 0
@@ -658,8 +648,6 @@ export default function Calendar() {
                 && userId == null
                 && info.date.getMonth() === navigateDate.getMonth()
                 && !globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
-                    && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && (cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate || cg.typeOfGlobalEvent === TypeOfGlobalEvent.Holiday))
-                && !holidayAfterCelebrateList.current.some(cg => DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
                     && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && (cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate || cg.typeOfGlobalEvent === TypeOfGlobalEvent.Holiday))) {
                 setIsVisible(n => !n)
                 setChangedDay(info.date)
@@ -668,8 +656,8 @@ export default function Calendar() {
                 && info.date.getDay() != 0
                 && info.date.getDay() != 6
                 && info.date.getMonth() === navigateDate.getMonth()
-                && !holidayAfterCelebrateList.current.some(cg => (DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
-                    && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate))) {
+                && !globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
+                && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && (cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate || cg.typeOfGlobalEvent === TypeOfGlobalEvent.Holiday))){
                 setIsVisible(n => !n)
                 setChangedDay(info.date)
             }
@@ -1145,33 +1133,6 @@ export const daysInMonth = [
 
 ];
 
-const officeTimeZone = [
-    // January - Eastern European Time (EET) - UTC+2:00
-    2,
-    // February - Eastern European Time (EET) - UTC+2:00
-    2,
-    // March - Eastern European Time (EET) - UTC+2:00
-    2,
-    // April - Eastern European Summer Time (EEST) - UTC+3:00
-    3,
-    // May - Eastern European Summer Time (EEST) - UTC+3:00
-    3,
-    // June - Eastern European Summer Time (EEST) - UTC+3:00
-    3,
-    // July - Eastern European Summer Time (EEST) - UTC+3:00
-    3,
-    // August - Eastern European Summer Time (EEST) - UTC+3:00
-    3,
-    // September - Eastern European Summer Time (EEST) - UTC+3:00
-    3,
-    // October - Eastern European Time (EET) - UTC+2:00
-    2,
-    // November - Eastern European Time (EET) - UTC+2:00
-    2,
-    // December - Eastern European Time (EET) - UTC+2:00
-    2
-];
-
 const defaultEventsList: GlobalEventsViewModel[] = [
     { name: "Новий рік", date: new Date(new Date().getFullYear(), 0, 1), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
     {
@@ -1229,7 +1190,82 @@ const defaultEventsList: GlobalEventsViewModel[] = [
         date: new Date(new Date().getFullYear(), 11, 25),
         typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
     },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 0, 6),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 0, 21),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 2, 7),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 3, 30),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 5, 27),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 6, 27),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 7, 22),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 7, 23),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 9, 13),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 11, 5),
+        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
+    },
+
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 0, 2),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
+    },
+    
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 0, 9),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
+    },
+    
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 0, 23),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
+    },
+    
+    {
+        name: "",
+        date: new Date(new Date().getFullYear(), 9, 16),
+        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
+    },
 ];
+
 
 export function getEventColor(eventType: SpecialEventType | null) {
     switch (eventType) {
@@ -1240,6 +1276,6 @@ export function getEventColor(eventType: SpecialEventType | null) {
     }
 }
 
-export function GetDaysFromMilsec(milsec:number){
-    return Math.ceil(milsec/86400000);
+export function GetDaysFromMilsec(milsec: number) {
+    return Math.ceil(milsec / 86400000);
 }
