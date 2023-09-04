@@ -48,7 +48,7 @@ namespace TimeTracker.Services
             bool bIsShortDay = false;
             bool bIsCelebrateOrHoliday = false;
             var globalCalendar = CalendarRepository.GetAllGlobalEvents();
-            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
+            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents);
             globalCalendar = globalCalendar.FindAll(e => e.Date.ToString("yyyy-MM-dd") == date.ToString("yyyy-MM-dd") || e.Date.ToString("yyyy-MM-dd") == date.AddDays(1).ToString("yyyy-MM-dd"));
             globalCalendar.ForEach(e =>
             {
@@ -96,7 +96,7 @@ namespace TimeTracker.Services
             bool bIsShortDay = false;
             bool bIsCelebrateOrHoliday = false;
             var globalCalendar = CalendarRepository.GetAllGlobalEvents();
-            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
+            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents);
             globalCalendar = globalCalendar.FindAll(e => e.Date.ToString("yyyy-MM-dd") == date.ToString("yyyy-MM-dd") || e.Date.ToString("yyyy-MM-dd") == date.AddDays(1).ToString("yyyy-MM-dd"));
             globalCalendar.ForEach(e =>
             {

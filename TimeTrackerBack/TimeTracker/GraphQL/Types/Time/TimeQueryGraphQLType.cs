@@ -142,7 +142,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             DateTime nd = new DateTime(d.AddMonths(1).Year, d.AddMonths(1).Month, 1);
             int[] days = new int[DateTime.DaysInMonth(d.Year, d.Month) + 1];
             var globalCalendar = _calendarRepository.GetAllGlobalEvents();
-            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
+            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents);
             globalCalendar = globalCalendar.FindAll(e => e.Date.Month == d.Month || (e.Date.Month == d.AddMonths(1).Month && e.Date.Day == 1));
             Array.Fill(days, 8);
             int MonthWorkTime = 0;
