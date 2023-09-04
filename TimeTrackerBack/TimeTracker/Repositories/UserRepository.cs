@@ -41,6 +41,13 @@ namespace TimeTracker.Repositories
                 return db.Query<User>($"SELECT * FROM Users WHERE FullName LIKE '%{FullName}%' ORDER BY FullName ASC").ToList();
             }
         }
+        public List<User> GetFulltimers()
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<User>("SELECT * FROM Users WHERE WorkHours = 100 AND Enabled = 1").ToList();
+            }
+        }
         public User GetUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
