@@ -1,6 +1,6 @@
-import { User } from "../../Redux/Types/User";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../Redux/store";
+import {User} from "../../Redux/Types/User";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "../../Redux/store";
 import {
 	addApproverReaction,
 	cancelVacationRequest,
@@ -10,7 +10,7 @@ import {
 	getIncomingVacationRequestsByApproverId,
 	getVacationRequestsByRequesterId,
 } from "../../Redux/VacationEpics";
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
 	Button,
 	ButtonGroup,
@@ -24,13 +24,13 @@ import {
 	Row,
 	ToggleButton,
 } from "react-bootstrap";
-import { VacationRequest } from "../../Redux/Types/VacationRequest";
-import { Error } from "../Service/Error";
-import { InputVacationRequest } from "../../Redux/Types/InputVacationRequest";
-import { InputApproverReaction } from "../../Redux/Types/InputApproverReaction";
-import { InputVacRequest } from "../../Redux/Types/InputVacRequest";
-import { ApproverNode } from "../../Redux/Types/ApproverNode";
-import { useTranslation } from "react-i18next";
+import {VacationRequest} from "../../Redux/Types/VacationRequest";
+import {Error} from "../Service/Error";
+import {InputVacationRequest} from "../../Redux/Types/InputVacationRequest";
+import {InputApproverReaction} from "../../Redux/Types/InputApproverReaction";
+import {InputVacRequest} from "../../Redux/Types/InputVacRequest";
+import {ApproverNode} from "../../Redux/Types/ApproverNode";
+import {useTranslation} from "react-i18next";
 
 interface ReactionReturn {
 	isApproved: boolean | null,
@@ -39,7 +39,7 @@ interface ReactionReturn {
 
 export default function VacationRequests(props: { user: User }) {
 	const dispach = useDispatch();
-	const { t } = useTranslation();
+	const {t} = useTranslation();
 
 	const getPlainDate = (date: Date) => {
 		let tempDate: Date = new Date(date);
@@ -60,15 +60,15 @@ export default function VacationRequests(props: { user: User }) {
 				&& approverNode.isRequestApproved !== undefined
 				&& approverNode.reactionMessage !== undefined
 				&& approverNode.userIdApprover.toString() === user.id.toString()) {
-				return { isApproved: approverNode.isRequestApproved, reaction: approverNode.reactionMessage } as ReactionReturn;
+				return {isApproved: approverNode.isRequestApproved, reaction: approverNode.reactionMessage} as ReactionReturn;
 			}
 		}
-		return { isApproved: null, reaction: null } as ReactionReturn;
+		return {isApproved: null, reaction: null} as ReactionReturn;
 	}
 
 
 	const [showReaction, setShowReaction] = useState(false);
-	const initVacationRequest = { id: 0 } as VacationRequest;
+	const initVacationRequest = {id: 0} as VacationRequest;
 	const [currentVacationRequest, setCurrentVacationRequest] =
 		useState(initVacationRequest);
 	const [currentIncomingVacationRequest, setCurrentIncomingVacationRequest] =
@@ -99,10 +99,9 @@ export default function VacationRequests(props: { user: User }) {
 					approverOrRequesterId: props.user.id,
 					requestStatus: requestTypeFilter
 				}));
-			}
-			else {
+			} else {
 				dispach(getIncomingVacationRequestsByApproverId(
-					{ approverOrRequesterId: props.user.id, requestStatus: requestTypeFilter } as InputVacRequest
+					{approverOrRequesterId: props.user.id, requestStatus: requestTypeFilter} as InputVacRequest
 				));
 			}
 		}
@@ -261,7 +260,8 @@ export default function VacationRequests(props: { user: User }) {
 			</>)
 		}
 		return (<>
-			<p className="m-0 fs-5">{t("VacationRequests.VacReq.yourReaction")}: {reactionReturn.isApproved ? "Approved" : "Declined"}</p>
+			<p
+				className="m-0 fs-5">{t("VacationRequests.VacReq.yourReaction")}: {reactionReturn.isApproved ? "Approved" : "Declined"}</p>
 			<p className="m-0 fs-5">{t("VacationRequests.VacReq.reactionMessage")}: {reactionReturn.reaction}</p>
 			<Button variant="outline-secondary" onClick={() => HandleShowReactionModal(vacationRequest)}>
 				{t("VacationRequests.VacReq.changeReactionButton")}</Button>
@@ -274,7 +274,8 @@ export default function VacationRequests(props: { user: User }) {
 			</Row>
 			<Row className="mb-2">
 				<Col>
-					<Form.Select onChange={(e) => setRequestTypeFilter(e.target.value)} className="w-25" value={requestTypeFilter}>
+					<Form.Select onChange={(e) => setRequestTypeFilter(e.target.value)} className="w-25"
+					             value={requestTypeFilter}>
 						<option value="All">{t("VacationRequests.VacationType.allItem")}</option>
 						<option value="Pending">{t("VacationRequests.VacationType.pendingItem")}</option>
 						<option value="Canceled">{t("VacationRequests.VacationType.canceledItem")}</option>
@@ -284,8 +285,11 @@ export default function VacationRequests(props: { user: User }) {
 				</Col>
 				<Col className="d-flex justify-content-center">
 					<ButtonGroup>
-						<ToggleButton value={"My"} variant={requestType === "My" ? 'dark' : 'outline-dark text-secondary'} onClick={() => setRequestType("My")}>My requests</ToggleButton>
-						<ToggleButton value={"Incoming"} variant={requestType === "Incoming" ? 'dark' : 'outline-dark text-secondary'} onClick={() => setRequestType("Incoming")}>Incoming requests</ToggleButton>
+						<ToggleButton value={"My"} variant={requestType === "My" ? 'dark' : 'outline-dark text-secondary'}
+						              onClick={() => setRequestType("My")}>{t("VacationRequests.myRequestsHeader")}</ToggleButton>
+						<ToggleButton value={"Incoming"}
+						              variant={requestType === "Incoming" ? 'dark' : 'outline-dark text-secondary'}
+						              onClick={() => setRequestType("Incoming")}>{t("VacationRequests.incomingRequestHeader")}</ToggleButton>
 					</ButtonGroup>
 				</Col>
 				<Col className="d-flex">
@@ -491,8 +495,10 @@ export default function VacationRequests(props: { user: User }) {
 																<Form.Select
 																	onChange={(e) => HandleSetReaction(e.target.value)}>
 																	<option>{t("VacationRequests.VacReq.ChangeReactionModal.selectHeader")}</option>
-																	<option value="Approve">{t("VacationRequests.VacReq.ChangeReactionModal.approve")}</option>
-																	<option value="Decline">{t("VacationRequests.VacReq.ChangeReactionModal.decline")}</option>
+																	<option
+																		value="Approve">{t("VacationRequests.VacReq.ChangeReactionModal.approve")}</option>
+																	<option
+																		value="Decline">{t("VacationRequests.VacReq.ChangeReactionModal.decline")}</option>
 																</Form.Select>
 															</Form.Group>
 															<Form.Group>
