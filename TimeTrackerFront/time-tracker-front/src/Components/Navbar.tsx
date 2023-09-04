@@ -123,8 +123,9 @@ function AppNavbar() {
 						})()}
 					</Button>
 
-					<div className="ms-3">
-						<p>{t("chooseLang")}:</p>
+					<div className="ms-3 d-flex flex-row">
+						<div className='pt-1'>{t("chooseLang")}:</div>
+						<div className='ms-2'>
 						{Object.keys(lngs).map((lng) => {
 							return (
 								<Button type="submit"
@@ -137,6 +138,7 @@ function AppNavbar() {
 									{lng}
 								</Button>)
 						})}
+						</div>
 					</div>
 
 					<Nav.Link as={Link} to={user ? "/User/" + user.login : "/Login"} className='ms-auto'>{user.login}</Nav.Link>
