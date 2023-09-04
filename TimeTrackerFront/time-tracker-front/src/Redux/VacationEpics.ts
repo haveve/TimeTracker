@@ -109,7 +109,7 @@ export const cancelVacationRequestEpic: Epic = (action$: Observable<PayloadActio
     map(action => action.payload),
     mergeMap((vacationRequest) => RequestCancelVacationRequest(vacationRequest).pipe(
         map(() => getVacationRequestsByRequesterId(
-            {approverOrRequesterId: vacationRequest.requesterId, requestStatus: "Pending"}
+            {approverOrRequesterId: vacationRequest.requesterId, requestStatus: "All"}
         ))
     ))
 );

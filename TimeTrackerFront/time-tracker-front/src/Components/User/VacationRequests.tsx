@@ -129,6 +129,7 @@ export default function VacationRequests(props: { user: User }) {
 	};
 
 	const HandleCancelRequest = (inputVacationRequest: VacationRequest) => {
+		setRequestTypeFilter("All");
 		dispach(cancelVacationRequest(inputVacationRequest));
 	};
 
@@ -229,13 +230,13 @@ export default function VacationRequests(props: { user: User }) {
 	const renderStatus = (status: string) => {
 		switch (status) {
 			case "Approved":
-				return (<p className="m-0 fs-5" style={{ color: "green" }}>{t("VacationRequests.VacReq.Status.approved")}</p>);
+				return (<p className="m-0 fs-5 text-green">{t("VacationRequests.VacReq.Status.approved")}</p>);
 			case "Declined":
-				return (<p className="m-0 fs-5" style={{ color: "red" }}>{t("VacationRequests.VacReq.Status.declined")}</p>);
+				return (<p className="m-0 fs-5 text-danger">{t("VacationRequests.VacReq.Status.declined")}</p>);
 			case "Canceled":
-				return (<p className="m-0 fs-5" style={{ color: "grey" }}>{t("VacationRequests.VacReq.Status.canceled")}</p>);
+				return (<p className="m-0 fs-5 text-grey">{t("VacationRequests.VacReq.Status.canceled")}</p>);
 			case "Pending":
-				return (<p className="m-0 fs-5" style={{ color: "yellow" }}>{t("VacationRequests.VacReq.Status.pending")}</p>);
+				return (<p className="m-0 fs-5 text-primary">{t("VacationRequests.VacReq.Status.pending")}</p>);
 			default:
 				return (<></>);
 		}
@@ -246,7 +247,7 @@ export default function VacationRequests(props: { user: User }) {
 		if (reactionReturn.isApproved == null) {
 			return (<>
 				<Button
-					variant={"outline-success"}
+					variant={"outline-success me-2 ms-auto"}
 					onClick={() => HandleApprove(vacationRequest)}
 				>
 					{t("VacationRequests.VacReq.approve")}
@@ -266,123 +267,132 @@ export default function VacationRequests(props: { user: User }) {
 				{t("VacationRequests.VacReq.changeReactionButton")}</Button>
 		</>)
 	}
-    return (
-        <>
-            <Row xs="auto" className="d-flex flex-row justify-content-center align-items-center m-1">
-                <h1>{t("VacationRequests.myRequestsHeader")}</h1>
-            </Row>
-            <Row className="mb-2">
-                <Col>
-                    <Form.Select onChange={(e) => setRequestTypeFilter(e.target.value)} className="w-25">
-                        <option value="All">{t("VacationRequests.VacationType.allItem")}</option>
-                        <option value="Pending">{t("VacationRequests.VacationType.pendingItem")}</option>
-                        <option value="Canceled">{t("VacationRequests.VacationType.canceledItem")}</option>
-                        <option value="Approved">{t("VacationRequests.VacationType.approvedItem")}</option>
-                        <option value="Declined">{t("VacationRequests.VacationType.declinedItem")}</option>
-                    </Form.Select>
-                </Col>
-                <Col className="d-flex justify-content-center">
-                    <ButtonGroup>
-                        <ToggleButton value={"My"} variant={requestType === "My" ? 'dark' : 'outline-dark text-secondary'} onClick={() => setRequestType("My")}>My requests</ToggleButton>
-                        <ToggleButton value={"Incoming"} variant={requestType === "Incoming" ? 'dark' : 'outline-dark text-secondary'} onClick={() => setRequestType("Incoming")}>Incoming requests</ToggleButton>
-                    </ButtonGroup>
-                </Col>
-                <Col className="d-flex">
-                    <Button
-                        onClick={() => {
-                            setShowCreate(true);
-                            setShowError(false);
-                        }}
-                        variant={"outline-success ms-auto"}
-                    >
-                        {t("VacationRequests.createVacReqButton")}
-                    </Button>
-                </Col>
-            </Row>
-            <Modal
-                show={showCreate}
-                backdrop="static"
-                keyboard={false}
-                centered
-                data-bs-theme="dark"
-                onHide={handleCloseCreate}
-            >
-                <Form onSubmit={(e) => handleSubmit(e)}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>{t("VacationRequests.CreateVacReqModal.header")}</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form.Label>{t("VacationRequests.CreateVacReqModal.remainingDays")} - {props.user.vacationDays}</Form.Label>
-                        <Form.Group className="mb-3">
-                            <Form.Label>{t("VacationRequests.CreateVacReqModal.requestInfo")}</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={info}
-                                onChange={(e) => setInfo(e.target.value)}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>{t("VacationRequests.CreateVacReqModal.startDate")}</Form.Label>
-                            <Form.Control
-                                type="date"
-                                defaultValue={Date.now()}
-                                onChange={(e) => setStartDate(new Date(e.target.value))}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>{t("VacationRequests.CreateVacReqModal.finishDate")}</Form.Label>
-                            <Form.Control
-                                type="date"
-                                defaultValue={Date.now()}
-                                onChange={(e) => setEndDate(new Date(e.target.value))}
-                            />
-                            <Error
-                                ErrorText={errorMessage}
-                                Show={showError}
-                                SetShow={() => setShowError(false)}
-                            ></Error>
-                        </Form.Group>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={handleCloseCreate}>
-						{t("cancel")}
-                        </Button>
-                        <Button variant="success" type="submit">
-						{t("create")}
-                        </Button>
-                    </Modal.Footer>
-                </Form>
-            </Modal>
-            {requestType === "My" ?
-                <>
-                    {
-                        vacationRequests.map((vacationRequest) => {
-                            return (
-                                <Card className="w-100" key={vacationRequest.id}>
-                                    <Card.Body className="d-flex flex-column bg-succes">
-                                        <Row>
-                                            <Col>
-                                                {renderStatus(vacationRequest.status)}
+	return (
+		<>
+			<Row xs="auto" className="d-flex flex-row justify-content-center align-items-center m-1">
+				<h1>{t("VacationRequests.myRequestsHeader")}</h1>
+			</Row>
+			<Row className="mb-2">
+				<Col>
+					<Form.Select onChange={(e) => setRequestTypeFilter(e.target.value)} className="w-25" value={requestTypeFilter}>
+						<option value="All">{t("VacationRequests.VacationType.allItem")}</option>
+						<option value="Pending">{t("VacationRequests.VacationType.pendingItem")}</option>
+						<option value="Canceled">{t("VacationRequests.VacationType.canceledItem")}</option>
+						<option value="Approved">{t("VacationRequests.VacationType.approvedItem")}</option>
+						<option value="Declined">{t("VacationRequests.VacationType.declinedItem")}</option>
+					</Form.Select>
+				</Col>
+				<Col className="d-flex justify-content-center">
+					<ButtonGroup>
+						<ToggleButton value={"My"} variant={requestType === "My" ? 'dark' : 'outline-dark text-secondary'} onClick={() => setRequestType("My")}>My requests</ToggleButton>
+						<ToggleButton value={"Incoming"} variant={requestType === "Incoming" ? 'dark' : 'outline-dark text-secondary'} onClick={() => setRequestType("Incoming")}>Incoming requests</ToggleButton>
+					</ButtonGroup>
+				</Col>
+				<Col className="d-flex">
+					<Button
+						onClick={() => {
+							setShowCreate(true);
+							setShowError(false);
+						}}
+						variant={"outline-success ms-auto"}
+					>
+						{t("VacationRequests.createVacReqButton")}
+					</Button>
+				</Col>
+			</Row>
+			<Modal
+				show={showCreate}
+				backdrop="static"
+				keyboard={false}
+				centered
+				data-bs-theme="dark"
+				onHide={handleCloseCreate}
+			>
+				<Form onSubmit={(e) => handleSubmit(e)}>
+					<Modal.Header closeButton>
+						<Modal.Title>{t("VacationRequests.CreateVacReqModal.header")}</Modal.Title>
+					</Modal.Header>
+					<Modal.Body>
+						<Form.Label>{t("VacationRequests.CreateVacReqModal.remainingDays")} - {props.user.vacationDays}</Form.Label>
+						<Form.Group className="mb-3">
+							<Form.Label>{t("VacationRequests.CreateVacReqModal.requestInfo")}</Form.Label>
+							<Form.Control
+								type="text"
+								value={info}
+								onChange={(e) => setInfo(e.target.value)}
+							/>
+						</Form.Group>
+						<Form.Group className="mb-3">
+							<Form.Label>{t("VacationRequests.CreateVacReqModal.startDate")}</Form.Label>
+							<Form.Control
+								type="date"
+								defaultValue={Date.now()}
+								onChange={(e) => setStartDate(new Date(e.target.value))}
+							/>
+						</Form.Group>
+						<Form.Group className="mb-3">
+							<Form.Label>{t("VacationRequests.CreateVacReqModal.finishDate")}</Form.Label>
+							<Form.Control
+								type="date"
+								defaultValue={Date.now()}
+								onChange={(e) => setEndDate(new Date(e.target.value))}
+							/>
+							<Error
+								ErrorText={errorMessage}
+								Show={showError}
+								SetShow={() => setShowError(false)}
+							></Error>
+						</Form.Group>
+					</Modal.Body>
+					<Modal.Footer>
+						<Button variant="secondary" onClick={handleCloseCreate}>
+							{t("cancel")}
+						</Button>
+						<Button variant="success" type="submit">
+							{t("create")}
+						</Button>
+					</Modal.Footer>
+				</Form>
+			</Modal>
+			{requestType === "My" ?
+				<>
+					{
+						vacationRequests.map((vacationRequest) => {
+							return (
+								<Card className="w-100 mb-2" key={vacationRequest.id}>
+									<Card.Body className="d-flex flex-column bg-darkgray">
+										<Row>
+											<Col className="d-flex align-items-center">
+												<p className="m-0 fs-5">
+													{getPlainDate(vacationRequest.startDate)} -{" "}
+													{getPlainDate(vacationRequest.endDate)}
+												</p>
+											</Col>
+											<Col className="d-flex align-items-center">
+												<Col className="d-flex justify-content-end me-2">
+													{renderStatus(vacationRequest.status)}
+												</Col>
+												<Col>
 
-                                                <p className="m-0 fs-5">{vacationRequest.infoAboutRequest}</p>
-                                                <Button
-                                                    variant="outline-info"
-                                                    onClick={() => HandleShowReaction(vacationRequest)}
-                                                >
-                                                    {t("VacationRequests.VacReq.reactionList")}
-                                                </Button>
-                                                <Modal
-                                                    show={showReaction}
-                                                    backdrop="static"
-                                                    keyboard={false}
-                                                    centered
-                                                    data-bs-theme="dark"
-                                                    onHide={() => setShowReaction(false)}
-                                                >
-                                                    <Modal.Header>{t("VacationRequests.VacReq.ReactionList.header")}</Modal.Header>
-                                                    <ListGroup className="w-100 d-flex flex-column">
-                                                        {approversReactions.map((approverReaction) => {
-                                                            let reaction: string;
+													<p className="m-0 fs-5">{vacationRequest.infoAboutRequest}</p>
+													<Button
+														variant="outline-secondary text-white"
+														onClick={() => HandleShowReaction(vacationRequest)}
+													>
+														{t("VacationRequests.VacReq.reactionList")}
+													</Button></Col>
+												<Modal
+													show={showReaction}
+													backdrop="static"
+													keyboard={false}
+													centered
+													data-bs-theme="dark"
+													onHide={() => setShowReaction(false)}
+												>
+													<Modal.Header>{t("VacationRequests.VacReq.ReactionList.header")}</Modal.Header>
+													<ListGroup className="w-100 d-flex flex-column">
+														{approversReactions.map((approverReaction) => {
+															let reaction: string;
 															let reactionClass: string;
 															if (approverReaction.isRequestApproved === null) {
 																reaction = t("VacationRequests.VacReq.ReactionList.noReaction");
@@ -394,7 +404,7 @@ export default function VacationRequests(props: { user: User }) {
 																reaction = t("VacationRequests.VacReq.ReactionList.declined");
 																reactionClass = "text-danger";
 															}
-                                                            return (
+															return (
 																<>
 																	<ListGroupItem
 																		key={approverReaction.id}
@@ -410,152 +420,151 @@ export default function VacationRequests(props: { user: User }) {
 																	</ListGroupItem>
 																</>
 															);
-                                                        })}
-                                                    </ListGroup>
-                                                    <Modal.Footer>
-                                                        <Button
-                                                            variant="secondary"
-                                                            onClick={() => setShowReaction(false)}
-                                                        >
-                                                            {t("cancel")}
-                                                        </Button>
-                                                    </Modal.Footer>
-                                                </Modal>
-                                            </Col>
-                                            <Col>
-                                                <p className="m-0 fs-5">
-                                                    {getPlainDate(vacationRequest.startDate)} -{" "}
-                                                    {getPlainDate(vacationRequest.endDate)}
-                                                </p>
-                                                <Button
-                                                    variant={"outline-secondary"}
-                                                    onClick={() => HandleCancelRequest(vacationRequest)}
-                                                >
-                                                    {t("VacationRequests.VacReq.cancelRequest")}
-                                                </Button>
-                                            </Col>
-                                        </Row>
-                                    </Card.Body>
-                                </Card>
-                            );
-                        })
-                    }</>
-                :
-                <>{
-                    incomingVacationRequests!.map((vacationRequest) => {
-                        return (
-                            <>
-                                <Card className={"w-100"} key={vacationRequest.id}>
-                                    <Card.Body className="d-flex flex-column bg-succes">
-                                        <Row>
-                                            <Col>
-                                                {renderStatus(vacationRequest.status)}
-                                                <p className="m-0 fs-5">
-                                                    {vacationRequest.infoAboutRequest}
-                                                </p>
-                                                <p className="m-0 fs-5">
-												{t("VacationRequests.VacReq.requester")} - {vacationRequest.requester.fullName} - {t("VacationRequests.VacReq.remainingDays")} = {vacationRequest.requester.vacationDays}
-                                                </p>
-                                            </Col>
-                                            <Col>
-                                                <p className="m-0 fs-5">
-                                                    {getPlainDate(vacationRequest.startDate)} -{" "}
-                                                    {getPlainDate(vacationRequest.endDate)}
-                                                </p>
-                                                {renderReaction(vacationRequest, props.user)}
+														})}
+													</ListGroup>
+													<Modal.Footer>
+														<Button
+															variant="secondary"
+															onClick={() => setShowReaction(false)}
+														>
+															{t("close")}
+														</Button>
+													</Modal.Footer>
+												</Modal>
+											</Col>
+											<Col className="d-flex align-items-center">
+												<Button
+													variant={"outline-danger ms-auto"}
+													onClick={() => HandleCancelRequest(vacationRequest)}
+												>
+													{t("VacationRequests.VacReq.cancelRequest")}
+												</Button>
+											</Col>
+										</Row>
+									</Card.Body>
+								</Card>
+							);
+						})
+					}</>
+				:
+				<>{
+					incomingVacationRequests!.map((vacationRequest) => {
+						return (
+							<>
+								<Card className={"w-100 mb-2"} key={vacationRequest.id}>
+									<Card.Body className="d-flex flex-column bg-darkgray">
+										<Row>
+											<Col className="d-flex align-items-center">
+												<p className="m-0 fs-5">
+													{getPlainDate(vacationRequest.startDate)} -{" "}
+													{getPlainDate(vacationRequest.endDate)}
+												</p>
+											</Col>
+											<Col>
+												{renderStatus(vacationRequest.status)}
+												<p className="m-0 fs-5">
+													{vacationRequest.infoAboutRequest}
+												</p>
+												<p className="m-0 fs-5">
+													{vacationRequest.requester.fullName}, {t("VacationRequests.VacReq.remainingDays")}: {vacationRequest.requester.vacationDays}
+												</p>
+											</Col>
+											<Col className="d-flex align-items-center">
 
-                                                <Modal
-                                                    show={showReactionModal}
-                                                    backdrop="static"
-                                                    keyboard={false}
-                                                    centered
-                                                    data-bs-theme="dark"
-                                                    onHide={() => setShowReactionModal(false)}
-                                                >
-                                                    <Form onSubmit={(e) => HandleReactionModalSubmit(e)}>
-                                                        <Modal.Header closeButton>
-														{t("VacationRequests.VacReq.ChangeReactionModal.header")}
-                                                        </Modal.Header>
-                                                        <Modal.Body>
-                                                            <Form.Group>
-                                                                <Form.Label>{t("VacationRequests.VacReq.ChangeReactionModal.reaction")}</Form.Label>
-                                                                <Form.Select
-															onChange={(e) => HandleSetReaction(e.target.value)}>
-															<option>{t("VacationRequests.VacReq.ChangeReactionModal.selectHeader")}</option>
-															<option value="Approve">{t("VacationRequests.VacReq.ChangeReactionModal.approve")}</option>
-															<option value="Decline">{t("VacationRequests.VacReq.ChangeReactionModal.decline")}</option>
-														</Form.Select>
-                                                            </Form.Group>
-                                                            <Form.Group>
-														<Form.Label>{t("VacationRequests.VacReq.ChangeReactionModal.reactionMessage")}</Form.Label>
-														<Form.Control
-															type="text"
-															value={reactionMessage}
-															onChange={(e) =>
-																setReactionMessage(e.target.value)
-															}
-														/>
-													</Form.Group>
-                                                        </Modal.Body>
-                                                        <Modal.Footer>
-													<Button
-														variant="outline-secondary"
-														onClick={() => setShowReactionModal(false)}
-													>
-														{t("cancel")}
-													</Button>
-													<Button variant="outline-success" type="submit">
-														{t("submit")}
-													</Button>
-												</Modal.Footer>
-                                                    </Form>
-                                                </Modal>
-                                                <Modal
-											show={showReactionMessage}
-											backdrop="static"
-											keyboard={false}
-											centered
-											data-bs-theme="dark"
-											onHide={() => setShowReactionMessage(false)}
-										>
-											<Form onSubmit={(e) => HandleReactionMessageSubmit(e)}>
-												<Modal.Header closeButton>
-													{t("VacationRequests.VacReq.ReactionMessageModal.header")}
-												</Modal.Header>
-												<Modal.Body>
-													<Form.Group>
-														<Form.Label>{t("VacationRequests.VacReq.ReactionMessageModal.reactionMessage")}</Form.Label>
-														<Form.Control
-															type="text"
-															value={reactionMessage}
-															onChange={(e) =>
-																setReactionMessage(e.target.value)
-															}
-														/>
-													</Form.Group>
-												</Modal.Body>
-												<Modal.Footer>
-													<Button
-														variant="outline-secondary"
-														onClick={() => setShowReactionMessage(false)}
-													>
-														{t("cancel")}
-													</Button>
-													<Button variant="outline-success" type="submit">
-														{t("submit")}
-													</Button>
-												</Modal.Footer>
-											</Form>
-										</Modal>
-                                            </Col>
-                                        </Row>
-                                    </Card.Body>
-                                </Card>
-                            </>
-                        );
-                    })
-                }</>
-            }
-        </>
-    );
+												{renderReaction(vacationRequest, props.user)}
+
+												<Modal
+													show={showReactionModal}
+													backdrop="static"
+													keyboard={false}
+													centered
+													data-bs-theme="dark"
+													onHide={() => setShowReactionModal(false)}
+												>
+													<Form onSubmit={(e) => HandleReactionModalSubmit(e)}>
+														<Modal.Header closeButton>
+															{t("VacationRequests.VacReq.ChangeReactionModal.header")}
+														</Modal.Header>
+														<Modal.Body>
+															<Form.Group>
+																<Form.Label>{t("VacationRequests.VacReq.ChangeReactionModal.reaction")}</Form.Label>
+																<Form.Select
+																	onChange={(e) => HandleSetReaction(e.target.value)}>
+																	<option>{t("VacationRequests.VacReq.ChangeReactionModal.selectHeader")}</option>
+																	<option value="Approve">{t("VacationRequests.VacReq.ChangeReactionModal.approve")}</option>
+																	<option value="Decline">{t("VacationRequests.VacReq.ChangeReactionModal.decline")}</option>
+																</Form.Select>
+															</Form.Group>
+															<Form.Group>
+																<Form.Label>{t("VacationRequests.VacReq.ChangeReactionModal.reactionMessage")}</Form.Label>
+																<Form.Control
+																	type="text"
+																	value={reactionMessage}
+																	onChange={(e) =>
+																		setReactionMessage(e.target.value)
+																	}
+																/>
+															</Form.Group>
+														</Modal.Body>
+														<Modal.Footer>
+															<Button
+																variant="outline-secondary"
+																onClick={() => setShowReactionModal(false)}
+															>
+																{t("cancel")}
+															</Button>
+															<Button variant="outline-success" type="submit">
+																{t("submit")}
+															</Button>
+														</Modal.Footer>
+													</Form>
+												</Modal>
+												<Modal
+													show={showReactionMessage}
+													backdrop="static"
+													keyboard={false}
+													centered
+													data-bs-theme="dark"
+													onHide={() => setShowReactionMessage(false)}
+												>
+													<Form onSubmit={(e) => HandleReactionMessageSubmit(e)}>
+														<Modal.Header closeButton>
+															{t("VacationRequests.VacReq.ReactionMessageModal.header")}
+														</Modal.Header>
+														<Modal.Body>
+															<Form.Group>
+																<Form.Label>{t("VacationRequests.VacReq.ReactionMessageModal.reactionMessage")}</Form.Label>
+																<Form.Control
+																	type="text"
+																	value={reactionMessage}
+																	onChange={(e) =>
+																		setReactionMessage(e.target.value)
+																	}
+																/>
+															</Form.Group>
+														</Modal.Body>
+														<Modal.Footer>
+															<Button
+																variant="outline-secondary"
+																onClick={() => setShowReactionMessage(false)}
+															>
+																{t("cancel")}
+															</Button>
+															<Button variant="outline-success" type="submit">
+																{t("submit")}
+															</Button>
+														</Modal.Footer>
+													</Form>
+												</Modal>
+											</Col>
+										</Row>
+									</Card.Body>
+								</Card>
+							</>
+						);
+					})
+				}</>
+			}
+		</>
+	);
 }
