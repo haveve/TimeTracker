@@ -135,7 +135,7 @@
       },
       "cancelRequest": "Cancel request",
       "requester": "Requester",
-      "remainingDays": "Remaining days",
+      "remainingDays": "available days",
       "yourReaction": "Your reaction",
       "reactionMessage": "Reaction message",
       "changeReactionButton": "Change reaction",

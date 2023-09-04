@@ -158,11 +158,11 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
 }
 
 
-export function RequestUserTime(id: number): Observable<TimeResponse> {
+export function RequestUserTime(id: number, timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number, startOfWeek: startOfWeek): Observable<TimeResponse> {
     return GetAjaxObservable<GraphqlUserTime>(`
-    query($id: Int!){
+    query($id: Int!, $startOfWeek:StartOfWeek!,$offset:Int,$timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
         time{
-          getUserTime(id: $id){
+          getUserTime(id: $id, timeMark:$timeMark,pageNumber:$pageNumber,itemsInPage:$itemsInPage,offSet:$offset,startOfWeek:$startOfWeek){
             itemsCount,
             isStarted,
           time{
@@ -178,7 +178,7 @@ export function RequestUserTime(id: number): Observable<TimeResponse> {
       }
         }
       }
-    `, { id }).pipe(
+    `, { id, offset: offset / 60, timeMark, pageNumber, itemsInPage, startOfWeek }).pipe(
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
@@ -186,8 +186,8 @@ export function RequestUserTime(id: number): Observable<TimeResponse> {
             }
             let time = res.response.data.time.getUserTime;
             time.time.sessions.forEach(v => {
-                v.endTimeTrackDate = v.endTimeTrackDate ? new Date(new Date(v.endTimeTrackDate).getTime() + 1 * 60000) : v.endTimeTrackDate
-                v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + 1 * 60000)
+                v.endTimeTrackDate = v.endTimeTrackDate ? new Date(new Date(v.endTimeTrackDate).getTime() + offset * 60000) : v.endTimeTrackDate
+                v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + offset * 60000)
             })
             return time;
         })
@@ -226,6 +226,32 @@ export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsIn
                 v.endTimeTrackDate = v.endTimeTrackDate ? new Date(new Date(v.endTimeTrackDate).getTime() + offset * 60000) : v.endTimeTrackDate
                 v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + offset * 60000)
             })
+            return time;
+        })
+    );
+}
+
+export function RequestGetTimeInSeconds(timeMark: TimeMark[], pageNumber: number, itemsInPage: number, offset: number, startOfWeek: startOfWeek): Observable<TimeResponse> {
+
+    return GetAjaxObservable<GraphqlTime>(`
+    query($startOfWeek:StartOfWeek!,$offset:Int,$timeMark:[TimeMark!]!,$pageNumber:Int!,$itemsInPage:Int!){
+        time{
+          getTime(timeMark:$timeMark,pageNumber:$pageNumber,itemsInPage:$itemsInPage,offSet:$offset,startOfWeek:$startOfWeek){
+          time{
+          daySeconds
+          weekSeconds
+          monthSeconds
+        }
+      }
+        }
+      }
+    `, { offset: offset / 60, timeMark, pageNumber, itemsInPage, startOfWeek }).pipe(
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+            let time = res.response.data.time.getTime;
             return time;
         })
     );
@@ -316,6 +342,30 @@ export interface UpdateTimeResult {
     }
 }
 
+export interface UpdateUserTimeResult {
+    time: {
+        manageTime: {
+            updateUserTime: string
+        }
+    }
+}
+
+export interface DeleteUserTimeResult {
+    time: {
+        manageTime: {
+            deleteUserTime: string
+        }
+    }
+}
+
+export interface CreateUserTimeResult {
+    time: {
+        manageTime: {
+            createUserTime: string
+        }
+    }
+}
+
 export interface UpdateTimeReturnType {
     oldSeconds: number,
     newSeconds: number,
@@ -376,6 +426,132 @@ export function RequestUpdateDate(oldTime: Session, time: Session, offset: numbe
             }
 
             return timeReturn;
+        })
+    );
+}
+
+export function RequestUpdateUserDate(Id: number, oldTime: Session, time: Session, offset: number, startOfWeek: startOfWeek): Observable<string> {
+
+    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+
+    const oldStartTime = oldTime.startTimeTrackDate;
+    const timeBeforeSent = { ...time };
+
+    oldTime.endTimeTrackDate = new Date(oldTime.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    oldTime.startTimeTrackDate = new Date(oldTime.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    let userId : Number = Number(Id)
+
+    return GetAjaxObservable<UpdateUserTimeResult>(`
+    mutation($userId: Int!, $oldTime:ManageTimeInputGrpahqType!,$time:ManageTimeInputGrpahqType!,$offset:Int,$startOfWeek:StartOfWeek!){
+        time{
+          manageTime{
+            updateUserTime(id: $userId, oldTime:$oldTime,userTime:$time,offSet:$offset,startOfWeek:$startOfWeek)
+          }
+        }
+    }
+    `, {
+        userId,
+        oldTime: {
+            endTimeTrackDate: oldTime.endTimeTrackDate,
+            startTimeTrackDate: oldTime.startTimeTrackDate,
+        }, time: {
+            endTimeTrackDate: time.endTimeTrackDate,
+            startTimeTrackDate: time.startTimeTrackDate,
+        }, offset: offset / 60,
+        startOfWeek
+    }, true).pipe(
+        map(res => {
+
+            const sqlErro: ErrorGraphql = res.response.errors;
+            if (sqlErro && sqlErro[0].extensions.code === "SQL") {
+                console.error(JSON.stringify(res.response.errors))
+                throw "SQL"
+            }
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+
+            return res.response.data.time.manageTime.updateUserTime;
+        })
+    );
+}
+
+export function RequestDeleteUserDate(Id: number, time: Session, offset: number): Observable<string> {
+
+    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+
+    let userId : Number = Number(Id)
+
+    return GetAjaxObservable<DeleteUserTimeResult>(`
+    mutation($userId: Int!,$time:ManageTimeInputGrpahqType!){
+        time{
+          manageTime{
+            deleteUserTime(id: $userId,userTime:$time)
+          }
+        }
+    }
+    `, {
+        userId,
+        time: {
+            endTimeTrackDate: time.endTimeTrackDate,
+            startTimeTrackDate: time.startTimeTrackDate,
+        }
+    }, true).pipe(
+        map(res => {
+
+            const sqlErro: ErrorGraphql = res.response.errors;
+            if (sqlErro && sqlErro[0].extensions.code === "SQL") {
+                console.error(JSON.stringify(res.response.errors))
+                throw "SQL"
+            }
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+
+            return res.response.data.time.manageTime.deleteUserTime;
+        })
+    );
+}
+
+export function RequestCreateUserDate(Id: number, time: Session, offset: number): Observable<string> {
+
+    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+
+    let userId : Number = Number(Id)
+
+    return GetAjaxObservable<CreateUserTimeResult>(`
+    mutation($userId: Int!,$time:ManageTimeInputGrpahqType!){
+        time{
+          manageTime{
+            createUserTime(id: $userId,userTime:$time)
+          }
+        }
+    }
+    `, {
+        userId,
+        time: {
+            endTimeTrackDate: time.endTimeTrackDate,
+            startTimeTrackDate: time.startTimeTrackDate,
+        }
+    }, true).pipe(
+        map(res => {
+
+            const sqlErro: ErrorGraphql = res.response.errors;
+            if (sqlErro && sqlErro[0].extensions.code === "SQL") {
+                console.error(JSON.stringify(res.response.errors))
+                throw "SQL"
+            }
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+
+            return res.response.data.time.manageTime.createUserTime;
         })
     );
 }

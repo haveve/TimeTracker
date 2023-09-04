@@ -11,6 +11,7 @@ namespace TimeTracker.Repositories
     {
         public List<User> GetUsers();
         public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string enabled);
+        public List<User> GetFulltimers();
         public User GetUser(int id);
         public User? GetUserByCredentials(string login, string password,bool hashed = false);
         public Permissions GetUserPermissions(int id);

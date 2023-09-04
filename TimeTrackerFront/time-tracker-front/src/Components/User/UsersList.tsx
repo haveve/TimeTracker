@@ -56,7 +56,7 @@ function Userslist() {
 
 	return (
 		<div className='Userslist d-flex align-items-center flex-column mt-5 h-75'>
-			<h5>{t("UsersList.header")}</h5>
+			<h5>Users</h5>
 			<div className="mb-3 w-50 d-flex">
 				<Row className='m-0 p-0 w-100'>
 					<Col className='m-0 p-0 me-2' sm={7}>

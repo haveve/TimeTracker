@@ -11,6 +11,7 @@ namespace TimeTracker.Repositories
         public void RemoveEvent(int userId,DateTime startDate);
         public void UpdateEvent(int userId, DateTime oldStartDate, CalendarEventViewModel updatedData);
         public List<GlobalEventsViewModel> GetAllGlobalEvents();
+        public GlobalEventsViewModel GetDateGlobalEvent(DateTime date);
         public void RemoveGlobalEvent(DateTime date);
         public void AddGlobalEvent(GlobalEventsViewModel addEvent);
         public void UpdateGlobalEvent(DateTime date, GlobalEventsViewModel updatedData);
