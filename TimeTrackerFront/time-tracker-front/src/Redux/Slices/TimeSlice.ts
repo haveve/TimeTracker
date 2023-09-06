@@ -109,8 +109,8 @@ export const timeSlicer = createSlice({
         clearErrorMessage: (state) => {
             state.error = ""
         },
-        changeTimerState: (state) => {
-            state.time.isStarted = !state.time.isStarted;
+        changeTimerState: (state,payload:PayloadAction<boolean>) => {
+            state.time.isStarted = payload.payload;
         }
     },
     extraReducers: {

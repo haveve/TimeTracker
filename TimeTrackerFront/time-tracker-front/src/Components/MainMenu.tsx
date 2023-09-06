@@ -9,7 +9,6 @@ function MainMenu() {
   return (
       <div className='UserDetails d-flex align-items-center flex-column m-1'>
         <div className='Userslist d-flex align-items-center flex-column mt-5 h-75'>
-
           <h1>{t("MainMenu.welcome")}</h1>
           <div className='w-75 d-flex mt-4    '>
             <Card style={{width: '18rem'}} className='bg-dark me-2' as={Link} to={"/Time"}>

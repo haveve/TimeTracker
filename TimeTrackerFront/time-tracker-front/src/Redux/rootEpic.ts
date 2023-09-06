@@ -20,6 +20,7 @@ import {
     setTimeEpic,
     setEndTimeEpic,
     setStartTimeEpic,
+    setIsStartedEpic
 } from "./TimeEpics";
 import { catchError } from "rxjs";
 
@@ -34,6 +35,7 @@ export const rootEpic: Epic = (action$, store$, dependencies) =>
         setTimeEpic,
         setEndTimeEpic,
         setStartTimeEpic,
+        setIsStartedEpic,
         // Vacation
         getApproversEpic,
         addApproverEpic,

@@ -1,9 +1,9 @@
 /// <reference types="react-scripts" />
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
 import { InputGroup, FloatingLabel, Modal, Button, Form, Col, Row } from "react-bootstrap";
 import '../../Custom.css';
 import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
-import { TimeStringFromSeconds } from '../Time/TimeTracker';
+import { TimeStringFromSeconds } from '../Time/TimeFunction';
 import { CalendarDay, SpecialEventType } from '../../Redux/Types/Calendar';
 import { ErrorMassagePattern } from '../../Redux/epics';
 import {
@@ -33,6 +33,7 @@ import allLocales from '@fullcalendar/core/locales-all';
 import { Subscription } from 'rxjs';
 import moment from 'moment';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
 export const uncorrectTimeError = `start end end dates must be correct. Theirs' values of hours must be <= 24 and >=0, minutes <=60 and >=0 and startDate must be less than endDate `
@@ -41,6 +42,14 @@ export const successfullyDeleted = `your range of time was successfully deleted`
 export const successfullyUpdated = `your range of time was successfully updated`
 export const uncoredStartDate = `you can create two date range with the same start date`
 export const uncorrectDayError = `start end end days' must be correct. Theirs' values of days must be <= days in month and >0, months <=12 and >0 and from day must be less than to day `
+
+export const weekInMilSec = 604800000
+
+export const maxCalendarDate = new Date(2030, 11, 31)
+export const minCalendarDate = new Date(2023, 0, 1)
+
+export const maxCalendarCompareDate = new Date(2030, 11, 1)
+export const minCalendarCompareDate = new Date(2023, 0, 31)
 
 export enum MonthOrWeek {
     Month = "MONTH",
@@ -96,6 +105,16 @@ export default function Calendar() {
     const [selectedTypeUpdate, setSelectedTypeUpdate] = useState<null | TypeOfGlobalEvent>(null)
     const [selectedTypeCreateRange, setSelectedTypeCreateRange] = useState<null | TypeOfGlobalEvent>(null)
 
+    const [selectedAction, setSelectedAction] = useState(0);
+    const [buttonText, setButtonText] = useState('');
+    const [buttonType, setButtonType] = useState('outline-success')
+
+    const {i18n,t} = useTranslation();
+
+    useEffect(()=>{
+        setButtonText(t('create'))
+    },[i18n.language])
+
     useEffect(() => {
         //If user accept track her location, finding gap between his location and
         //local time(location that estimate browser) in other way, finding gap
@@ -112,7 +131,7 @@ export default function Calendar() {
                 setGlobalCalendar([...gEvents.map(cg => {
                     cg.date = new Date(cg.date)
                     return cg
-                }), ...defaultEventsList.filter(cd => cd.date.getMonth() === navigateDate.getMonth())])
+                })])
             },
             error: () => setError(ErrorMassagePattern)
         }))
@@ -481,9 +500,6 @@ export default function Calendar() {
         })
 
     }
-    const [selectedAction, setSelectedAction] = useState(0);
-    const [buttonText, setButtonText] = useState('Create');
-    const [buttonType, setButtonType] = useState('outline-success')
 
 
     const getSubmmitHandler = () => {
@@ -514,69 +530,22 @@ export default function Calendar() {
 
     const handleBackToMonthClick = () => {
         const calendarApi = calendarRef.current!.getApi();
-        setNavigateDate(calendarApi.getDate())
-        setMOrW(MonthOrWeek.Month);
-        calendarApi.changeView('dayGridMonth');
-
+        SwitchingCalendarFormat(setNavigateDate, setMOrW, calendarApi.getDate(), () => calendarApi.changeView('dayGridMonth'), MonthOrWeek.Month)
     };
 
     const handleBackToWeekClick = () => {
         const calendarApi = calendarRef.current!.getApi();
-        setNavigateDate(calendarApi.getDate())
-        setMOrW(MonthOrWeek.Week);
-        calendarApi.changeView('timeGridWeek');
+        SwitchingCalendarFormat(setNavigateDate, setMOrW, calendarApi.getDate(), () => calendarApi.changeView('timeGridWeek'), MonthOrWeek.Week)
     };
 
     const handlePrevClick = () => {
         const calendarApi = calendarRef.current!.getApi();
-        var localNav = new Date();
-        switch (mOrW) {
-            case MonthOrWeek.Month:
-                setNavigateDate(d => {
-                    if (d.getTime() > new Date(2023, 0, 31).getTime()) {
-                        localNav = new Date(d.setMonth(d.getMonth() - 1));
-                        return localNav;
-                    }
-                    return d;
-                });
-                break;
-            case MonthOrWeek.Week:
-                setNavigateDate(d => {
-                    if (d.getTime() > new Date(2023, 0, 31).getTime()) {
-                        localNav = new Date(d.getTime() - 604800000);
-                        return localNav;
-                    }
-                    return d;
-                });
-                break;
-        }
-        calendarApi.prev();
+        ChangeCalendarPage(() => calendarApi.prev(), NextOrPrev.Prev, setNavigateDate, mOrW)
     };
 
     const handleNextClick = () => {
         const calendarApi = calendarRef.current!.getApi();
-        var localNav = new Date();
-        switch (mOrW) {
-            case MonthOrWeek.Month:
-                setNavigateDate(d => {
-                    if (d.getTime() < new Date(2023, 11, 1).getTime()) {
-                        localNav = new Date(d.setMonth(d.getMonth() + 1));
-                        return localNav;
-                    }
-                    return d
-                });
-                break;
-            case MonthOrWeek.Week:
-                setNavigateDate(d => {
-                    if (d.getTime() <= new Date(2023, 11, 1).getTime()) {
-                        localNav = new Date(d.getTime() + 604800000);
-                        return localNav;
-                    }
-                    return d
-                });
-                break;
-        }
-        calendarApi.next();
+        ChangeCalendarPage(() => calendarApi.next(), NextOrPrev.Next, setNavigateDate, mOrW)
     };
 
     const handleBackToday = () => {
@@ -589,78 +558,38 @@ export default function Calendar() {
         ref={calendarRef}
         dayHeaderClassNames={['calendar-head-color']}
         height={"100%"}
-        dayCellContent={function (info) {
-            const celebrate = globalCalendar.filter(cg => {
-                return DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
-            })
-
-            if (celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate && !info.isOther) {
-                return <div className='container-fluid p-0 m-0 '>
-                    <div className='text-decoration-none text-center text-warning'>{info.dayNumberText}</div>
-                    <div className='text-decoration-none text-secondary'>{celebrate[0].name}</div>
-                </div>
-            }
-
-            if (info.date.getDay() == 0 || info.date.getDay() == 6)
-                return <div className='text-decoration-none text-danger'>{info.dayNumberText}</div>
-
-            if ((celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Holiday && !info.isOther))
-                return <>
-                    <div className='text-decoration-none text-end text-danger'>{info.dayNumberText}</div>
-                    <div className='text-secondary'>{celebrate[0].name}</div>
-                </>
-
-            if ((celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.ShortDay && !info.isOther)) {
-                return <>
-                    <div className='text-decoration-none text-success'>{info.dayNumberText}</div>
-                    <div className='text-secondary'>{celebrate[0].name}</div>
-                </>
-            }
-
-            return <div className='text-decoration-none text-primary'>{info.dayNumberText}</div>
-        }}
+        dayCellContent={(info) => GetDaySellContent(info, globalCalendar)}
         locales={allLocales}
-        locale={(function () {
-            const locale = Intl.DateTimeFormat().resolvedOptions().locale
-            return locale === "ru" ? "uk" : locale
-        })()}
+        locale={i18n.language}
+        firstDay={moment().locale(GetUserBrowserLocation()).isoWeek()}
         initialView="dayGridMonth"
         plugins={[dayGridPlugin, timeGridPlugin, bootstrap5Plugin, interactionPlugin]}
         events={
-            calendarDays.map(day => ({
-                title: day.title,
-                start: day.start,
-                end: day.end,
-                color: getEventColor(day.type),
-                textColor: 'white',
-                allDay: day.type ? true : false
-            }))}
+            calendarDays.map(day => {
+                return ({
+                    title: day.title,
+                    start: day.start,
+                    end: day.end,
+                    color: getEventColor(day.type),
+                    textColor: 'white',
+                    allDay: day.type ? true : false
+                })
+            })}
         validRange={{
-            start: '2023-01-01',
-            end: '2023-12-31'
+            start: minCalendarDate,
+            end: maxCalendarDate
         }}
         dateClick={(info) => {
             if (calendarDays.some(cd => GetDaysFromMilsec(cd.start.getTime()) <= GetDaysFromMilsec(info.date.getTime()) && GetDaysFromMilsec(cd.end.getTime()) >= GetDaysFromMilsec(info.date.getTime()) && cd.type)) {
                 return;
             }
-            if (info.date.getDay() != 0
-                && info.date.getDay() != 6
-                && userId == null
-                && info.date.getMonth() === navigateDate.getMonth()
-                && !globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
-                    && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && (cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate || cg.typeOfGlobalEvent === TypeOfGlobalEvent.Holiday))) {
-                setIsVisible(n => !n)
-                setChangedDay(info.date)
-            } else if (userId != null
-                && userId < 0
-                && info.date.getDay() != 0
-                && info.date.getDay() != 6
-                && info.date.getMonth() === navigateDate.getMonth()
-                && !globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
-                && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && (cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate || cg.typeOfGlobalEvent === TypeOfGlobalEvent.Holiday))){
-                setIsVisible(n => !n)
-                setChangedDay(info.date)
+            if ((userId != null
+                && userId > 0)
+                || !IsChangableDay(info, globalCalendar, navigateDate)) {
+                return;
             }
+            setIsVisible(n => !n)
+            setChangedDay(info.date)
         }}
 
         eventTimeFormat={{
@@ -675,11 +604,11 @@ export default function Calendar() {
 
         customButtons={{
             backToMonthButton: {
-                text: 'month',
+                text: t("Calendar.monthButton"),
                 click: handleBackToMonthClick
             },
             backToWeekButton: {
-                text: 'week',
+                text: t("Calendar.weekButton"),
                 click: handleBackToWeekClick
             },
             prevButton: {
@@ -691,11 +620,11 @@ export default function Calendar() {
                 click: handleNextClick
             },
             todayButton: {
-                text: 'today',
+                text: t("Calendar.todayButton"),
                 click: handleBackToday
             },
             othersButton: {
-                text: 'others',
+                text: t("Calendar.othersButton"),
                 click: () => setShowedUserList(n => !n)
             }
         }}
@@ -714,7 +643,7 @@ export default function Calendar() {
                 setEndDateString("");
                 setTitle("");
                 setSelectedAction(0)
-                setButtonText('Create')
+                setButtonText(t('create'))
                 setButtonType('outline-success')
                 setTitleToUpdate("")
                 setToUpdate(null)
@@ -735,28 +664,28 @@ export default function Calendar() {
             centered>
             <Modal.Header closeButton>
                 <div className='d-flex p-0 m-0 flex-row justify-content-between w-100'>
-                    <div className='p-0 pt-2'>Period time manage for {`${changedDay.toDateString()}`}</div>
+                    <div className='p-0 pt-2'> {t("Calendar.CalendarManage.title")}<br/>{`${ToDefautDateStrFormat(changedDay)}`}</div>
                     <Form.Select value={selectedAction} className='w-25' onChange={(e) => {
                         switch (parseInt(e.target.value)) {
                             case -1:
-                                HandleChangeAction(['Create', 'outline-success'], [setButtonText, setButtonType]);
+                                HandleChangeAction([t('create'), 'outline-success'], [setButtonText, setButtonType]);
                                 break;
                             case 0:
-                                HandleChangeAction(['Create', 'outline-success'], [setButtonText, setButtonType]);
+                                HandleChangeAction([t('create'), 'outline-success'], [setButtonText, setButtonType]);
                                 break;
                             case 1:
-                                HandleChangeAction(['Delete', 'outline-danger'], [setButtonText, setButtonType]);
+                                HandleChangeAction([t('delete'), 'outline-danger'], [setButtonText, setButtonType]);
                                 break;
                             case 2:
-                                HandleChangeAction(['Update', 'outline-success'], [setButtonText, setButtonType]);
+                                HandleChangeAction([t('update'), 'outline-success'], [setButtonText, setButtonType]);
                                 break;
                         }
                         setSelectedAction(parseInt(e.target.value))
                     }}>
-                        <option value={-1}>create range</option>
-                        <option value={0}>create</option>
-                        <option value={1}>delete</option>
-                        <option value={2}>update</option>
+                        <option value={-1}>{t('createRange')}</option>
+                        <option value={0}>{t('create')}</option>
+                        <option value={1}>{t('delete')}</option>
+                        <option value={2}>{t('update')}</option>
                     </Form.Select>
                 </div>
             </Modal.Header>
@@ -999,21 +928,9 @@ export default function Calendar() {
                             </Col>
                             <Col className='mb-3'>
                                 <Form.Select onChange={(e) => {
-                                    switch (e.target.value) {
-                                        case "":
-                                            setSelectedTypeUpdate(null);
-                                            break;
-                                        case "CELEBRATE":
-                                            setSelectedTypeUpdate(TypeOfGlobalEvent.Celebrate);
-                                            break;
-                                        case "HOLIDAY":
-                                            setSelectedTypeUpdate(TypeOfGlobalEvent.Holiday);
-                                            break;
-                                        case "SHORT_DAY":
-                                            setSelectedTypeUpdate(TypeOfGlobalEvent.ShortDay);
-                                            break;
-                                    }
-                                }} value={selectedTypeUpdate == null ? "" : selectedTypeUpdate.toString()}>
+                                    setSelectedTypeUpdate(GetEventTypeFromString(e.target.value))
+                                }}
+                                    value={selectedTypeUpdate == null ? "" : selectedTypeUpdate.toString()}>
                                     <option value="">with type</option>
                                     <option value="CELEBRATE">Celebration</option>
                                     <option value="HOLIDAY">Holiday</option>
@@ -1044,6 +961,118 @@ export default function Calendar() {
     </>
 }
 
+export type MinDaySellType = {
+    date: Date,
+    dayNumberText: string,
+    isOther: boolean
+}
+
+export type MinDayClickType = {
+    date: Date
+}
+
+export function SwitchingCalendarFormat(setNavigateDate: Dispatch<SetStateAction<Date>>, setMOrW: Dispatch<SetStateAction<MonthOrWeek>>, setDate: Date, changeView: () => void, wOrM: MonthOrWeek) {
+    setNavigateDate(setDate);
+    setMOrW(wOrM);
+    changeView();
+}
+
+export enum NextOrPrev {
+    Next,
+    Prev
+}
+
+export function ChangeCalendarPage(callChangeFunc: () => void, nextOrPrev: NextOrPrev, setNavigateDate: Dispatch<SetStateAction<Date>>, mOrW: MonthOrWeek,) {
+    var localNav = new Date();
+
+    switch (mOrW) {
+        case MonthOrWeek.Month:
+            setNavigateDate(d => {
+                if (d.getTime() > minCalendarCompareDate.getTime()
+                    && nextOrPrev == NextOrPrev.Prev) {
+                    localNav = new Date(d.setMonth(d.getMonth() - 1));
+                    return localNav;
+                }
+                else if (d.getTime() < maxCalendarCompareDate.getTime()
+                    && nextOrPrev == NextOrPrev.Next) {
+                    localNav = new Date(d.setMonth(d.getMonth() + 1));
+                    return localNav;
+                }
+                return d;
+            });
+            break;
+        case MonthOrWeek.Week:
+            setNavigateDate(d => {
+                if (d.getTime() > minCalendarCompareDate.getTime()
+                    && nextOrPrev == NextOrPrev.Prev) {
+                    localNav = new Date(d.getTime() - weekInMilSec);
+                    return localNav;
+                }
+                else if (d.getTime() < maxCalendarCompareDate.getTime()
+                    && nextOrPrev == NextOrPrev.Next) {
+                    localNav = new Date(d.getTime() + weekInMilSec);
+                    return localNav;
+                }
+
+                return d;
+            });
+            break;
+    }
+    callChangeFunc();
+}
+
+export function IsChangableDay(info: MinDayClickType, globalCalendar: GlobalEventsViewModel[], navigateDate: Date) {
+    return info.date.getDay() != 0
+        && info.date.getDay() != 6
+        && info.date.getMonth() === navigateDate.getMonth()
+        && !globalCalendar.some(cg => DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
+            && DateTime.fromJSDate(cg.date).month === DateTime.fromJSDate(info.date).month && (cg.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate || cg.typeOfGlobalEvent === TypeOfGlobalEvent.Holiday))
+
+}
+
+export function GetDaySellContent(info: MinDaySellType, globalCalendar: GlobalEventsViewModel[]) {
+    const celebrate = globalCalendar.filter(cg => {
+        return DateTime.fromJSDate(cg.date).day === DateTime.fromJSDate(info.date).day
+    })
+
+    if (celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate && !info.isOther) {
+        return <div className='container-fluid p-0 m-0 '>
+            <div className='text-decoration-none text-center text-warning'>{info.dayNumberText}</div>
+            <div className='text-decoration-none text-secondary'>{celebrate[0].name}</div>
+        </div>
+    }
+
+    if (info.date.getDay() == 0 || info.date.getDay() == 6)
+        return <div className='text-decoration-none text-danger'>{info.dayNumberText}</div>
+
+    if ((celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.Holiday && !info.isOther))
+        return <>
+            <div className='text-decoration-none text-end text-danger'>{info.dayNumberText}</div>
+            <div className='text-secondary'>{celebrate[0].name}</div>
+        </>
+
+    if ((celebrate[0] && celebrate[0].typeOfGlobalEvent === TypeOfGlobalEvent.ShortDay && !info.isOther)) {
+        return <>
+            <div className='text-decoration-none text-success'>{info.dayNumberText}</div>
+            <div className='text-secondary'>{celebrate[0].name}</div>
+        </>
+    }
+
+    return <div className='text-decoration-none text-primary'>{info.dayNumberText}</div>
+}
+
+export function GetEventTypeFromString(value: string) {
+    switch (value) {
+        case "CELEBRATE":
+            return TypeOfGlobalEvent.Celebrate;
+        case "HOLIDAY":
+            return TypeOfGlobalEvent.Holiday;
+        case "SHORT_DAY":
+            return TypeOfGlobalEvent.ShortDay;
+    }
+    return null;
+}
+
 export function IsCorrectTime(str: string, setError: (error: string) => void) {
     const timeStr = str.split(':');
     const numberTimeArray = timeStr.map(function (element) {
@@ -1072,6 +1101,11 @@ export function IsCorrectTime(str: string, setError: (error: string) => void) {
         return -1.5;
     }
     return hours * 60 + minutes
+}
+
+export function GetUserBrowserLocation() {
+    const locale = Intl.DateTimeFormat().resolvedOptions().locale
+    return locale === "ru" ? "uk" : locale
 }
 
 export function HandleChangeAction(params: any[], sets: ((params: any) => void)[]) {
@@ -1133,140 +1167,6 @@ export const daysInMonth = [
 
 ];
 
-const defaultEventsList: GlobalEventsViewModel[] = [
-    { name: "Новий рік", date: new Date(new Date().getFullYear(), 0, 1), typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate },
-    {
-        name: "Різдво Христове за юліанським календарем",
-        date: new Date(new Date().getFullYear(), 0, 7),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "День Соборності України",
-        date: new Date(new Date().getFullYear(), 0, 22),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "Міжнародний жіночий день",
-        date: new Date(new Date().getFullYear(), 2, 8),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "Міжнародний день праці",
-        date: new Date(new Date().getFullYear(), 4, 1),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "День Конституції України",
-        date: new Date(new Date().getFullYear(), 5, 28),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "День Української Державності",
-        date: new Date(new Date().getFullYear(), 6, 28),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "День Державного Прапора України",
-        date: new Date(new Date().getFullYear(), 7, 23),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "День незалежності України",
-        date: new Date(new Date().getFullYear(), 7, 24),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "День захисників і захисниць України",
-        date: new Date(new Date().getFullYear(), 9, 14),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "День Збройних Сил України",
-        date: new Date(new Date().getFullYear(), 11, 6),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "Різдво Христове",
-        date: new Date(new Date().getFullYear(), 11, 25),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Celebrate
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 0, 6),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 0, 21),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 2, 7),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 3, 30),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 5, 27),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 6, 27),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 7, 22),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 7, 23),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 9, 13),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 11, 5),
-        typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-    },
-
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 0, 2),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
-    },
-    
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 0, 9),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
-    },
-    
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 0, 23),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
-    },
-    
-    {
-        name: "",
-        date: new Date(new Date().getFullYear(), 9, 16),
-        typeOfGlobalEvent: TypeOfGlobalEvent.Holiday
-    },
-];
-
-
 export function getEventColor(eventType: SpecialEventType | null) {
     switch (eventType) {
         case null: return "green";
@@ -1274,6 +1174,14 @@ export function getEventColor(eventType: SpecialEventType | null) {
         case SpecialEventType.Ill: return "#2a9d8f";
         case SpecialEventType.Vacation: return "#283618";
     }
+}
+
+export function ToDefautDateStrFormat(date:Date){
+    const day = date.getDay()>10?date.getDay().toString():"0"+date.getDate();
+    const month = date.getMonth()+1>10?(date.getMonth()+1).toString():"0"+(date.getMonth()+1);
+    const year = date.getFullYear();
+    
+    return `${year}-${month}-${day}`
 }
 
 export function GetDaysFromMilsec(milsec: number) {

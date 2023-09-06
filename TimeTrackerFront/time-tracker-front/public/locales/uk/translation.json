@@ -7,7 +7,9 @@
   "create": "Створити",
   "submit": "Відправити",
   "close": "Закрити",
+  "delete":"Видалити",
   "chooseLang": "Виберіть мову",
+  "createRange":"Створити проміжок",
   "Login": {
     "header": "Вхід до TimeTracker",
     "username": "Ім'я або електронна пошта користувача",
@@ -169,5 +171,49 @@
     "fillFieldsError": "Заповніть усі поля!",
     "userCreated": "Користувач створенний успішно"
 
+  },
+  "Calendar": {
+    "todayButton": "сьогодні",
+    "othersButton": "інші",
+    "monthButton": "місяць",
+    "weekButton": "тиждень",
+	  "CalendarManage": {
+    "title": "Управління періодичним часом для",
+    "fDay": "з дня",
+    "uDay": "до дня",
+    "wTitle": "з назвою",
+    "from": "з",
+    "until": "до",
+    "rangeOpt": "Параметри діапазону",
+    "PeriodTimeOpt": "Параметри періодичного часу",
+    "dayFormatSample": "формат ДД/ММ (наприклад 01/12)",
+    "timeFormatSample": "формат гг:хх (наприклад 45:32)",
+    "selectRToUpdate": "виберіть діапазон для оновлення",
+    "selectRToDelete": "виберіть діапазон для видалення"
+  },
+  "GlobalCalendarManange": {
+    "wType": "з типом"
+  }
+  },
+  "CalendarUsers": {
+    "searchPlaseH": "Пошук",
+    "mCalendarButton": "Управління календарем",
+    "bToMeButton": "Повернутися до мене",
+    "selectButton": "Вибрати",
+    "title": "Вибір календаря користувача"
+  },
+  "TimeTracker": {
+    "tInD": "Час в день",
+    "tInW": "Час в тиждень",
+    "tInM": "Час в місяць",
+    "sDate": "Дата початку",
+    "eDate": "Дата закінчення",
+    "tSession": "Сесія часу",
+    "editButton": "Редагувати",
+    "timeManage": "Управління часом",
+	  "todayFilter": "Cьогодні",
+  "weekFilter": "Тиждень",
+  "monthFilter": "Місяць",
+  "yearFilter": "Рік"
   }
 }

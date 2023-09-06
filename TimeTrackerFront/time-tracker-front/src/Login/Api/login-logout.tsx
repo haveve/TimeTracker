@@ -11,7 +11,7 @@ import {TFunction} from "i18next";
 
 export const accessTokenLiveTime = 60;
 
-const url = "https://time-tracker3.azurewebsites.net/graphql-login";
+const url = "https://localhost:7226/graphql-login";
 
 /*    "errors": [
         {

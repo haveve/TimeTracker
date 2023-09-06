@@ -64,6 +64,12 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                     int id = context.GetArgument<int>("id");
                     return GetMonthWorkTime(id, DateTime.Now, userRepository, _calendarRepository);
                 });
+            Field<BooleanGraphType>("isStarted")
+                .Resolve(context =>
+                {
+                    var userId = GetUserIdFromClaims(context.User!);
+                    return _timeRepository.IsStarted(userId);
+                });
         }
 
         public static TimeWithFlagViewModel GetTimeFromSession(List<Models.Time>? sessions, List<TimeMark> timeMarks, int offSet, startOfWeek startOfWeek, int itemsInPage = int.MaxValue, int pageNumber = 0)
@@ -151,7 +157,6 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             DateTime nd = new DateTime(d.AddMonths(1).Year, d.AddMonths(1).Month, 1);
             int[] days = new int[DateTime.DaysInMonth(d.Year, d.Month) + 1];
             var globalCalendar = _calendarRepository.GetAllGlobalEvents();
-            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents);
             globalCalendar = globalCalendar.FindAll(e => e.Date.Month == d.Month || (e.Date.Month == d.AddMonths(1).Month && e.Date.Day == 1));
             Array.Fill(days, 8);
             int MonthWorkTime = 0;

@@ -7,14 +7,16 @@ import { locationOffset, startOfWeek } from "../Slices/LocationSlice";
 import { Session } from "../Types/Time";
 import { ErrorGraphql } from "../Slices/TimeSlice";
 import { StoredTokenType, ajaxForRefresh } from "../../Login/Api/login-logout";
-import { ErrorMassagePattern } from "../epics";
-import { setLoginByToken, setErrorStatusAndError } from "../Slices/TokenSlicer";
-import { setLogout } from "../Slices/UserSlice";
-import store from "../store";
+import { LogoutDeleteCookie } from "../../Components/Navbar";
 
 interface GraphqlTime {
     time: {
         getTime: TimeResponse
+    }
+}
+interface GraphqlTimerIsStarted {
+    time: {
+        isStarted: boolean
     }
 }
 
@@ -24,7 +26,7 @@ interface GraphqlUserTime {
     }
 }
 
-const url = "https://time-tracker3.azurewebsites.net/graphql";
+const url = "https://localhost:7226/graphql";
 
 export enum RefreshStatus {
     DoRefresh,
@@ -32,16 +34,12 @@ export enum RefreshStatus {
     ThereIsNoRefreshes
 }
 
-export function GetTokenObservable() {
-    return DoRefresh(WhetherDoRefresh())
+export function TokenErrorHandler() {
+    LogoutDeleteCookie()
 }
 
-export function TokenErrorHandler(error: string = ErrorMassagePattern) {
-
-    const dispatch = store.dispatch;
-    dispatch(setLoginByToken(false))
-    dispatch(setLogout())
-    dispatch(setErrorStatusAndError(error))
+export function GetTokenObservable() {
+    return DoRefresh(WhetherDoRefresh())
 }
 
 export type DoRefreshType = {
@@ -122,12 +120,11 @@ export enum TokenAjaxStatus {
     Error
 }
 
-export function GetAjaxObservable<T>(query: string, variables: {}, withCredentials = false) {
+export function GetAjaxObservable<T>(query: string, variables: {}, withCredentials = false,) {
 
     return GetTokenObservable().pipe(
         mergeMap(() => {
             setCookie({ name: "refresh_sent", value: "false" })
-            store.dispatch(setLoginByToken(true));
             const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
             return ajax<response<T>>({
                 url,
@@ -145,11 +142,7 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
         }),
         catchError((error) => {
             if (IsRefreshError(error)) {
-                const refreshError: RefreshError = error;
-                if (refreshError.error != "")
-                    TokenErrorHandler(refreshError.error)
-                else
-                    TokenErrorHandler()
+                TokenErrorHandler()
             }
             throw "error"
         }
@@ -227,6 +220,25 @@ export function RequestGetTime(timeMark: TimeMark[], pageNumber: number, itemsIn
                 v.startTimeTrackDate = new Date(new Date(v.startTimeTrackDate).getTime() + offset * 60000)
             })
             return time;
+        })
+    );
+}
+
+export function GetWhetherTimerIsStarted(): Observable<boolean> {
+
+    return GetAjaxObservable<GraphqlTimerIsStarted>(`
+    query{
+        time{
+            isStarted
+        }
+      }
+    `, {}).pipe(
+        map(res => {
+            if (res.response.errors) {
+                console.error(JSON.stringify(res.response.errors))
+                throw "error"
+            }
+            return res.response.data.time.isStarted;
         })
     );
 }
@@ -440,7 +452,7 @@ export function RequestUpdateUserDate(Id: number, oldTime: Session, time: Sessio
 
     oldTime.endTimeTrackDate = new Date(oldTime.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
     oldTime.startTimeTrackDate = new Date(oldTime.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
-    let userId : Number = Number(Id)
+    let userId: Number = Number(Id)
 
     return GetAjaxObservable<UpdateUserTimeResult>(`
     mutation($userId: Int!, $oldTime:ManageTimeInputGrpahqType!,$time:ManageTimeInputGrpahqType!,$offset:Int,$startOfWeek:StartOfWeek!){
@@ -483,7 +495,7 @@ export function RequestDeleteUserDate(Id: number, time: Session, offset: number)
     time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
     time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
 
-    let userId : Number = Number(Id)
+    let userId: Number = Number(Id)
 
     return GetAjaxObservable<DeleteUserTimeResult>(`
     mutation($userId: Int!,$time:ManageTimeInputGrpahqType!){
@@ -522,7 +534,7 @@ export function RequestCreateUserDate(Id: number, time: Session, offset: number)
     time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
     time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
 
-    let userId : Number = Number(Id)
+    let userId: Number = Number(Id)
 
     return GetAjaxObservable<CreateUserTimeResult>(`
     mutation($userId: Int!,$time:ManageTimeInputGrpahqType!){

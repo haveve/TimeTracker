@@ -1,8 +1,13 @@
 :root{
     --time-track-back-color:black;
-    --time-track-font-size:2em;
+    --time-track-font-size:1.5em;
 }
 
 .time-track-font{
     font-size: var(--time-track-font-size);
+}
+
+.time-track-font:hover{
+    color: rgb(83, 83, 157);
+    cursor: pointer;
 }
