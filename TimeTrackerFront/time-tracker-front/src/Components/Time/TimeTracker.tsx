@@ -44,7 +44,6 @@ export default function TimeTracker() {
                 if (!isStarted) {
                     dispatch(setStartTimeE(offset))
                 } else {
-
                     dispatch(setEndTimeE(offset))
                     unsubTimer.unsubscribe();
                 }

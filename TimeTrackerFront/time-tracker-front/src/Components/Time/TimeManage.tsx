@@ -64,7 +64,7 @@ export default function TimeManage(props: {
     >
         <Modal.Header closeButton>
             <Modal.Title>
-                Time Manage
+                {t('TimeTracker.timeManage')}
             </Modal.Title>
         </Modal.Header>
 

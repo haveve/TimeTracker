@@ -557,11 +557,10 @@ export default function Calendar() {
     return <> <FullCalendar
         ref={calendarRef}
         dayHeaderClassNames={['calendar-head-color']}
-        height={"100%"}
+        height={"90vh"}
         dayCellContent={(info) => GetDaySellContent(info, globalCalendar)}
         locales={allLocales}
         locale={i18n.language}
-        firstDay={moment().locale(GetUserBrowserLocation()).isoWeek()}
         initialView="dayGridMonth"
         plugins={[dayGridPlugin, timeGridPlugin, bootstrap5Plugin, interactionPlugin]}
         events={
@@ -695,70 +694,70 @@ export default function Calendar() {
                         <Row className='d-flex flex-column justify-content-between'>
 
                             <Col className='d-flex flex-row justify-content-center w-100 text-secondary'>
-                                <Form.Label>Range options</Form.Label>
+                                <Form.Label>{t('Calendar.CalendarManage.rangeOpt')}</Form.Label>
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
-                                <FloatingLabel label="from day">
+                                <FloatingLabel label={t('Calendar.CalendarManage.fDay')}>
                                     <Form.Control type='text' onChange={(e) => setStartRangeDay(e.target.value)}
                                         value={startRangeDay}></Form.Control>
                                 </FloatingLabel>
-                                <FloatingLabel label="until day">
+                                <FloatingLabel label={t('Calendar.CalendarManage.uDay')}>
                                     <Form.Control type='text' onChange={(e) => setEndRangeDay(e.target.value)}
                                         value={endRangeDay}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
-                                <Form.Label className='text-muted small'>format DD/MM (for exmaple 01/12)</Form.Label>
+                                <Form.Label className='text-muted small'>{t('Calendar.CalendarManage.dayFormatSample')}</Form.Label>
                             </Col>
                             <Col className='d-flex flex-row justify-content-center w-100 mt-3 text-secondary'>
-                                <Form.Label>Period time options</Form.Label>
+                                <Form.Label>{t('Calendar.CalendarManage.PeriodTimeOpt')}</Form.Label>
                             </Col>
                             <Col className='mb-3'>
-                                <FloatingLabel label="with title">
+                                <FloatingLabel label={t('Calendar.CalendarManage.wTitle')}>
                                     <Form.Control type='text' onChange={(e) => setTitleRange(e.target.value)}
                                         value={titleRange}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
-                                <FloatingLabel label="from">
+                                <FloatingLabel label={t('Calendar.CalendarManage.from')}>
                                     <Form.Control type='text' onChange={(e) => setStartDateStringRange(e.target.value)}
                                         value={startDateStringRange}></Form.Control>
                                 </FloatingLabel>
-                                <FloatingLabel label="until">
+                                <FloatingLabel label={t('Calendar.CalendarManage.until')}>
                                     <Form.Control type='text' onChange={(e) => setEndDateStringRange(e.target.value)}
                                         value={endDateStringRange}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
-                                <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32)</Form.Label>
+                                <Form.Label className='text-muted small'>{t('Calendar.CalendarManage.timeFormatSample')}</Form.Label>
                             </Col>
                         </Row>}
                     {selectedAction === 0 &&
                         <Row className='d-flex flex-column justify-content-between'>
                             <Col className='mb-3'>
-                                <FloatingLabel label="with title">
+                                <FloatingLabel label={t('Calendar.CalendarManage.wTitle')}>
                                     <Form.Control type='text' onChange={(e) => setTitle(e.target.value)}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
-                                <FloatingLabel label="from">
+                                <FloatingLabel label={t('Calendar.CalendarManage.from')}>
                                     <Form.Control type='text'
                                         onChange={(e) => setStartDateString(e.target.value)}></Form.Control>
                                 </FloatingLabel>
-                                <FloatingLabel label="until">
+                                <FloatingLabel label={t('Calendar.CalendarManage.until')}>
                                     <Form.Control type='text'
                                         onChange={(e) => setEndDateString(e.target.value)}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
-                                <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32)</Form.Label>
+                                <Form.Label className='text-muted small'>{t('Calendar.CalendarManage.timeFormatSample')}</Form.Label>
                             </Col>
                         </Row>
                     }{
                         selectedAction === 1 &&
                         <Row>
                             <Form.Select onChange={(e) => setToDelete(new Date(Date.parse(e.target.value)))}>
-                                <option value="">select range to delete</option>
+                                <option value="">{t('Calendar.CalendarManage.selectRToDelete')}</option>
                                 {calendarDays.filter((cd) => cd.start.toDateString() === changedDay.toDateString())
                                     .map((cd) => <option key={cd.start.toISOString()}
                                         value={cd.start.toISOString()}>{`title: ${cd.title} start: ${cd.start.toLocaleString()}`}</option>)}
@@ -775,7 +774,7 @@ export default function Calendar() {
                                     setEndDateStringToUpdate(TimeForCalendarFromSeconds(day.end.getHours() * 60 * 60 + day.end.getMinutes() * 60))
                                     setToUpdate(new Date(Date.parse(e.target.value)))
                                 }}>
-                                    <option value="">select range to update</option>
+                                    <option value="">{t('Calendar.CalendarManage.selectRToUpdate')}</option>
                                     {calendarDays.filter((cd) => cd.start.toDateString() === changedDay.toDateString())
                                         .map((cd) => <option key={cd.start.toISOString()}
                                             value={cd.start.toISOString()}>{`title: ${cd.title} start: ${cd.start.toLocaleString()} `}</option>)}
@@ -784,7 +783,7 @@ export default function Calendar() {
                             <Col className='mb-3'>
                                 <InputGroup>
                                     <InputGroup.Checkbox onChange={() => setIgnoreTitleToUp(n => !n)}></InputGroup.Checkbox>
-                                    <FloatingLabel label="with title">
+                                    <FloatingLabel label={t('Calendar.CalendarManage.wTitle')}>
                                         <Form.Control type='text' disabled={ignoreTitleToUp}
                                             onChange={(e) => setTitleToUpdate(e.target.value)}
                                             value={titleToUpdate}></Form.Control>
@@ -795,7 +794,7 @@ export default function Calendar() {
                                 <InputGroup>
                                     <InputGroup.Checkbox
                                         onChange={() => setIgnoreStartDateToUp(n => !n)}></InputGroup.Checkbox>
-                                    <FloatingLabel label="from">
+                                    <FloatingLabel label={t('Calendar.CalendarManage.from')}>
                                         <Form.Control type='text' disabled={ignoreDateStartToUp}
                                             onChange={(e) => setStartDateStringToUpdate(e.target.value)}
                                             value={startDateStringToUpdate}></Form.Control>
@@ -804,7 +803,7 @@ export default function Calendar() {
                                 <InputGroup className='ps-2'>
                                     <InputGroup.Checkbox
                                         onChange={() => setIgnoreDateEndToUp(n => !n)}></InputGroup.Checkbox>
-                                    <FloatingLabel label="until">
+                                    <FloatingLabel label={t('Calendar.CalendarManage.until')}>
                                         <Form.Control type='text' disabled={ignoreDateEndToUp}
                                             onChange={(e) => setEndDateStringToUpdate(e.target.value)}
                                             value={endDateStringToUpdate}></Form.Control>
@@ -812,7 +811,7 @@ export default function Calendar() {
                                 </InputGroup>
                             </Col>
                             <Col className='text-center'>
-                                <Form.Label className='text-muted small'>format hh:mm (for exmaple 45:32)</Form.Label>
+                                <Form.Label className='text-muted small'>{t('Calendar.CalendarManage.timeFormatSample')}</Form.Label>
                             </Col>
                         </Row>
                     }
@@ -820,7 +819,7 @@ export default function Calendar() {
                     {selectedAction === -1 &&
                         <Row className='d-flex flex-column justify-content-between'>
                             <Col className='mb-3'>
-                                <FloatingLabel label="with title">
+                                <FloatingLabel label={t('Calendar.CalendarManage.wTitle')}>
                                     <Form.Control type='text' onChange={(e) => setTitleRange(e.target.value)}
                                         value={titleRange}>
                                     </Form.Control>
@@ -843,30 +842,30 @@ export default function Calendar() {
                                             break;
                                     }
                                 }} value={selectedTypeCreateRange == null ? "" : selectedTypeCreateRange.toString()}>
-                                    <option value="">with type</option>
+                                    <option value="">{t('Calendar.GlobalCalendarManange.wType')}</option>
                                     <option value="CELEBRATE">Celebration</option>
                                     <option value="HOLIDAY">Holiday</option>
                                     <option value="SHORT_DAY">Short day</option>
                                 </Form.Select>
                             </Col>
                             <Col className='d-flex flex-row justify-content-between'>
-                                <FloatingLabel label="from day">
+                                <FloatingLabel label={t('Calendar.CalendarManage.fDay')}>
                                     <Form.Control type='text' onChange={(e) => setStartRangeDay(e.target.value)}
                                         value={startRangeDay}></Form.Control>
                                 </FloatingLabel>
-                                <FloatingLabel label="until day">
+                                <FloatingLabel label={t('Calendar.CalendarManage.uDay')}>
                                     <Form.Control type='text' onChange={(e) => setEndRangeDay(e.target.value)}
                                         value={endRangeDay}></Form.Control>
                                 </FloatingLabel>
                             </Col>
                             <Col className='text-center'>
-                                <Form.Label className='text-muted small'>format DD/MM (for exmaple 01/12)</Form.Label>
+                                <Form.Label className='text-muted small'>{t('Calendar.CalendarManage.dayFormatSample')}</Form.Label>
                             </Col>
                         </Row>}
                     {selectedAction === 0 &&
                         <Row className='d-flex flex-column justify-content-between'>
                             <Col className='mb-3'>
-                                <FloatingLabel label="with title">
+                                <FloatingLabel label={t('Calendar.CalendarManage.wTitle')}>
                                     <Form.Control type='text' onChange={(e) => setTitle(e.target.value)}></Form.Control>
                                 </FloatingLabel>
                             </Col>
@@ -887,7 +886,7 @@ export default function Calendar() {
                                             break;
                                     }
                                 }} value={selectedTypeCreate == null ? "" : selectedTypeCreate.toString()}>
-                                    <option value="">with type</option>
+                                    <option value="">{t('Calendar.GlobalCalendarManange.wType')}</option>
                                     <option value="CELEBRATE">Celebration</option>
                                     <option value="HOLIDAY">Holiday</option>
                                     <option value="SHORT_DAY">Short day</option>
@@ -920,7 +919,7 @@ export default function Calendar() {
                             </Col>
                             <Col className='mb-3'>
                                 <InputGroup>
-                                    <FloatingLabel label="with title">
+                                    <FloatingLabel label={t('Calendar.CalendarManage.wTitle')}>
                                         <Form.Control type='text' onChange={(e) => setTitleToUpdate(e.target.value)}
                                             value={titleToUpdate}></Form.Control>
                                     </FloatingLabel>
@@ -931,7 +930,7 @@ export default function Calendar() {
                                     setSelectedTypeUpdate(GetEventTypeFromString(e.target.value))
                                 }}
                                     value={selectedTypeUpdate == null ? "" : selectedTypeUpdate.toString()}>
-                                    <option value="">with type</option>
+                                    <option value="">{t('Calendar.GlobalCalendarManange.wType')}</option>
                                     <option value="CELEBRATE">Celebration</option>
                                     <option value="HOLIDAY">Holiday</option>
                                     <option value="SHORT_DAY">Short day</option>

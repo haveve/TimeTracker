@@ -61,11 +61,14 @@ export const timeSlicer = createSlice({
             })
         },
         setEndTime: (state, action: PayloadAction<Date>) => {
-            state.time.time.sessions[0].endTimeTrackDate = action.payload
-            const differenceInSeconds = Math.floor((state.time.time.sessions[0].endTimeTrackDate.getTime() - state.time.time.sessions[0].startTimeTrackDate.getTime()) / 1000)
-            state.time.time.daySeconds += differenceInSeconds;
-            state.time.time.weekSeconds += differenceInSeconds;
-            state.time.time.monthSeconds += differenceInSeconds;
+
+            if (state.time.time.sessions[0]) {
+                state.time.time.sessions[0].endTimeTrackDate = action.payload
+                const differenceInSeconds = Math.floor((state.time.time.sessions[0].endTimeTrackDate.getTime() - state.time.time.sessions[0].startTimeTrackDate.getTime()) / 1000)
+                state.time.time.daySeconds += differenceInSeconds;
+                state.time.time.weekSeconds += differenceInSeconds;
+                state.time.time.monthSeconds += differenceInSeconds;
+            }
         },
         updateTime: (state, action: PayloadAction<UpdateTimeReturnType>) => {
             state.time.time.sessions = state.time.time.sessions.map((up) => {
@@ -109,7 +112,7 @@ export const timeSlicer = createSlice({
         clearErrorMessage: (state) => {
             state.error = ""
         },
-        changeTimerState: (state,payload:PayloadAction<boolean>) => {
+        changeTimerState: (state, payload: PayloadAction<boolean>) => {
             state.time.isStarted = payload.payload;
         }
     },

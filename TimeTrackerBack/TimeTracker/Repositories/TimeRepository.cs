@@ -59,7 +59,7 @@ namespace TimeTracker.Repositories
         }
         public bool IsStarted(int userId)
         {
-            string query = $"SELECT Count(*) FROM UserTime WHERE UserId = @userId AND EndTimeTrackDate = NULL";
+            string query = $"SELECT Count(*) FROM UserTime WHERE UserId = 5 AND EndTimeTrackDate is null";
             using var connection = _dapperContext.CreateConnection();
             return connection.QuerySingle<int>(query, new { userId }) > 0;
         }
