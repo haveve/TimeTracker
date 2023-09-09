@@ -47,37 +47,48 @@ export type DoRefreshType = {
     refreshStatus: RefreshStatus
 }
 
+//resolve problem with state storage(with cookie is too slow)
+
+
 export function DoRefresh(refresh: DoRefreshType) {
+
     switch (refresh.refreshStatus) {
         case RefreshStatus.DoRefresh:
             const refreshSentString = getCookie("refresh_sent");
-            const isTokenAriwed: boolean = refreshSentString ? JSON.parse(refreshSentString) : refreshSentString
-
-            if (!isTokenAriwed) {
+            const isTokenSent: boolean = refreshSentString ? JSON.parse(refreshSentString) : refreshSentString
+            if (!isTokenSent) {
                 setCookie({ name: "refresh_sent", value: "true" })
-                return ajaxForRefresh({}, refresh.refresh_token);
-            }
-            else {
-                return new Observable<void>((subscriber) => {
-                    const sub = timer(30, 60).subscribe({
-                        next: () => {
-                            let refreshSentString = getCookie("refresh_sent");
-                            let isTokenAriwed: boolean = refreshSentString ? JSON.parse(refreshSentString) : refreshSentString
-
-                            if (!isTokenAriwed) {
-                                subscriber.next()
-                                sub.unsubscribe()
-                            }
-                        }
-                    })
+                ajaxForRefresh({}, refresh.refresh_token).subscribe({
+                    error: () => {
+                        TokenErrorHandler()
+                    },
+                    next: () => {
+                        setCookie({ name: "refresh_sent", value: "false" })
+                    }
                 })
             }
+            break;
         case RefreshStatus.DonotRefresh:
-            return of(void 0)
+            break;
         case RefreshStatus.ThereIsNoRefreshes:
-            TokenErrorHandler()
-            return of(void 0)
+            TokenErrorHandler();
+            break;
     }
+
+    return new Observable<void>((subscriber) => {
+        const sub = timer(10, 20).subscribe({
+            next: () => {
+                let refreshSentString = getCookie("refresh_sent");
+                let isTokenSent: boolean = refreshSentString ? JSON.parse(refreshSentString) : refreshSentString
+
+                if (!isTokenSent) {
+                    subscriber.next()
+                    sub.unsubscribe()
+                }
+            }
+        })
+    })
+
 
 }
 
@@ -90,7 +101,6 @@ export function WhetherDoRefresh(): DoRefreshType {
         const accessTokenObj: StoredTokenType = JSON.parse(accessTokenJson)
         const nowInSeconds = new Date().getTime();
         if (!accessTokenObj ||
-            accessTokenObj.expiredAt - nowInSeconds < 0 ||
             accessTokenObj.expiredAt - nowInSeconds < 2000) {
 
             if (refreshTokenJson) {
@@ -101,7 +111,6 @@ export function WhetherDoRefresh(): DoRefreshType {
                     refreshStatus: RefreshStatus.DoRefresh
                 }
             }
-
             return {
                 refresh_token: "",
                 refreshStatus: RefreshStatus.ThereIsNoRefreshes
@@ -124,7 +133,6 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
 
     return GetTokenObservable().pipe(
         mergeMap(() => {
-            setCookie({ name: "refresh_sent", value: "false" })
             const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
             return ajax<response<T>>({
                 url,
@@ -141,9 +149,7 @@ export function GetAjaxObservable<T>(query: string, variables: {}, withCredentia
             })
         }),
         catchError((error) => {
-            if (IsRefreshError(error)) {
-                TokenErrorHandler()
-            }
+
             throw "error"
         }
         )

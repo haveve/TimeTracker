@@ -185,7 +185,7 @@
 	  "until":"until",
 	  "rangeOpt":"Range options",
 	  "PeriodTimeOpt":"Period time options",
-	  "dayFormatSample":"format DD/MM (for exmaple 01/12)",
+	  "dayFormatSample":"format DD/MM/YYYY (for exmaple 01/12/2023)",
 	  "timeFormatSample":"format hh:mm (for exmaple 45:32)",
 	  "selectRToUpdate":"select range to update",
 	  "selectRToDelete":"select range to delete"

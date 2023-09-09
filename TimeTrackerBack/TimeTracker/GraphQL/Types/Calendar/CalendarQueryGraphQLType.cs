@@ -5,6 +5,7 @@ using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.ViewModels;
+using TimeTracker.GraphQL.Types.Time;
 
 namespace TimeTracker.GraphQL.Types.Calendar
 {
@@ -25,26 +26,22 @@ namespace TimeTracker.GraphQL.Types.Calendar
                     var userId = context.GetArgument<int?>("userId") ?? TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                     var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
                     var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
-
-
                     var events = _calendarRepository.GetAllEvents(userId);
                     events.AddRange(_calendarRepository.GetAllUsersAbsences(userId));
                     events.AddRange(_calendarRepository.GetAllUsersVacations(userId));
+
+
                     switch (weekOrMonth)
                     {
                         case MonthOrWeek.Month:
                             int month = date.Month;
-                            int monthAmount = 0;
-                            for (int i = 1; i <= month; i++)
-                            {
-                                monthAmount += DateTime.DaysInMonth(2023, i);
-                            }
+                            int year = date.Year;
                             return events.Where(c =>
                             {
-                                return Math.Ceiling((decimal)date.DayOfYear / monthAmount) == Math.Ceiling((decimal)c.StartDate.DayOfYear / monthAmount) && date.Month == c.StartDate.Month;
+                                return  c.StartDate.Month == month && c.StartDate.Year == year;
 
                             });
-                        case MonthOrWeek.Week: return events.Where(c => Math.Ceiling((decimal)c.StartDate.DayOfYear / 7) == Math.Ceiling((decimal)date.DayOfYear / 7));
+                        case MonthOrWeek.Week: return events.Where(c => c.StartDate.DatesAreInTheSameWeek(date));
                     }
 
                     return events;
@@ -85,17 +82,13 @@ namespace TimeTracker.GraphQL.Types.Calendar
         {
             case MonthOrWeek.Month:
                 int month = date.Month;
-                int monthAmount = 0;
-                for (int i = 1; i <= month; i++)
-                {
-                    monthAmount += DateTime.DaysInMonth(2023, i);
-                }
+                int year = date.Year;
                 return globalCalendar.Where(c =>
                 {
-                    return Math.Ceiling((decimal)date.DayOfYear / monthAmount) == Math.Ceiling((decimal)c.Date.DayOfYear / monthAmount) && date.Month == c.Date.Month;
+                    return c.Date.Month == month && c.Date.Year == year;
 
                 });
-            case MonthOrWeek.Week: return globalCalendar.Where(c => Math.Ceiling((decimal)c.Date.DayOfYear / 7) == Math.Ceiling((decimal)date.DayOfYear / 7));
+            case MonthOrWeek.Week: return globalCalendar.Where(c => c.Date.DatesAreInTheSameWeek(date));
         }
 
         return globalCalendar;

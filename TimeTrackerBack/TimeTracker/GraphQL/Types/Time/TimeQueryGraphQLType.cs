@@ -224,7 +224,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
                 Comparer dayEqualsComparer = new Comparer();
 
-                if (session.IsBelogedThisDay(dayEqualsComparer,today))
+                if (session.IsBelogedThisDay(dayEqualsComparer,today,offSet))
                 {
                     int getSeconds;
 
@@ -236,7 +236,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                     timeSession.TimeMark = TimeMark.Day;
 
                 }
-                else if (session.IsBelogedThisWeek(dateStartOfWeek,dateEndOfWeek))
+                else if (session.IsBelogedThisWeek(dateStartOfWeek,dateEndOfWeek, offSet))
                 {
                     int getSeconds;
 
@@ -248,7 +248,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                     timeSession.TimeMark = TimeMark.Week;
 
                 }
-                else if (session.IsBelogedThisMonth(dateStartOfMonth, dateEndOfMonth))
+                else if (session.IsBelogedThisMonth(dateStartOfMonth, dateEndOfMonth, offSet))
                 {
                     int getSeconds;
 
@@ -302,36 +302,45 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
             return startTicks <= operandTicks && operandTicks <= endTicks;
         }
+        public static bool DatesAreInTheSameWeek(this DateTime date1, DateTime date2)
+        {
+            var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
+            var d1 = date1.Date.AddDays(-1 * (int)cal.GetDayOfWeek(date1));
+            var d2 = date2.Date.AddDays(-1 * (int)cal.GetDayOfWeek(date2));
+
+            return d1 == d2;
+        }
+
     }
 
     public static class TimeSessionExtension
     {
 
-        public static bool IsBelogedThisDay(this Models.Time operand, Comparer dayEqualsComparer, DateTime today)
+        public static bool IsBelogedThisDay(this Models.Time operand, Comparer dayEqualsComparer, DateTime today, int offSet = 0)
         {
             if (operand.EndTimeTrackDate is null)
                 return false;
 
-            return dayEqualsComparer.DateEquals(operand.StartTimeTrackDate, today)
-                || dayEqualsComparer.DateEquals(operand.EndTimeTrackDate.Value, today);
+            return dayEqualsComparer.DateEquals(operand.StartTimeTrackDate.AddHours(offSet), today)
+                || dayEqualsComparer.DateEquals(operand.EndTimeTrackDate.Value.AddHours(offSet), today);
         }
 
-        public static bool IsBelogedThisWeek(this Models.Time operand, DateTime dateStartOfWeek, DateTime dateEndOfWeek)
+        public static bool IsBelogedThisWeek(this Models.Time operand, DateTime dateStartOfWeek, DateTime dateEndOfWeek, int offSet = 0)
         {
             if (operand.EndTimeTrackDate is null)
                 return false;
 
-            return (dateStartOfWeek.Ticks <= operand.StartTimeTrackDate.Ticks && operand.StartTimeTrackDate.Ticks <= dateEndOfWeek.Ticks)
-                    || (dateStartOfWeek.Ticks <= operand.EndTimeTrackDate.Value.Ticks && operand.EndTimeTrackDate.Value.Ticks <= dateEndOfWeek.Ticks);
+            return (dateStartOfWeek.Ticks <= operand.StartTimeTrackDate.AddHours(offSet).Ticks && operand.StartTimeTrackDate.AddHours(offSet).Ticks <= dateEndOfWeek.Ticks)
+                    || (dateStartOfWeek.Ticks <= operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks && operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks <= dateEndOfWeek.Ticks);
         }
 
-        public static bool IsBelogedThisMonth(this Models.Time operand, DateTime dateStartOfMonth, DateTime dateEndOfMonth)
+        public static bool IsBelogedThisMonth(this Models.Time operand, DateTime dateStartOfMonth, DateTime dateEndOfMonth,int offSet = 0)
         {
             if (operand.EndTimeTrackDate is null)
                 return false;
 
-            return (dateStartOfMonth.Ticks <= operand.StartTimeTrackDate.Ticks && operand.StartTimeTrackDate.Ticks <= dateEndOfMonth.Ticks)
-                    || (dateStartOfMonth.Ticks <= operand.EndTimeTrackDate.Value.Ticks && operand.EndTimeTrackDate.Value.Ticks <= dateEndOfMonth.Ticks);
+            return (dateStartOfMonth.Ticks <= operand.StartTimeTrackDate.AddHours(offSet).Ticks && operand.StartTimeTrackDate.AddHours(offSet).Ticks <= dateEndOfMonth.Ticks)
+                    || (dateStartOfMonth.Ticks <= operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks && operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks <= dateEndOfMonth.Ticks);
         }
 
         public static bool TryGetSecondsIfOutOfDay(this Models.Time operand, int offSet, Comparer dayEqualsComparer, out int seconds)

@@ -1,6 +1,6 @@
 /// <reference types="react-scripts" />
-import React, { useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
-import { InputGroup, FloatingLabel, Modal, Button, Form, Col, Row } from "react-bootstrap";
+import React, { useState, useRef, useEffect, Dispatch as DispatchReact, SetStateAction } from 'react';
+import { InputGroup, FloatingLabel, Modal, Button, Form, Col, Row, RowProps } from "react-bootstrap";
 import '../../Custom.css';
 import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
 import { TimeStringFromSeconds } from '../Time/TimeFunction';
@@ -19,7 +19,7 @@ import {
 } from '../../Redux/Requests/CalendarRequest';
 import { DateTime } from 'luxon';
 import CalendarUserslist from './CalendarUsers';
-import { RootState } from '../../Redux/store';
+import { RootState, Dispatch } from '../../Redux/store';
 import { GlobalEventsViewModel } from '../../Redux/Types/Calendar';
 import { GetGlobalCalendar } from '../../Redux/Requests/CalendarRequest';
 import { TypeOfGlobalEvent } from '../../Redux/Types/Calendar';
@@ -32,16 +32,11 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import allLocales from '@fullcalendar/core/locales-all';
 import { Subscription } from 'rxjs';
 import moment from 'moment';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import { setGlobalCalendar, setStartGlobalCalendar, setStartUserCalendar, setUserCalendar, setIdleStatus as setIdleStatusCalendar, setErrorStatusAndError as setErrorStatusAndErrorCalendar, setloadingStatus } from '../../Redux/Slices/CalendarSlicer';
 
-export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
-export const uncorrectTimeError = `start end end dates must be correct. Theirs' values of hours must be <= 24 and >=0, minutes <=60 and >=0 and startDate must be less than endDate `
-export const successfullyCreated = `your range of time was successfully created`
-export const successfullyDeleted = `your range of time was successfully deleted`
-export const successfullyUpdated = `your range of time was successfully updated`
-export const uncoredStartDate = `you can create two date range with the same start date`
-export const uncorrectDayError = `start end end days' must be correct. Theirs' values of days must be <= days in month and >0, months <=12 and >0 and from day must be less than to day `
+import CreateRange from './CalendarActions/UserCalendar/CreateRange';
 
 export const weekInMilSec = 604800000
 
@@ -51,6 +46,17 @@ export const minCalendarDate = new Date(2023, 0, 1)
 export const maxCalendarCompareDate = new Date(2030, 11, 1)
 export const minCalendarCompareDate = new Date(2023, 0, 31)
 
+
+export const uncorrectTitleError = `length of your title is less than 0 and higher than 55`
+export const uncorrectTimeError = `start end end dates must be correct. Theirs' values of hours must be <= 24 and >=0, minutes <=60 and >=0 and startDate must be less than endDate `
+export const successfullyCreated = `your range of time was successfully created`
+export const successfullyDeleted = `your range of time was successfully deleted`
+export const successfullyUpdated = `your range of time was successfully updated`
+export const uncoredStartDate = `you can create two date range with the same start date`
+export const uncorrectDayError = `start end end days' must be correct. Theirs' values of days must be <= days in month and >0, months <=12 and >0 and from day must be less than to day `
+export const uncorrectDay = `day must be less than ${maxCalendarDate.toString()} and must be bigger than ${minCalendarDate.toString()}`
+export const defaultSuccessfulMessage = `actions was successfully committed`
+
 export enum MonthOrWeek {
     Month = "MONTH",
     Week = "WEEK"
@@ -58,16 +64,30 @@ export enum MonthOrWeek {
 
 export default function Calendar() {
 
-    const startArray: CalendarDay[] = [];
+    const calendarDays = useSelector((state: RootState) => {
+        return state.calendar.data.userCalendar
+    })
+
+    const globalCalendar = useSelector((state: RootState) => {
+        return state.calendar.data.globalCalendar
+    })
+
+    const [error, setError] = useState("")
+
+    const success = useSelector((state: RootState) => {
+        return state.calendar.status === "success"
+    })
+
+    const isLoading = useSelector((state: RootState) => {
+        return state.calendar.status === "loading"
+    })
+
     const [changedDay, setChangedDay] = useState(new Date())
-    const [calendarDays, setCalendarDays] = useState(startArray)
     const [isVisible, setIsVisible] = useState(false);
     const calendarRef = useRef<FullCalendar>(null);
     const [startDateString, setStartDateString] = useState("");
     const [endDateString, setEndDateString] = useState("");
     const [title, setTitle] = useState("");
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
 
     const geoOffset = useSelector((state: RootState) => {
         return state.location.userOffset
@@ -84,8 +104,8 @@ export default function Calendar() {
     const [ignoreTitleToUp, setIgnoreTitleToUp] = useState(false)
     const [ignoreDateEndToUp, setIgnoreDateEndToUp] = useState(false)
 
-    const [startDateStringRange, setStartDateStringRange] = useState("");
-    const [endDateStringRange, setEndDateStringRange] = useState("");
+    const [startTimeStringRange, setStartTimeStringRange] = useState("");
+    const [endTimeStringRange, setEndTimeStringRange] = useState("");
     const [titleRange, setTitleRange] = useState("");
     const [startRangeDay, setStartRangeDay] = useState("");
     const [endRangeDay, setEndRangeDay] = useState("");
@@ -98,7 +118,6 @@ export default function Calendar() {
     const [userId, setUserId] = useState<number | null>(null)
     const [isShowedUserList, setShowedUserList] = useState(false)
 
-    const [globalCalendar, setGlobalCalendar] = useState<GlobalEventsViewModel[]>([])
     const [globalRequest, setGlobalRequest] = useState(new Subscription())
 
     const [selectedTypeCreate, setSelectedTypeCreate] = useState<null | TypeOfGlobalEvent>(null)
@@ -109,12 +128,13 @@ export default function Calendar() {
     const [buttonText, setButtonText] = useState('');
     const [buttonType, setButtonType] = useState('outline-success')
 
-    const {i18n,t} = useTranslation();
+    const dispatch = useDispatch();
 
-    useEffect(()=>{
+    const { i18n, t } = useTranslation();
+
+    useEffect(() => {
         setButtonText(t('create'))
-    },[i18n.language])
-
+    }, [i18n.language])
     useEffect(() => {
         //If user accept track her location, finding gap between his location and
         //local time(location that estimate browser) in other way, finding gap
@@ -122,18 +142,19 @@ export default function Calendar() {
         //When we send data, cast it to local time(location that estimate browser) by hand
         prevRequest.unsubscribe();
         globalRequest.unsubscribe();
-        setCalendarDays([])
-        setGlobalCalendar([])
+        dispatch(setStartUserCalendar([]));
+        dispatch(setStartGlobalCalendar([]));
 
+        dispatch(setloadingStatus())
 
         setGlobalRequest(GetGlobalCalendar(navigateDate, mOrW).subscribe({
             next: (gEvents) => {
-                setGlobalCalendar([...gEvents.map(cg => {
+                dispatch(setStartGlobalCalendar([...gEvents.map(cg => {
                     cg.date = new Date(cg.date)
                     return cg
-                })])
+                })]));
             },
-            error: () => setError(ErrorMassagePattern)
+            error: () => dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
         }))
 
         if (!userId || userId > 0) {
@@ -146,36 +167,40 @@ export default function Calendar() {
                                 value.start = new Date(moment(value.start).toDate().getTime() + geoOffset * 60000)
                             }
                         })
-                        setCalendarDays(events)
+                        dispatch(setStartUserCalendar(events));
                     },
-                    error: () => setError(ErrorMassagePattern)
+                    error: () => dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
                 }))
         }
     }, [mOrW, navigateDate, geoOffset, userId])
 
     const createSubmitHandle = () => {
         const startDate = IsCorrectTime(startDateString, setError);
-        if (startDate === -1.5)
+        if (!startDate.isCorrect)
             return;
 
         const endDate = IsCorrectTime(endDateString, setError);
-        if (endDate === -1.5)
+        if (!startDate.isCorrect)
             return;
 
-        if (startDate >= endDate) {
+        const endDateData = endDate.data!
+        const startDateData = startDate.data!
+
+
+        if (startDateData >= endDateData) {
             setError(uncorrectTimeError)
             return;
         }
 
         if (title === "" || title.length > 55) {
-            setError(uncorrectTitleError);
+            setError(uncorrectTimeError)
             return;
         }
 
         const newRange: CalendarDay = {
             title,
-            end: new Date(changedDay.getTime() + endDate * 60000),
-            start: new Date(changedDay.getTime() + startDate * 60000),
+            end: new Date(changedDay.getTime() + endDateData * 60000),
+            start: new Date(changedDay.getTime() + startDateData * 60000),
             type: null
         }
 
@@ -186,11 +211,10 @@ export default function Calendar() {
 
         addEvent(newRange, geoOffset).subscribe({
             next: () => {
-                setCalendarDays(cd => [...cd, newRange])
-                setSuccess(successfullyCreated);
+                dispatch(setUserCalendar([...calendarDays, newRange]))
             },
             error: () => {
-                setError(ErrorMassagePattern)
+                dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
             }
         })
 
@@ -203,12 +227,11 @@ export default function Calendar() {
         DeleteEvent(toDelete, geoOffset).subscribe({
             next: () => {
                 setToDelete(null)
-                setCalendarDays(cd => [...cd.filter(cd => cd.start.toISOString() !== toDelete.toISOString())])
-                setSuccess(successfullyDeleted);
+                dispatch(setUserCalendar(([...calendarDays.filter(cd => cd.start.toISOString() !== toDelete.toISOString())])))
             },
             error: () => {
                 setToDelete(null)
-                setError(ErrorMassagePattern)
+                dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
             }
         })
     }
@@ -220,12 +243,11 @@ export default function Calendar() {
         DeleteGlobalEvent(toDelete).subscribe({
             next: () => {
                 setToDelete(null)
-                setGlobalCalendar(cd => [...cd.filter(cd => cd.date.toISOString() !== toDelete.toISOString())])
-                setSuccess(successfullyDeleted);
+                dispatch(setGlobalCalendar([...globalCalendar.filter(cd => cd.date.toISOString() !== toDelete.toISOString())]))
             },
             error: () => {
                 setToDelete(null)
-                setError(ErrorMassagePattern)
+                dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
             }
         })
     }
@@ -254,38 +276,36 @@ export default function Calendar() {
 
         UpdateGlobalEvent(toUpdate, newRange).subscribe({
             next: () => {
-                setGlobalCalendar(cd => {
-                    let newArray = cd.filter(cd => cd.date.toISOString() !== date.date.toISOString())
-                    return [...newArray, newRange]
-                })
-                setSuccess(successfullyUpdated);
+                dispatch(setGlobalCalendar(
+                    [...globalCalendar.filter(cd => cd.date.toISOString() !== date.date.toISOString(), newRange)]
+                ))
             },
-            error: () => setError(ErrorMassagePattern)
+            error: () => dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
         })
 
     }
 
     const CreateRangeHandle = () => {
         const StartDay = IsCorrectDate(startRangeDay, setError);
-        if (StartDay === -1.5)
+        if (!StartDay.isCorrect)
             return
 
         const EndDay = IsCorrectDate(endRangeDay, setError);
-        if (EndDay === -1.5)
+        if (!EndDay.isCorrect)
             return
 
-        if (EndDay.getTime() < StartDay.getTime())
+        if (EndDay.data!.getTime() < StartDay.data!.getTime())
             return
 
-        var startDate = IsCorrectTime(startDateStringRange, setError);
-        if (startDate === -1.5)
+        var startDate = IsCorrectTime(startTimeStringRange, setError);
+        if (!startDate.isCorrect)
             return;
 
-        var endDate = IsCorrectTime(endDateStringRange, setError);
-        if (endDate === -1.5)
+        var endDate = IsCorrectTime(endTimeStringRange, setError);
+        if (!endDate.isCorrect)
             return;
 
-        if (startDate >= endDate) {
+        if (startDate.data! >= endDate.data!) {
             setError(uncorrectTimeError)
             return;
         }
@@ -297,18 +317,17 @@ export default function Calendar() {
 
         var newRange: CalendarDay = {
             title: titleRange,
-            start: StartDay,
-            end: EndDay,
+            start: StartDay.data!,
+            end: EndDay.data!,
             type: null
         }
-
         var newArray: CalendarDay[] = [];
         for (let i = 0; newRange.start.getTime() <= newRange.end.getTime(); i++) {
 
             const newDay = {
                 title: newRange.title,
-                start: new Date(newRange.start.getTime() + startDate * 60000),
-                end: new Date(newRange.start.getTime() + endDate * 60000),
+                start: new Date(newRange.start.getTime() + startDate.data! * 60000),
+                end: new Date(newRange.start.getTime() + endDate.data! * 60000),
                 type: null
             }
 
@@ -317,14 +336,12 @@ export default function Calendar() {
 
             newRange.start.setDate(newRange.start.getDate() + 1);
         }
-
         addEventRange(newArray, geoOffset).subscribe({
             next: () => {
                 newArray = [...calendarDays, ...newArray]
-                setCalendarDays(newArray)
-                setSuccess(successfullyCreated);
+                dispatch(setUserCalendar(newArray))
             },
-            error: () => setError(ErrorMassagePattern)
+            error: () => dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
         })
 
     }
@@ -334,16 +351,18 @@ export default function Calendar() {
 
         var startDate = 0;
         if (!ignoreDateStartToUp) {
-            startDate = IsCorrectTime(startDateStringToUpdate, setError);
-            if (startDate === -1.5)
+            const result = IsCorrectTime(startDateStringToUpdate, setError);
+            if (!result.isCorrect)
                 return;
+            startDate = result.data!
         }
 
         var endDate = 0
         if (!ignoreDateEndToUp) {
-            endDate = IsCorrectTime(endDateStringToUpdate, setError);
-            if (endDate === -1.5)
+            const result = IsCorrectTime(startDateStringToUpdate, setError);
+            if (!result.isCorrect)
                 return;
+            endDate = result.data!
         }
 
         if (!ignoreTitleToUp) {
@@ -385,24 +404,22 @@ export default function Calendar() {
         }
         UpdateEvent(toUpdate, newRange, geoOffset).subscribe({
             next: () => {
-                setCalendarDays(cd => {
-                    let newArray = cd.filter(cd => cd.start.toISOString() !== date.start.toISOString())
-                    return [...newArray, newRange]
-                })
-                setSuccess(successfullyUpdated);
+                dispatch(setUserCalendar(
+                    [...calendarDays.filter(cd => cd.start.toISOString() !== date.start.toISOString()), newRange]
+                ))
             },
-            error: () => setError(ErrorMassagePattern)
+            error: () => dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
         })
 
     }
 
     const CreateGlobalRangeHandle = () => {
         const StartDay = IsCorrectDate(startRangeDay, setError);
-        if (StartDay === -1.5)
+        if (!StartDay.isCorrect)
             return
 
         const EndDay = IsCorrectDate(endRangeDay, setError);
-        if (EndDay === -1.5)
+        if (!EndDay.isCorrect)
             return
 
         if (titleRange.length > 55) {
@@ -417,8 +434,8 @@ export default function Calendar() {
 
         var newRange: CalendarDay = {
             title: titleRange,
-            start: StartDay,
-            end: EndDay,
+            start: StartDay.data!,
+            end: EndDay.data!,
             type: null
         }
 
@@ -440,10 +457,9 @@ export default function Calendar() {
         addEventGlobalRange(newArray).subscribe({
             next: () => {
                 newArray = [...globalCalendar, ...newArray]
-                setGlobalCalendar(newArray)
-                setSuccess(successfullyCreated);
+                dispatch(setGlobalCalendar(newArray))
             },
-            error: () => setError(ErrorMassagePattern)
+            error: () => dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
         })
 
     }
@@ -471,36 +487,16 @@ export default function Calendar() {
             return;
         }
 
-        if (newRange.typeOfGlobalEvent === TypeOfGlobalEvent.Celebrate) {
-
-            const shortDayForCelebrate: GlobalEventsViewModel = {
-                name: "",
-                date: new Date(newRange.date.getTime() - 84600000),
-                typeOfGlobalEvent: TypeOfGlobalEvent.ShortDay
-            }
-
-            addEventGlobalRange([newRange, shortDayForCelebrate]).subscribe({
-                next: () => {
-                    setGlobalCalendar([...globalCalendar, newRange, shortDayForCelebrate])
-                    setSuccess(successfullyCreated);
-                },
-                error: () => setError(ErrorMassagePattern)
-            })
-            return;
-        }
-
         addGlobalEvent(newRange).subscribe({
             next: () => {
-                setGlobalCalendar(cd => [...cd, newRange])
-                setSuccess(successfullyCreated);
+                dispatch(setGlobalCalendar([...globalCalendar, newRange]))
             },
             error: () => {
-                setError(ErrorMassagePattern)
+                dispatch(setErrorStatusAndErrorCalendar(ErrorMassagePattern))
             }
         })
 
     }
-
 
     const getSubmmitHandler = () => {
         if (userId == null || userId >= 0) {
@@ -554,7 +550,7 @@ export default function Calendar() {
         calendarApi.today()
     }
 
-    return <> <FullCalendar
+    return <><FullCalendar
         ref={calendarRef}
         dayHeaderClassNames={['calendar-head-color']}
         height={"90vh"}
@@ -656,14 +652,14 @@ export default function Calendar() {
                 setEndRangeDay("");
                 setStartRangeDay("");
                 setTitleRange("");
-                setStartDateStringRange("")
-                setEndDateStringRange("")
+                setStartTimeStringRange("")
+                setEndTimeStringRange("")
 
             }}
             centered>
             <Modal.Header closeButton>
                 <div className='d-flex p-0 m-0 flex-row justify-content-between w-100'>
-                    <div className='p-0 pt-2'> {t("Calendar.CalendarManage.title")}<br/>{`${ToDefautDateStrFormat(changedDay)}`}</div>
+                    <div className='p-0 pt-2'> {t("Calendar.CalendarManage.title")}<br />{`${ToDefautDateStrFormat(changedDay)}`}</div>
                     <Form.Select value={selectedAction} className='w-25' onChange={(e) => {
                         switch (parseInt(e.target.value)) {
                             case -1:
@@ -691,47 +687,7 @@ export default function Calendar() {
             {(userId == null || userId >= 0) ?
                 <Modal.Body>
                     {selectedAction === -1 &&
-                        <Row className='d-flex flex-column justify-content-between'>
-
-                            <Col className='d-flex flex-row justify-content-center w-100 text-secondary'>
-                                <Form.Label>{t('Calendar.CalendarManage.rangeOpt')}</Form.Label>
-                            </Col>
-                            <Col className='d-flex flex-row justify-content-between'>
-                                <FloatingLabel label={t('Calendar.CalendarManage.fDay')}>
-                                    <Form.Control type='text' onChange={(e) => setStartRangeDay(e.target.value)}
-                                        value={startRangeDay}></Form.Control>
-                                </FloatingLabel>
-                                <FloatingLabel label={t('Calendar.CalendarManage.uDay')}>
-                                    <Form.Control type='text' onChange={(e) => setEndRangeDay(e.target.value)}
-                                        value={endRangeDay}></Form.Control>
-                                </FloatingLabel>
-                            </Col>
-                            <Col className='text-center'>
-                                <Form.Label className='text-muted small'>{t('Calendar.CalendarManage.dayFormatSample')}</Form.Label>
-                            </Col>
-                            <Col className='d-flex flex-row justify-content-center w-100 mt-3 text-secondary'>
-                                <Form.Label>{t('Calendar.CalendarManage.PeriodTimeOpt')}</Form.Label>
-                            </Col>
-                            <Col className='mb-3'>
-                                <FloatingLabel label={t('Calendar.CalendarManage.wTitle')}>
-                                    <Form.Control type='text' onChange={(e) => setTitleRange(e.target.value)}
-                                        value={titleRange}></Form.Control>
-                                </FloatingLabel>
-                            </Col>
-                            <Col className='d-flex flex-row justify-content-between'>
-                                <FloatingLabel label={t('Calendar.CalendarManage.from')}>
-                                    <Form.Control type='text' onChange={(e) => setStartDateStringRange(e.target.value)}
-                                        value={startDateStringRange}></Form.Control>
-                                </FloatingLabel>
-                                <FloatingLabel label={t('Calendar.CalendarManage.until')}>
-                                    <Form.Control type='text' onChange={(e) => setEndDateStringRange(e.target.value)}
-                                        value={endDateStringRange}></Form.Control>
-                                </FloatingLabel>
-                            </Col>
-                            <Col className='text-center'>
-                                <Form.Label className='text-muted small'>{t('Calendar.CalendarManage.timeFormatSample')}</Form.Label>
-                            </Col>
-                        </Row>}
+                        <CreateRange setError={setError} />}
                     {selectedAction === 0 &&
                         <Row className='d-flex flex-column justify-content-between'>
                             <Col className='mb-3'>
@@ -955,8 +911,9 @@ export default function Calendar() {
             setUserIndex={setUserId}></CalendarUserslist>
         <NotificationModalWindow isShowed={error !== ""} dropMessage={setError}
             messageType={MessageType.Error}>{error}</NotificationModalWindow>
-        <NotificationModalWindow isShowed={success !== ""} dropMessage={setSuccess}
-            messageType={MessageType.Success}>{success}</NotificationModalWindow>
+        <NotificationModalWindow isShowed={success} dropMessage={() => dispatch(setIdleStatusCalendar())}
+            messageType={MessageType.Success}>{defaultSuccessfulMessage}</NotificationModalWindow>
+
     </>
 }
 
@@ -970,7 +927,7 @@ export type MinDayClickType = {
     date: Date
 }
 
-export function SwitchingCalendarFormat(setNavigateDate: Dispatch<SetStateAction<Date>>, setMOrW: Dispatch<SetStateAction<MonthOrWeek>>, setDate: Date, changeView: () => void, wOrM: MonthOrWeek) {
+export function SwitchingCalendarFormat(setNavigateDate: DispatchReact<SetStateAction<Date>>, setMOrW: DispatchReact<SetStateAction<MonthOrWeek>>, setDate: Date, changeView: () => void, wOrM: MonthOrWeek) {
     setNavigateDate(setDate);
     setMOrW(wOrM);
     changeView();
@@ -981,7 +938,7 @@ export enum NextOrPrev {
     Prev
 }
 
-export function ChangeCalendarPage(callChangeFunc: () => void, nextOrPrev: NextOrPrev, setNavigateDate: Dispatch<SetStateAction<Date>>, mOrW: MonthOrWeek,) {
+export function ChangeCalendarPage(callChangeFunc: () => void, nextOrPrev: NextOrPrev, setNavigateDate: DispatchReact<SetStateAction<Date>>, mOrW: MonthOrWeek,) {
     var localNav = new Date();
 
     switch (mOrW) {
@@ -1072,6 +1029,11 @@ export function GetEventTypeFromString(value: string) {
     return null;
 }
 
+export interface IsCorrectTimeType {
+    isCorrect: boolean,
+    data: number | null,
+}
+
 export function IsCorrectTime(str: string, setError: (error: string) => void) {
     const timeStr = str.split(':');
     const numberTimeArray = timeStr.map(function (element) {
@@ -1080,26 +1042,36 @@ export function IsCorrectTime(str: string, setError: (error: string) => void) {
     const hours = numberTimeArray[0];
     const minutes = numberTimeArray[1];
 
+    let result: IsCorrectTimeType = {
+        isCorrect: false,
+        data: null
+    }
+
     if (Number.isNaN(hours) || Number.isNaN(minutes)) {
         setError(uncorrectTimeError)
-        return -1.5;
+        return result;
     }
 
     if (hours < 0 || minutes < 0) {
         setError(uncorrectTimeError);
-        return -1.5;
+        return result;
     }
 
     if (hours > 24) {
         setError(uncorrectTimeError);
-        return -1.5;
+        return result;
     }
 
     if (minutes > 60) {
         setError(uncorrectTimeError)
-        return -1.5;
+        return result;
     }
-    return hours * 60 + minutes
+
+
+    result.data = hours * 60 + minutes;
+    result.isCorrect = true;
+
+    return result
 }
 
 export function GetUserBrowserLocation() {
@@ -1119,35 +1091,54 @@ export function TimeForCalendarFromSeconds(seconds: number) {
     return `${time.hours}:${time.minutes < 10 ? 0 : ''}${time.minutes}`
 }
 
-export function IsCorrectDate(str: string, setError: (error: string) => void) {
+export interface IsCorrectDateType {
+    isCorrect: boolean,
+    data: Date | null,
+}
+
+export function IsCorrectDate(str: string, setError: (error: string) => void): IsCorrectDateType {
     const dateStr = str.split('/');
     const numberTimeArray = dateStr.map(function (element) {
         return Number.parseInt(element);
     });
     const day = numberTimeArray[0];
     const month = numberTimeArray[1];
+    const year = numberTimeArray[2];
+
+    let result: IsCorrectDateType = {
+        isCorrect: false,
+        data: null
+    }
 
     if (Number.isNaN(day) || Number.isNaN(month)) {
         setError(uncorrectTimeError)
-        return -1.5;
+        return result;
     }
 
     if (day < 0 || month < 0) {
         setError(uncorrectTimeError);
-        return -1.5;
+        return result;
     }
 
 
     if (month > 12) {
         setError(uncorrectTimeError)
-        return -1.5;
+        return result;
     }
     if (day > daysInMonth[month - 1]) {
         setError(uncorrectTimeError);
-        return -1.5;
+        return result;
+    }
+    result.isCorrect = true;
+    result.data = new Date(year, month - 1, day);
+
+    if (result.data < minCalendarDate || result.data > maxCalendarDate) {
+        setError(uncorrectDay)
+        result.isCorrect = false;
+        return result;
     }
 
-    return new Date(2023, month - 1, day)
+    return result;
 }
 
 export const daysInMonth = [
@@ -1175,14 +1166,26 @@ export function getEventColor(eventType: SpecialEventType | null) {
     }
 }
 
-export function ToDefautDateStrFormat(date:Date){
-    const day = date.getDay()>10?date.getDay().toString():"0"+date.getDate();
-    const month = date.getMonth()+1>10?(date.getMonth()+1).toString():"0"+(date.getMonth()+1);
+export function ToDefautDateStrFormat(date: Date) {
+    const day = date.getDay() > 10 ? date.getDay().toString() : "0" + date.getDate();
+    const month = date.getMonth() + 1 > 10 ? (date.getMonth() + 1).toString() : "0" + (date.getMonth() + 1);
     const year = date.getFullYear();
-    
+
     return `${year}-${month}-${day}`
 }
 
 export function GetDaysFromMilsec(milsec: number) {
     return Math.ceil(milsec / 86400000);
+}
+
+export function GetSomeButtonWithAction(buttonType: string, buttonText: string, getSubmmitHandler: () => void) {
+    return <Row>
+        <Col className='gap-2 d-flex'>
+            <Button variant={buttonType}
+                onClick={getSubmmitHandler}
+            >
+                {buttonText}
+            </Button>
+        </Col>
+    </Row>
 }
