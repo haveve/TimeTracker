@@ -10,8 +10,8 @@ function MainMenu() {
       <div className='UserDetails d-flex align-items-center flex-column m-1'>
         <div className='Userslist d-flex align-items-center flex-column mt-5 h-75'>
           <h1>{t("MainMenu.welcome")}</h1>
-          <div className='w-75 d-flex mt-4    '>
-            <Card style={{width: '18rem'}} className='bg-dark me-2' as={Link} to={"/Time"}>
+          <div className='w-100 d-flex mt-4 flex-wrap justify-content-center'>
+            <Card style={{width: '18rem'}} className='bg-dark me-2 mb-2' as={Link} to={"/Time"}>
               <Card.Body>
                 <Card.Title className='m-0'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -25,7 +25,7 @@ function MainMenu() {
                 </Card.Title>
               </Card.Body>
             </Card>
-            <Card style={{width: '18rem'}} className='bg-dark me-2 linkcard' as={Link} to={"/Users"}>
+            <Card style={{width: '18rem'}} className='bg-dark me-2 mb-2' as={Link} to={"/Users"}>
               <Card.Body>
                 <Card.Title className='m-0'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -37,7 +37,7 @@ function MainMenu() {
                 </Card.Title>
               </Card.Body>
             </Card>
-            <Card style={{width: '18rem'}} className='bg-dark me-2' as={Link} to={"/CreateUser"}>
+            <Card style={{width: '18rem'}} className='bg-dark me-2 mb-2' as={Link} to={"/CreateUser"}>
               <Card.Body>
                 <Card.Title className='m-0'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -51,7 +51,7 @@ function MainMenu() {
                 </Card.Title>
               </Card.Body>
             </Card>
-            <Card style={{width: '18rem'}} className='bg-dark me-2' as={Link} to={"/Calendar"}>
+            <Card style={{width: '18rem'}} className='bg-dark me-2 mb-2' as={Link} to={"/Calendar"}>
               <Card.Body>
                 <Card.Title className='m-0'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"

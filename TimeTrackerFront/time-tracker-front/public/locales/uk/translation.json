@@ -10,6 +10,7 @@
   "delete":"Видалити",
   "chooseLang": "Виберіть мову",
   "createRange":"Створити проміжок",
+  "edit": "Змінити",
   "Login": {
     "header": "Вхід до TimeTracker",
     "username": "Ім'я або електронна пошта користувача",
@@ -45,6 +46,7 @@
     "usersItem": "Користувачі",
     "createUserItem": "Створити користувача",
     "calendarItem": "Календар",
+    "settings": "Налаштування",
     "logoutItem": "Вийти"
   },
   "MainMenu": {
@@ -96,10 +98,73 @@
       "takenDayError": "Вже є відсутність у цей день"
     }
   },
-  "VacationRequests" : {
-    "myRequestsHeader" : "Мої запити",
+  "UserDetails": {
+    "PermissionsButton": "Дозволи",
+    "ApproversButton": "Затверджувачі",
+    "PresenceButton": "Присутність",
+    "DisableButton": "Вимкнути",
+    "workedToday": "Відпрацьовано сьогодні",
+    "workedWeek": "Відпрацьовано цього тижня",
+    "workedMonth": "Відпрацьовано цього місяця",
+    "DisableModal": {
+      "header": "Вимкнути користувача",
+      "text": "Ви впевнені, що хочете вимкнути користувача",
+      "disable": "Вимкнути"
+    },
+    "PermissionsModal": {
+      "header": "Дозволи",
+      "viewUsers": "Передивлятись користувачів",
+      "exportExcel": "Вивантажувати ексель",
+      "manageUsers": "Керування користувачами",
+      "manageApprovers": "Керування затверджувачами",
+      "manageWorkHours": "Керування робочими годинами",
+      "managePresence": "Керування присутностями",
+      "manageDayOffs": "Керування відсутностями",
+      "permissionsUpdated": "Дозволи успішно оновлені"
+    },
+    "AbsenceModal": {
+      "header": "Присутність",
+      "absenceItem": "Відсутність",
+      "illnessItem": "Хвороба",
+      "fillFieldsError": "Заповніть усі поля",
+      "takenDayError": "Вже є відсутність у цей день"
+    },
+    "ApproversModal": {
+      "header": "Затвержувачі",
+      "ApproversList": "Спичок Затвержувачів",
+      "Remove": "Прибрати",
+      "Add": "Додати Затвержувачів",
+      "Search": "Пошук",
+      "Sortby": "Сортувати",
+      "Login": "Логін",
+      "Name": "Ім'я",
+      "Pick": "Обрати",
+      "NoUsers": "Користувачів не знайдено"
+    },
+    "TimeSessions": {
+      "sDate": "Дата початку",
+      "eDate": "Дата закінчення",
+      "tSession": "Ceciї"
+    },
+    "CreateSessionModal": {
+      "header": "Створити сесію",
+      "sDate": "Дата початку",
+      "eDate": "Дата закінчення",
+      "FillFields": "Заповніть усі поля",
+      "CorrectInterval": "Оберіть коректний інтервал",
+      "Created": "Сесія успішно створена",
+      "Error": "Сесія вже існує"
+    },
+    "DeleteSessionModal": {
+      "header": "Видалити сесію",
+      "IsSure": "Ви впевнені, що хочете видалити сесію ",
+      "Deleted": "Сесія успішно видалена"
+    }
+  },
+  "VacationRequests": {
+    "myRequestsHeader": "Мої запити",
     "incomingRequestHeader": "Вхідні запити",
-    "VacationType" : {
+    "VacationType": {
       "selectTypeHeader": "Виберіть тип",
       "allItem": "Усі",
       "pendingItem": "В очікуванні",
@@ -107,14 +172,14 @@
       "approvedItem": "Схвалені",
       "declinedItem": "Відхилені"
     },
-    "createVacReqButton" : "Створити запит на відпуску",
-    "CreateVacReqModal" : {
+    "createVacReqButton": "Створити запит на відпуску",
+    "CreateVacReqModal": {
       "header": "Створення запиту на відпуску",
       "remainingDays": "Залишилося днів",
-      "requestInfo" : "Інформація до запиту",
+      "requestInfo": "Інформація до запиту",
       "startDate": "Дата початку",
       "finishDate": "Дата кінця",
-      "fillDateFieldsError" : "Заповніть поля з датою",
+      "fillDateFieldsError": "Заповніть поля з датою",
       "incorrectDateIntervalError": "Виберіть коректний інтервал часу"
     },
     "VacReq": {
@@ -144,9 +209,8 @@
         "reaction": "Виберіть реакцію",
         "selectHeader": "Виберіть реакцію",
         "approve": "Схвалити",
-        "decline" : "Відхилити",
+        "decline": "Відхилити",
         "reactionMessage": "Повідомлення до реакції"
-
       },
       "ReactionMessageModal": {
         "header": "Додати повідомлення до реакціЇ",
@@ -163,14 +227,13 @@
     "viewUsers": "Передивлятись користувачів",
     "exportExcel": "Вивантажувати ексель",
     "manageUsers": "Керування користувачами",
-    "manageApprovers": "Керування апруверами",
+    "manageApprovers": "Керування затверджувачами",
     "manageWorkHours": "Керування робочими годинами",
     "managePresence": "Керування присутностями",
     "manageDayOffs": "Керування відсутностями",
     "sendEmailButton": "Надіслати електронний лист",
     "fillFieldsError": "Заповніть усі поля!",
     "userCreated": "Користувач створенний успішно"
-
   },
   "Calendar": {
     "todayButton": "сьогодні",
@@ -215,5 +278,23 @@
   "weekFilter": "Тиждень",
   "monthFilter": "Місяць",
   "yearFilter": "Рік"
+  },
+  "UserList": {
+    "header": "Користувачі",
+    "Search": "Пошук",
+    "Sortby": "Сортувати",
+    "Email": "Пошта",
+    "Name": "Ім'я",
+    "Enabled": "Увімкнений",
+    "AllUsers": "Усі",
+    "Disabled": "Вимкнені",
+    "ExcelSettings": "Підготувати Excel з поточними налаштуваннями",
+    "DownloadExcell": "Завантажити",
+    "NoUsers": "Користувачів не знайдено"
+  },
+  "Settings": {
+    "header": "Налаштування",
+    "chooseLang": "Мова додатку",
+    "location": "Місцезнаходження"
   }
 }

@@ -75,7 +75,7 @@ namespace TimeTracker.GraphQL.Types.Time.ManageTime
 
                     if (_timeRepository.GetTimeByStartDate(userId, userTime.StartTimeTrackDate) != null) return "Session already exists";
                     _timeRepository.CreateTimeWithEnd(userTime, userId);
-                    return "Session was deleted successfully";
+                    return "Session was created successfully";
                 }).AuthorizeWithPolicy("EditWorkHours");
         }
     }

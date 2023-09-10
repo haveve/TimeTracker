@@ -90,7 +90,7 @@ function UserProfile() {
 
 
 	const [date, setDate] = useState<Date>();
-	const [type, setType] = useState('Absent');
+	const [type, setType] = useState('Absence');
 
     useEffect(() => {
         RequestCurrentUser().subscribe((x) => {
