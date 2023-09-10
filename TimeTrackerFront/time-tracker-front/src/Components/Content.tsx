@@ -27,6 +27,7 @@ import { clearErrorMessage as clearErrorMessageToken } from '../Redux/Slices/Tok
 
 import { Permissions } from '../Redux/Types/Permissions';
 import MainMenu from './MainMenu';
+import Settings from './Settings';
 
 
 const checkPermissions = (Permission: string, permissions: Permissions) => {
@@ -52,6 +53,10 @@ const router = () => createBrowserRouter([
             {
                 path: "/",
                 element: <MainMenu />
+            },
+            {
+                path: "/Settings",
+                element: <Settings />
             },
             {
                 path: "/Users",

@@ -56,13 +56,13 @@ function Userslist() {
 
 	return (
 		<div className='Userslist d-flex align-items-center flex-column mt-5 h-75'>
-			<h5>Users</h5>
+			<h5>{t("UserList.header")}</h5>
 			<div className="mb-3 w-50 d-flex">
 				<Row className='m-0 p-0 w-100'>
 					<Col className='m-0 p-0 me-2' sm={7}>
 						<InputGroup>
 							<Form.Control
-								placeholder="Search"
+								placeholder={t("UserList.Search")}
 								aria-describedby="Search"
 								onChange={e => setSearch(e.target.value)}
 								onKeyDown={e => handleKeyDown(e)}
@@ -79,10 +79,10 @@ function Userslist() {
 					<Col className='m-0 p-0'>
 						<InputGroup>
 							<Form.Select onChange={e => setOrderField(e.target.value)}>
-								<option value="">Sort by</option>
-								<option value="Email">Email</option>
-								<option value="FullName">Name</option>
-								<option value="Enabled">Enabled</option>
+								<option value="">{t("UserList.Sortby")}</option>
+								<option value="Email">{t("UserList.Email")}</option>
+								<option value="FullName">{t("UserList.Name")}</option>
+								<option value="Enabled">{t("UserList.Enabled")}</option>
 							</Form.Select>
 							<Button variant="outline-secondary" onClick={() => {
 								order === "ASC" ? setOrder("DESC") : setOrder("ASC")
@@ -115,9 +115,9 @@ function Userslist() {
 									}}>
 										<InputGroup>
 											<Form.Select onChange={e => setEnabled(e.target.value)} defaultValue={enabled}>
-												<option value="%">All users</option>
-												<option value="1">Enabled users</option>
-												<option value="0">Disabled users</option>
+												<option value="%">{t("UserList.AllUsers")}</option>
+												<option value="1">{t("UserList.Enabled")}</option>
+												<option value="0">{t("UserList.Disabled")}</option>
 											</Form.Select>
 										</InputGroup>
 									</Form>
@@ -168,7 +168,7 @@ function Userslist() {
 					}}/>
 					<Pagination.Last onClick={() => setAfter((page.totalCount - 1) * first)}/>
 				</Pagination>
-				: <p>No users found</p>
+				: <p>{t("UserList.NoUsers")}</p>
 			}
 			<CreateExcelFile enabled={enabled} orderField={orderField} order={order} search={search}/>
 		</div>

@@ -6,7 +6,9 @@
   "add": "Add",
   "create": "Create",
   "submit": "Submit",
-  "close" : "Close",
+  "close": "Close",
+  "edit": "Edit",
+  "delete": "Delete",
   "chooseLang": "Choose language",
   "Login": {
     "header": "Sign in to TimeTracker",
@@ -45,6 +47,7 @@
     "usersItem": "Users",
     "createUserItem": "Create User",
     "calendarItem": "Calendar",
+    "settings": "Settings",
     "logoutItem": "Logout"
   },
   "MainMenu": {
@@ -96,10 +99,74 @@
       "takenDayError": "Already absent on this date"
     }
   },
-  "VacationRequests" : {
-    "myRequestsHeader" : "My requests",
+  "UserDetails": {
+    "PermissionsButton": "Permissions",
+    "ApproversButton": "Approvers",
+    "PresenceButton": "Presence",
+    "DisableButton": "Disable",
+    "workedToday": "Worked today",
+    "workedWeek": "Worked this week",
+    "workedMonth": "Worked this month",
+    "DisableModal": {
+      "header": "Disable user",
+      "text": "Are you sure you want to disable user",
+      "disable": "Disable"
+    },
+    "PermissionsModal": {
+      "header": "Permissions",
+      "viewUsers": "View users",
+      "exportExcel": "Export excel",
+      "manageUsers": "Manage users",
+      "manageApprovers": "Manage approvers",
+      "manageWorkHours": "Manage work hours",
+      "managePresence": "Manage presence",
+      "manageDayOffs": "Manage day offs",
+      "permissionsUpdated": "Permissions updated successfully"
+    },
+    "AbsenceModal": {
+      "header": "Presence",
+      "absenceItem": "Absence",
+      "illnessItem": "Illness",
+      "fillFieldsError": "Fill all fields",
+      "takenDayError": "Already absent on this date"
+    },
+    "ApproversModal": {
+      "header": "Approvers",
+      "ApproversList": "Approvers list",
+      "Remove": "Remove from approvers",
+      "Add": "Approvers to add",
+      "Search": "Search",
+      "Sortby": "Sort by",
+      "Login": "Login",
+      "Name": "Name",
+      "Pick": "Pick",
+      "NoUsers": "No users found"
+    },
+    "TimeSessions":{
+      "sDate":"Start Date",
+      "eDate":"End Date",
+      "tSession":"Sessions"
+    },
+    "CreateSessionModal": {
+      "header": "Create session",
+      "sDate":"Start Date",
+      "eDate":"End Date",
+      "FillFields": "Fill date fields",
+      "CorrectInterval": "Select correct interval",
+      "Created": "Session was created successfully",
+      "Error": "Session is already exists"
+    },
+    "DeleteSessionModal": {
+      "header": "Delete session",
+      "IsSure": "Are you sure you want to delete session ",
+      "Deleted": "Session was deleted successfully",
+      "Error": "Session is already exists"
+    }
+  },
+  "VacationRequests": {
+    "myRequestsHeader": "My requests",
     "incomingRequestHeader": "Incoming requests",
-    "VacationType" : {
+    "VacationType": {
       "selectTypeHeader": "Select type",
       "allItem": "All",
       "pendingItem": "Pending",
@@ -107,14 +174,14 @@
       "approvedItem": "Approved",
       "declinedItem": "Declined"
     },
-    "createVacReqButton" : "Create vacation request",
-    "CreateVacReqModal" : {
+    "createVacReqButton": "Create vacation request",
+    "CreateVacReqModal": {
       "header": "Create vacation request",
       "remainingDays": "Remaining days",
-      "requestInfo" : "Some info about request",
+      "requestInfo": "Some info about request",
       "startDate": "Start date",
       "finishDate": "Finish date",
-      "fillDateFieldsError" : "Fill date fields",
+      "fillDateFieldsError": "Fill date fields",
       "incorrectDateIntervalError": "Select correct interval"
     },
     "VacReq": {
@@ -144,14 +211,13 @@
         "reaction": "Choose reaction",
         "selectHeader": "Select reaction",
         "approve": "Approve",
-        "decline" : "Decline",
+        "decline": "Decline",
         "reactionMessage": "Reaction message"
       },
       "ReactionMessageModal": {
         "header": "Add reaction message",
         "reactionMessage": "Reaction message"
       }
-
     }
   },
   "UserCreate": {
@@ -169,5 +235,23 @@
     "manageDayOffs": "Manage day offs",
     "sendEmailButton": "Send email",
     "userCreated": "User created successfully"
+  },
+  "UserList": {
+    "header": "Users",
+    "Search": "Search",
+    "Sortby": "Sort by",
+    "Email": "Email",
+    "Name": "Name",
+    "Enabled": "Enabled",
+    "AllUsers": "All users",
+    "Disabled": "Disabled",
+    "ExcelSettings": "Prepare excel with current search settings",
+    "DownloadExcell": "Download",
+    "NoUsers":"No users found"
+  },
+  "Settings": {
+    "header": "Settings",
+    "chooseLang": "App lenguage",
+    "location": "Location"
   }
 }

@@ -145,7 +145,7 @@ function CreateUser() {
 							<Form.Check
 								type="switch"
 								id="custom-switch-5"
-								label={t("UserCreate.workHours")}
+								label={t("UserCreate.manageWorkHours")}
 								checked={editWorkHours}
 								onClick={() => {
 									setEditWorkHours(!editWorkHours)
