@@ -57,6 +57,12 @@ namespace TimeTracker.Repositories
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query, new { time.StartTimeTrackDate,time.EndTimeTrackDate,userId, oldStartDate });
         }
+        public bool IsStarted(int userId)
+        {
+            string query = $"SELECT Count(*) FROM UserTime WHERE UserId = 5 AND EndTimeTrackDate is null";
+            using var connection = _dapperContext.CreateConnection();
+            return connection.QuerySingle<int>(query, new { userId }) > 0;
+        }
     }
     public enum LasUpdatedBy
     {

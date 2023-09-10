@@ -37,34 +37,33 @@ namespace TimeTracker.Services
             Comparer comparer = new Comparer();
             bool bIsShortDay = false;
             bool bIsCelebrateOrHoliday = false;
-            var globalevent = CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents.Where(e => comparer.DateEquals(e.Date, date)).FirstOrDefault();
-            if (globalevent == null)
-            {
-                globalevent = CalendarRepository.GetDateGlobalEvent(date);
-            }
-            if (globalevent != null)
-            {
-                if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate || globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.Holiday)
-                {
-                    Console.WriteLine("No work due to selebration/holiday");
-                    bIsCelebrateOrHoliday = true;
-                    return;
-                }
-                if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay) { bIsShortDay = true; Console.WriteLine("Short day"); }
-            }
+
+            //var globalevent = CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents.Where(e => comparer.DateEquals(e.Date, date)).FirstOrDefault();
+            //if (globalevent == null)
+            //{
+            //    globalevent = CalendarRepository.GetDateGlobalEvent(date);
+            //}
+            //if (globalevent != null)
+            //{
+            //    if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate || globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.Holiday)
+            //    {
+            //        Console.WriteLine("No work due to selebration/holiday");
+            //        bIsCelebrateOrHoliday = true;
+            //        return;
+            //    }
+            //    if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay) { bIsShortDay = true; Console.WriteLine("Short day"); }
+            //}
+            
             if (bIsCelebrateOrHoliday) return;
             var users = UserRepository.GetFulltimers();
 
             DateTime start = new DateTime(date.Year, date.Month, date.Day, 9, 0, 0);
-            DateTime end = new DateTime();
+            DateTime end = new DateTime(date.Year, date.Month, date.Day, 17, 0, 0);
             if (bIsShortDay)
             {
-                end = new DateTime(date.Year, date.Month, date.Day, 16, 0, 0);
+                end = end.AddHours(-1);
             }
-            else
-            {
-                end = new DateTime(date.Year, date.Month, date.Day, 17, 0, 0);
-            }
+            
 
             foreach (var user in users)
             {

@@ -7,12 +7,13 @@ import NotificationModalWindow from '../Service/NotificationModalWindow';
 import { MessageType } from '../Service/NotificationModalWindow';
 import { Session } from '../../Redux/Types/Time';
 import { RootState } from '../../Redux/store';
-import { IsSuccessOrIdle } from './TimeTracker';
+import { IsSuccessOrIdle } from './TimeFunction';
 import { updateTime, setErrorStatusAndError, setIdleStatus } from '../../Redux/Slices/TimeSlice';
 import { RequestUpdateDate, RequestUpdateUserDate } from '../../Redux/Requests/TimeRequests';
 import { ErrorMassagePattern } from '../../Redux/epics';
 import { locationOffset } from '../../Redux/Slices/LocationSlice';
 import { getStartOfWeekByCountry } from '../../Redux/Slices/LocationSlice';
+import { useTranslation } from 'react-i18next';
 
 export const startLessEnd = "Start date of time period must be less then End"
 export const existedStartDate = "There is occurred error. Maybe you chose start date of session that already exist. If you could not resolved issue, turn to colsole and administrator"
@@ -23,6 +24,13 @@ export default function TimeManage(props: {
     selected: Session,
     setSelected: (selected: null) => void
 }) {
+
+    const { t } = useTranslation()
+
+    const setUnShowed = () => {
+        props.setSelected(null)
+        props.setShow(!props.isShowed)
+    }
 
     const [toUpdate, setToUpdate] = useState<Session>({ ...props.selected })
     const [error, setError] = useState("");
@@ -47,10 +55,7 @@ export default function TimeManage(props: {
     const dispatch = useDispatch()
 
     return <Modal show={props.isShowed}
-        onHide={() => {
-            props.setSelected(null)
-            props.setShow(!props.isShowed)
-        }}
+        onHide={setUnShowed}
         backdrop="static"
         keyboard={false}
         aria-labelledby="contained-modal-title-vcenter"
@@ -59,14 +64,14 @@ export default function TimeManage(props: {
     >
         <Modal.Header closeButton>
             <Modal.Title>
-                Time Manage
+                {t('TimeTracker.timeManage')}
             </Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
             <Row>
                 <Col>
-                    <Form.Label>StartDate</Form.Label>
+                    <Form.Label>{t('TimeTracker.sDate')}</Form.Label>
                     <input type="datetime-local"
                         value={new Date(toUpdate.startTimeTrackDate.getTime() + locationOffset * 60000).toISOString().slice(0, 16)}
                         className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
@@ -80,7 +85,7 @@ export default function TimeManage(props: {
                     </input>
                 </Col>
                 <Col>
-                    <Form.Label>EndDate</Form.Label>
+                    <Form.Label>{t('TimeTracker.eDate')}</Form.Label>
                     <input type="datetime-local"
                         value={new Date(toUpdate.endTimeTrackDate!.getTime() + locationOffset * 60000).toISOString().slice(0, 16)}
                         className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
@@ -97,10 +102,8 @@ export default function TimeManage(props: {
 
         <Modal.Footer>
             <Button variant='outline-secondary'
-                onClick={
-                    () => setToUpdate(props.selected)
-                }>
-                Cancel
+                onClick={setUnShowed}>
+                {t("cancel")}
             </Button>
             <Button variant='outline-success'
                 onClick={() => {
@@ -124,8 +127,8 @@ export default function TimeManage(props: {
                             }
                         })
                     }
-                    else{
-                        RequestUpdateUserDate(props.userId ,{ ...props.selected }, { ...toUpdate }, offSet, getStartOfWeekByCountry(coutry)).subscribe({
+                    else {
+                        RequestUpdateUserDate(props.userId, { ...props.selected }, { ...toUpdate }, offSet, getStartOfWeekByCountry(coutry)).subscribe({
                             next: (s) => {
                                 SetSuccess(s)
                             },
@@ -139,7 +142,8 @@ export default function TimeManage(props: {
                     }
                     dispatch(setIdleStatus());
                 }}>
-                Submit
+                {t("submit")}
+
             </Button>
         </Modal.Footer>
         <NotificationModalWindow isShowed={error !== ""}

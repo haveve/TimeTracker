@@ -26,6 +26,10 @@ export const getLanguageFromCookie = (i18next:any) => {
 	i18next.changeLanguage(lang);
 }
 
+export const getLanguageStringFromCookie = () => {
+	return getCookie("lang")??"en";
+}
+
 
 export default i18n
     .use(Backend)

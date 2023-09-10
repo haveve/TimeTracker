@@ -12,13 +12,14 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, Outlet } from 'react-router-dom';
 import { ajaxForLogout, setCookieParamas } from '../Login/Api/login-logout';
+import TimeTracker from './Time/TimeTracker';
 
 import { GetLocation } from '../Redux/Requests/CalendarRequest';
 import CheckModalWindow from './Service/CheckModalWindow';
 import { MessageType } from './Service/NotificationModalWindow';
 import { deleteCookie, getCookie, setCookie } from '../Login/Api/login-logout';
 import { getCurrentUser, getCurrentUserPermissions } from '../Redux/epics';
-import { Dispatch, RootState } from '../Redux/store';
+import { Dispatch, RootState } from '../Redux/store'
 import { clearErrorMessage as setLogout } from '../Redux/Slices/UserSlice';
 import { setLocation, changeLocation } from '../Redux/Slices/LocationSlice';
 import { setLoginByToken } from '../Redux/Slices/TokenSlicer';
@@ -34,7 +35,6 @@ import { lngs } from "../i18n";
 function AppNavbar() {
 
 	const { t, i18n } = useTranslation();
-
 	const getLanguageFromCookie = () => {
 		let lang = getCookie("lang");
 		if (lang === null) {
@@ -114,8 +114,8 @@ function AppNavbar() {
 						})()}
 					</Button> */}
 
-
-					<Nav.Link as={Link} to={user ? "/User/" + user.login : "/Login"} className='ms-auto'>{user.login}</Nav.Link>
+					<TimeTracker />
+					<Nav.Link as={Link} to={user ? "/User/" + user.login : "/Login"} className=''>{user.login}</Nav.Link>
 					<Navbar.Offcanvas
 						id={`offcanvasNavbar-expand-false`}
 						aria-labelledby={`offcanvasNavbarLabel-expand-false`}
@@ -214,11 +214,11 @@ function AppNavbar() {
 				</Container>
 			</Navbar>
 
-			<Row className='justify-content-end d-flex align-items-center p-0 m-0 height-main h-100 '>
-				<Col className={`p-0 m-0 h-100`}>
+			<Col className='justify-content-end d-flex align-items-center p-0 m-0'>
+				<Col className={`p-0 m-0`}>
 					<Outlet />
 				</Col>
-			</Row>
+			</Col>
 			<CheckModalWindow isShowed={canUserApi !== ""} dropMessage={setCanUserApi} messageType={MessageType.Warning}
 				agree={() => {
 					GetLocation().subscribe({

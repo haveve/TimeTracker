@@ -24,6 +24,7 @@ import { clearErrorMessage as clearErrorMessageTime } from '../Redux/Slices/Time
 import { clearErrorMessage as clearErrorMessageUserList } from '../Redux/Slices/UserSlice';
 import { clearErrorMessage as clearErrorMessageLocation } from '../Redux/Slices/LocationSlice';
 import { clearErrorMessage as clearErrorMessageToken } from '../Redux/Slices/TokenSlicer';
+import { clearErrorMessage as clearErrorMessageCalendar } from '../Redux/Slices/CalendarSlicer';
 
 import { Permissions } from '../Redux/Types/Permissions';
 import MainMenu from './MainMenu';
@@ -119,10 +120,11 @@ function AppContent() {
     const errorUserList = useSelector((state: RootState) => state.users.error ? state.users.error : "");
     const errorLocation = useSelector((state: RootState) => state.location.error ? state.location.error : "");
     const errorToken = useSelector((state: RootState) => state.token.error ? state.token.error : "")
+    const errorCalendar = useSelector((state: RootState) => state.calendar.error ? state.calendar.error : "")
 
-    useEffect(()=>{
+    useEffect(() => {
         setCookie({ name: "refresh_sent", value: "false" })
-    },[])
+    }, [])
 
     const dispatch = useDispatch();
     return (
@@ -138,6 +140,8 @@ function AppContent() {
                 messageType={MessageType.Error}>{errorLocation}</NotificationModalWindow>
             <NotificationModalWindow isShowed={errorToken !== ""} dropMessage={() => dispatch(clearErrorMessageToken())}
                 messageType={MessageType.Error}>{errorToken}</NotificationModalWindow>
+            <NotificationModalWindow isShowed={errorCalendar !== ""} dropMessage={() => dispatch(clearErrorMessageCalendar())}
+                messageType={MessageType.Error}>{errorCalendar}</NotificationModalWindow>
         </div>
     );
 }

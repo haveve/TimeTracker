@@ -3,6 +3,7 @@ import {Alert, Modal, Button, Col, Row} from "react-bootstrap";
 import '../../Custom.css';
 import {MessageType} from './NotificationModalWindow';
 import {TFunction} from "i18next";
+import { ErrorMassagePattern } from '../../Redux/epics';
 
 export default function CheckModalWindow(props: {
     children: string,

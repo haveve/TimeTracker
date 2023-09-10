@@ -7,6 +7,7 @@ import TimeReducer from "./Slices/TimeSlice";
 import VacationReducer from "./Slices/VacationSlice";
 import LocationReducer from "./Slices/LocationSlice";
 import TokenReducer from "./Slices/TokenSlicer";
+import CalendarReducer from "./Slices/CalendarSlicer";
 import { useDispatch } from "react-redux";
 
 const epicMiddleware = createEpicMiddleware();
@@ -18,7 +19,8 @@ const store = configureStore({
       time:TimeReducer,
       vacation:VacationReducer,
       location:LocationReducer,
-      token:TokenReducer
+      token:TokenReducer,
+      calendar:CalendarReducer
    },
    middleware: [epicMiddleware]
 });
