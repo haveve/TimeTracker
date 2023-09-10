@@ -47,9 +47,6 @@ export type DoRefreshType = {
     refreshStatus: RefreshStatus
 }
 
-//resolve problem with state storage(with cookie is too slow)
-
-
 export function DoRefresh(refresh: DoRefreshType) {
 
     switch (refresh.refreshStatus) {

@@ -93,7 +93,7 @@ export default function CreateRange(option: { setError: (v: string) => void }) {
         })
 
     }
-
+    
     return <>
         <Modal.Body>
             <Row className='d-flex flex-column justify-content-between'>
@@ -139,7 +139,14 @@ export default function CreateRange(option: { setError: (v: string) => void }) {
             </Row>
         </Modal.Body>
         <Modal.Footer>
-            {GetSomeButtonWithAction('outline-success',t('create'),()=>CreateRangeHandle())}
+            {GetSomeButtonWithAction('outline-secondary', t('cancel'), () => {
+                setStartTimeStringRange("");
+                setEndRangeDay("");
+                setEndTimeStringRange("");
+                setTitleRange("");
+                setStartRangeDay("");
+            })}
+            {GetSomeButtonWithAction('outline-success', t('create'), () => CreateRangeHandle())}
         </Modal.Footer>
     </>
 }
