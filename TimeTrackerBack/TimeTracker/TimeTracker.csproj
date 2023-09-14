@@ -23,6 +23,7 @@
 		<PackageReference Include="GraphQL.Server.Transports.AspNetCore" Version="7.4.0" />
 		<PackageReference Include="GraphQL.Server.Ui.Altair" Version="7.4.0" />
 		<PackageReference Include="GraphQL.Server.Ui.GraphiQL" Version="7.4.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="7.0.11" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.19" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.10" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="4.6.0" />

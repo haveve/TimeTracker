@@ -7,9 +7,9 @@
   "create": "Створити",
   "submit": "Відправити",
   "close": "Закрити",
-  "delete":"Видалити",
+  "delete": "Видалити",
   "chooseLang": "Виберіть мову",
-  "createRange":"Створити проміжок",
+  "createRange": "Створити проміжок",
   "edit": "Змінити",
   "Login": {
     "header": "Вхід до TimeTracker",
@@ -240,23 +240,23 @@
     "othersButton": "інші",
     "monthButton": "місяць",
     "weekButton": "тиждень",
-	  "CalendarManage": {
-    "title": "Управління періодичним часом для",
-    "fDay": "з дня",
-    "uDay": "до дня",
-    "wTitle": "з назвою",
-    "from": "з",
-    "until": "до",
-    "rangeOpt": "Параметри діапазону",
-    "PeriodTimeOpt": "Параметри періодичного часу",
-    "dayFormatSample": "формат ДД/ММ/РРРР (наприклад 01/12/2023)",
-    "timeFormatSample": "формат гг:хх (наприклад 45:32)",
-    "selectRToUpdate": "виберіть діапазон для оновлення",
-    "selectRToDelete": "виберіть діапазон для видалення"
-  },
-  "GlobalCalendarManange": {
-    "wType": "з типом"
-  }
+    "CalendarManage": {
+      "title": "Управління періодичним часом для",
+      "fDay": "з дня",
+      "uDay": "до дня",
+      "wTitle": "з назвою",
+      "from": "з",
+      "until": "до",
+      "rangeOpt": "Параметри діапазону",
+      "PeriodTimeOpt": "Параметри періодичного часу",
+      "dayFormatSample": "формат ДД/ММ/РРРР (наприклад 01/12/2023)",
+      "timeFormatSample": "формат гг:хх (наприклад 45:32)",
+      "selectRToUpdate": "виберіть діапазон для оновлення",
+      "selectRToDelete": "виберіть діапазон для видалення"
+    },
+    "GlobalCalendarManange": {
+      "wType": "з типом"
+    }
   },
   "CalendarUsers": {
     "searchPlaseH": "Пошук",
@@ -274,10 +274,10 @@
     "tSession": "Сесія часу",
     "editButton": "Редагувати",
     "timeManage": "Управління часом",
-	  "todayFilter": "Cьогодні",
-  "weekFilter": "Тиждень",
-  "monthFilter": "Місяць",
-  "yearFilter": "Рік"
+    "todayFilter": "Cьогодні",
+    "weekFilter": "Тиждень",
+    "monthFilter": "Місяць",
+    "yearFilter": "Рік"
   },
   "UserList": {
     "header": "Користувачі",

@@ -10,7 +10,7 @@
   "edit": "Edit",
   "delete": "Delete",
   "chooseLang": "Choose language",
-  "createRange":"Create Range",
+  "createRange": "Create Range",
   "Login": {
     "header": "Sign in to TimeTracker",
     "username": "Username or email adress",
@@ -143,15 +143,15 @@
       "Pick": "Pick",
       "NoUsers": "No users found"
     },
-    "TimeSessions":{
-      "sDate":"Start Date",
-      "eDate":"End Date",
-      "tSession":"Sessions"
+    "TimeSessions": {
+      "sDate": "Start Date",
+      "eDate": "End Date",
+      "tSession": "Sessions"
     },
     "CreateSessionModal": {
       "header": "Create session",
-      "sDate":"Start Date",
-      "eDate":"End Date",
+      "sDate": "Start Date",
+      "eDate": "End Date",
       "FillFields": "Fill date fields",
       "CorrectInterval": "Select correct interval",
       "Created": "Session was created successfully",
@@ -237,52 +237,50 @@
     "sendEmailButton": "Send email",
     "userCreated": "User created successfully"
   },
-
-  "Calendar":{
-  "todayButton":"today",
-  "othersButton":"others",
-  "monthButton":"month",
-  "weekButton":"week",
-  "CalendarManage":{
-	  "title": "Period time manage for",
-	  "fDay":"from day",
-	  "uDay":"until day",
-	  "wTitle":"with title",
-	  "from":"from",
-	  "until":"until",
-	  "rangeOpt":"Range options",
-	  "PeriodTimeOpt":"Period time options",
-	  "dayFormatSample":"format DD/MM/YYYY (for exmaple 01/12/2023)",
-	  "timeFormatSample":"format hh:mm (for exmaple 45:32)",
-	  "selectRToUpdate":"select range to update",
-	  "selectRToDelete":"select range to delete"
+  "Calendar": {
+    "todayButton": "today",
+    "othersButton": "others",
+    "monthButton": "month",
+    "weekButton": "week",
+    "CalendarManage": {
+      "title": "Period time manage for",
+      "fDay": "from day",
+      "uDay": "until day",
+      "wTitle": "with title",
+      "from": "from",
+      "until": "until",
+      "rangeOpt": "Range options",
+      "PeriodTimeOpt": "Period time options",
+      "dayFormatSample": "format DD/MM/YYYY (for exmaple 01/12/2023)",
+      "timeFormatSample": "format hh:mm (for exmaple 45:32)",
+      "selectRToUpdate": "select range to update",
+      "selectRToDelete": "select range to delete"
+    },
+    "GlobalCalendarManange": {
+      "wType": "with type"
+    }
   },
-  "GlobalCalendarManange":{
-	"wType":"with type"
-  }
+  "CalendarUsers": {
+    "searchPlaseH": "Search",
+    "mCalendarButton": "Manage Calendar",
+    "bToMeButton": "Back to me",
+    "selectButton": "Select",
+    "title": "Select User Calendar"
   },
-  "CalendarUsers":{
-	"searchPlaseH":"Search",
-	"mCalendarButton":"Manage Calendar",
-	"bToMeButton":"Back to me",
-	"selectButton":"Select",
-	"title":"Select User Calendar"
+  "TimeTracker": {
+    "tInD": "Time in Day",
+    "tInW": "Time in Week",
+    "tInM": "Time in Month",
+    "sDate": "Start Date",
+    "eDate": "End Date",
+    "tSession": "Time Session",
+    "editButton": "Edit",
+    "timeManage": "Time Manage",
+    "todayFilter": "Today",
+    "weekFilter": "Current Week",
+    "monthFilter": "Current Month",
+    "yearFilter": "Current Year"
   },
-  "TimeTracker":{
-	  "tInD":"Time in Day",
-	  "tInW":"Time in Week",
-	  "tInM":"Time in Month",
-	  "sDate":"Start Date",
-	  "eDate":"End Date",
-	  "tSession":"Time Session",
-	  "editButton":"Edit",
-	  "timeManage":"Time Manage",
-	  "todayFilter":"Today",
-	  "weekFilter":"Current Week",
-	  "monthFilter":"Current Month",
-	  "yearFilter":"Current Year"
-  },
-  
   "UserList": {
     "header": "Users",
     "Search": "Search",
@@ -294,13 +292,11 @@
     "Disabled": "Disabled",
     "ExcelSettings": "Prepare excel with current search settings",
     "DownloadExcell": "Download",
-    "NoUsers":"No users found"
+    "NoUsers": "No users found"
   },
   "Settings": {
     "header": "Settings",
     "chooseLang": "App lenguage",
     "location": "Location"
   }
-
-  
 }

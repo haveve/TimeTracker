@@ -37,7 +37,7 @@ builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>
 builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
 
 //Token
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication()
     .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { });
 //.AddJwtBearer(options =>
 //{
@@ -136,7 +136,7 @@ app.UseGraphQL<IdentitySchema>("/graphql-login", (config) =>
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller}/{action=Download}/{id}");
+    pattern: "{controller}/{action=Download}/{id?}");
 
 app.UseGraphQLAltair();
 
