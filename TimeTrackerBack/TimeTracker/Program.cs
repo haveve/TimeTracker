@@ -3,6 +3,7 @@ using GraphQL;
 using GraphQL.MicrosoftDI;
 using GraphQL.Types;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -37,8 +38,18 @@ builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>
 builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
 
 //Token
-builder.Services.AddAuthentication()
-    .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { });
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+    .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { })
+    .AddGoogle(options =>
+    {
+        IConfiguration config = builder.Configuration;
+        options.ClientId = config["Secrets:Google:ClientId"]!;
+        options.ClientSecret = config["Secrets:Google:ClientSecret"]!;
+    });
 //.AddJwtBearer(options =>
 //{
 //    options.TokenValidationParameters = new TokenValidationParameters

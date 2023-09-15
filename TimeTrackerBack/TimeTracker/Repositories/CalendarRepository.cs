@@ -1,7 +1,9 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Identity;
+using System.Globalization;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
+using TimeTracker.Services;
 using TimeTracker.ViewModels;
 
 namespace TimeTracker.Repositories
@@ -26,9 +28,8 @@ namespace TimeTracker.Repositories
 
         public void AddEventRange(int userId, List<CalendarEventViewModel> addEventRange)
         {
-            string query = $"INSERT INTO CalendarEvents (UserId, Title, StartDate, EndDate) VALUES({userId}, @Title, @StartDate, @EndDate)";
             using var dapperConnection = _dapperContext.CreateConnection();
-            dapperConnection.Execute(query, addEventRange);
+            dapperConnection.BulkInsert<CalendarEventViewModel>(addEventRange,(ce)=>$"({userId}, '{ce.Title}', '{ce.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff",CultureInfo.InvariantCulture)}', '{ce.EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff")}')", "(UserId, Title, StartDate, EndDate)", "CalendarEvents");
         }
 
         public List<CalendarEvent> GetAllEvents(int userId)
