@@ -1,10 +1,12 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Identity;
 using System.Globalization;
+using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Services;
 using TimeTracker.ViewModels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TimeTracker.Repositories
 {
@@ -32,17 +34,40 @@ namespace TimeTracker.Repositories
             dapperConnection.BulkInsert<CalendarEventViewModel>(addEventRange,(ce)=>$"({userId}, '{ce.Title}', '{ce.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff",CultureInfo.InvariantCulture)}', '{ce.EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff")}')", "(UserId, Title, StartDate, EndDate)", "CalendarEvents");
         }
 
-        public List<CalendarEvent> GetAllEvents(int userId)
+        public List<CalendarEvent> GetAllEvents(int userId,MonthOrWeek weekOrMonth,DateTime date)
         {
-            string query = $"SELECT * FROM CalendarEvents WHERE UserId = {userId}";
+            string query = $"SELECT * FROM CalendarEvents WHERE UserId = {userId} AND DATEPART(Year,StartDate) = {date.Year} AND DATEPART(Month,StartDate) = {date.Month}";
+            switch (weekOrMonth)
+            {
+                case MonthOrWeek.Week:
+                    {
+                        query += $" AND DATEPART(Week,StartDate) = { Math.Ceiling((decimal)date.DayOfYear/7)}";
+                        break;
+                    }
+            }
             using var dapperConnection = _dapperContext.CreateConnection();
             var events = dapperConnection.Query<CalendarEvent>(query).ToList();
             return events ?? new();
         }
 
-        public List<GlobalEventsViewModel> GetAllGlobalEvents()
+        public List<GlobalEventsViewModel> GetAllGlobalEvents(MonthOrWeek? weekOrMonth = null, DateTime? date = null)
         {
             string query = $"SELECT * FROM GlobalCalendar";
+
+            if (weekOrMonth != null && date != null)
+            {
+
+                query += $" WHERE DATEPART(Year,Date) = {date!.Value.Year} AND DATEPART(Month,Date) = {date!.Value.Month}";
+
+                switch (weekOrMonth)
+                {
+                    case MonthOrWeek.Week:
+                        {
+                            query += $" AND DATEPART(Week,Date) = {Math.Ceiling((decimal)date!.Value.DayOfYear / 7)}";
+                            break;
+                        }
+                }
+            }
             using var dapperConnection = _dapperContext.CreateConnection();
             var events = dapperConnection.Query<GlobalEventsViewModel>(query).ToList();
             return events ?? new();
@@ -94,17 +119,37 @@ namespace TimeTracker.Repositories
             using var dapperConnection = _dapperContext.CreateConnection();
             dapperConnection.Execute(query, addEventRange);
         }
-        public List<CalendarEvent> GetAllUsersVacations(int userId)
+        public List<CalendarEvent> GetAllUsersVacations(int userId, MonthOrWeek weekOrMonth, DateTime date)
         {
-            string query = $"Select StartDate, EndDate FROM VacationRequests Where RequesterId = {userId} AND Status = 'Approved'";
+            string query = $"Select StartDate, EndDate FROM VacationRequests Where RequesterId = {userId} AND Status = 'Approved' AND DATEPART(Year,StartDate) = {date.Year} AND DATEPART(Month,StartDate) = {date.Month}";
+            switch (weekOrMonth)
+            {
+                case MonthOrWeek.Week:
+                    {
+                        query += $" AND DATEPART(Week,StartDate) = {Math.Ceiling((decimal)date.DayOfYear / 7)}";
+                        break;
+                    }
+            }
             using var dapperConnection = _dapperContext.CreateConnection();
             var vacations = dapperConnection.Query<CalendarEvent>(query).ToList();
             vacations.ForEach(v => { v.Type = SpecialEventType.Vacation;v.Title = "Vacation"; });
             return vacations;
         }
-        public List<CalendarEvent> GetAllUsersAbsences(int userId)
+        public List<CalendarEvent> GetAllUsersAbsences(int userId, MonthOrWeek weekOrMonth, DateTime date)
         {
-            List<Absence> userAbsences = _absenceRepository.GetUserAbsence(userId);
+            string query = $"SELECT * FROM Absences WHERE UserId = {userId} AND DATEPART(Year,Date) = {date.Year} AND DATEPART(Month,Date) = {date.Month}";
+            switch (weekOrMonth)
+            {
+                case MonthOrWeek.Week:
+                    {
+                        query += $" AND DATEPART(Week,Date) = {Math.Ceiling((decimal)date.DayOfYear / 7)}";
+                        break;
+                    }
+            }
+            using var dapperConnection = _dapperContext.CreateConnection();
+            var absences = dapperConnection.Query<Absence>(query).ToList();
+
+            List<Absence> userAbsences =  absences ?? new();
             return userAbsences.Select(ab => new CalendarEvent() { StartDate = ab.Date, EndDate = ab.Date, Title = ab.Type, Type = GetSpecialEventType(ab.Type) }).ToList();
         }
 

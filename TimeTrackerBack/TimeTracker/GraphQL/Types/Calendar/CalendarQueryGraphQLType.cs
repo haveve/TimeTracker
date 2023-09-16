@@ -26,23 +26,9 @@ namespace TimeTracker.GraphQL.Types.Calendar
                     var userId = context.GetArgument<int?>("userId") ?? TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                     var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
                     var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
-                    var events = _calendarRepository.GetAllEvents(userId);
-                    events.AddRange(_calendarRepository.GetAllUsersAbsences(userId));
-                    events.AddRange(_calendarRepository.GetAllUsersVacations(userId));
-
-
-                    switch (weekOrMonth)
-                    {
-                        case MonthOrWeek.Month:
-                            int month = date.Month;
-                            int year = date.Year;
-                            return events.Where(c =>
-                            {
-                                return  c.StartDate.Month == month && c.StartDate.Year == year;
-
-                            });
-                        case MonthOrWeek.Week: return events.Where(c => c.StartDate.DatesAreInTheSameWeek(date));
-                    }
+                    var events = _calendarRepository.GetAllEvents(userId, weekOrMonth, date);
+                    events.AddRange(_calendarRepository.GetAllUsersAbsences(userId, weekOrMonth, date));
+                    events.AddRange(_calendarRepository.GetAllUsersVacations(userId, weekOrMonth, date));
 
                     return events;
                 });
@@ -76,20 +62,8 @@ namespace TimeTracker.GraphQL.Types.Calendar
         var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
         var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
 
-        var globalCalendar = _calendarRepository.GetAllGlobalEvents();
+        var globalCalendar = _calendarRepository.GetAllGlobalEvents(weekOrMonth, date);
 
-        switch (weekOrMonth)
-        {
-            case MonthOrWeek.Month:
-                int month = date.Month;
-                int year = date.Year;
-                return globalCalendar.Where(c =>
-                {
-                    return c.Date.Month == month && c.Date.Year == year;
-
-                });
-            case MonthOrWeek.Week: return globalCalendar.Where(c => c.Date.DatesAreInTheSameWeek(date));
-        }
 
         return globalCalendar;
     });

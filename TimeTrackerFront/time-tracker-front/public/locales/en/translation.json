@@ -12,6 +12,7 @@
   "chooseLang": "Choose language",
   "createRange": "Create Range",
   "Login": {
+    "or":"or",
     "header": "Sign in to TimeTracker",
     "username": "Username or email adress",
     "password": "Password",

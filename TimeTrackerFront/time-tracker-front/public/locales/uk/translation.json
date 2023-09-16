@@ -12,6 +12,7 @@
   "createRange": "Створити проміжок",
   "edit": "Змінити",
   "Login": {
+    "or":"або",
     "header": "Вхід до TimeTracker",
     "username": "Ім'я або електронна пошта користувача",
     "password": "Пароль",
