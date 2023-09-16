@@ -5,12 +5,16 @@ using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.CodeAnalysis;
 using Microsoft.AspNetCore.Http.Extensions;
-using Google.Apis.Auth.OAuth2;
 using Google.Apis.Util.Store;
 using System.IO;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Requests;
-using Google.Apis.Books.v1;
+using OAuthTutorial.Services;
+using TimeTracker.Repositories;
+using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.WebUtilities;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
+using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 
 namespace TimeTracker.Controllers
 {
@@ -18,99 +22,46 @@ namespace TimeTracker.Controllers
     {
 
         [Route("google-auth")]
-        public async Task<IActionResult> GoogleAuth([FromServices] IConfiguration config)
+        public IActionResult GoogleAuth([FromServices] IConfiguration config)
         {
 
             string DomainName = "https://"+HttpContext.Request.Host.Value;
             string redirectUrl =DomainName+"/google-response";
-
-            dsAuthorizationBroker.RedirectUri = redirectUrl;
-
-            var credential = await dsAuthorizationBroker.AuthorizeAsync(
-                     new ClientSecrets
-                     {
-                         ClientId = config["Secrets:Google:ClientId"],
-                         ClientSecret = config["Secrets:Google:ClientSecret"]
-                     },
-                     new[]{"https://www.googleapis.com/auth/userinfo.email","https://www.googleapis.com/auth/userinfo.profile","https://www.googleapis.com/auth/plus.login"},
-                     "user", CancellationToken.None);
-
-            return Redirect(redirectUrl);
+            string googleRedirect =  GoogleOAuthService.GenerateOAuthRequestUrl("https://www.googleapis.com/auth/userinfo.email", redirectUrl, config["Secrets:Google:ClientId"]!);
+            return Redirect(googleRedirect);
         }
 
         [Route("google-response")]
-        public IActionResult GoogleResponseHandler(string code)
+        public async Task<IActionResult> GoogleResponseAsync([FromServices] IConfiguration config,[FromServices] IUserRepository userRepository,[FromServices] IAuthorizationManager authorizationManager,[FromServices]IAuthorizationRepository _authorizationRepository, string code)
         {
-            return Content(HttpContext.Request.QueryString.Value!+ code);
-        }
-    }
-    public class dsAuthorizationBroker : GoogleWebAuthorizationBroker
-    {
-        private static object locker = new object();
+            string DomainName = "https://" + HttpContext.Request.Host.Value;
+            string redirectUrl = DomainName + "/google-response";
 
-        private static string _redirectUri;
+            var googleTokens = await GoogleOAuthService.ExchangeCodeOnTokenAsync(code, redirectUrl, config["Secrets:Google:ClientId"]!, config["Secrets:Google:ClientSecret"]!);
 
-        public static string RedirectUri
-        {
-            get
+            var email = await UserLogin.GetEmail(googleTokens.AccessToken);
+
+            var user = userRepository.GetUserByEmailOrLogin(email);
+
+            if(user == null)
             {
-                lock (locker)
-                {
-                    return _redirectUri;
-                }
+                return BadRequest("User does not exist");
             }
 
-            set
-            {
-                lock (locker)
-                {
-                    _redirectUri = value;
-                }
-            }
-        }
 
-        public new static async Task<UserCredential> AuthorizeAsync(
-            ClientSecrets clientSecrets,
-            IEnumerable<string> scopes,
-            string user,
-            CancellationToken taskCancellationToken,
-            IDataStore dataStore = null)
-        {
-            var initializer = new GoogleAuthorizationCodeFlow.Initializer
+            var refresh_tokens = authorizationManager.GetRefreshToken(user.Id);
+            _authorizationRepository.CreateRefreshToken(refresh_tokens, user.Id);
+
+            Dictionary<string, string> queryParams = new Dictionary<string, string>
             {
-                ClientSecrets = clientSecrets,
+                { "expiredAt", JsonSerializer.Serialize(refresh_tokens.expiredAt)},
+                { "issuedAt", JsonSerializer.Serialize(refresh_tokens.issuedAt) },
+                { "token", refresh_tokens.token }
             };
-            return await AuthorizeAsyncCore(initializer, scopes, user,
-                taskCancellationToken, dataStore).ConfigureAwait(false);
-        }
 
-        private static async Task<UserCredential> AuthorizeAsyncCore(
-            GoogleAuthorizationCodeFlow.Initializer initializer,
-            IEnumerable<string> scopes,
-            string user,
-            CancellationToken taskCancellationToken,
-            IDataStore dataStore)
-        {
-            initializer.Scopes = scopes;
-            initializer.DataStore = dataStore ?? new FileDataStore(Folder);
-            var flow = new dsAuthorizationCodeFlow(initializer);
-            return await new AuthorizationCodeInstalledApp(flow,
-                new LocalServerCodeReceiver())
-                .AuthorizeAsync(user, taskCancellationToken).ConfigureAwait(false);
-        }
-    }
+            var url = QueryHelpers.AddQueryString("http://localhost:3000/Login", queryParams);
 
-
-    public class dsAuthorizationCodeFlow : GoogleAuthorizationCodeFlow
-    {
-        public dsAuthorizationCodeFlow(Initializer initializer)
-            : base(initializer) { }
-
-        public override AuthorizationCodeRequestUrl
-                       CreateAuthorizationCodeRequest(string redirectUri)
-        {
-
-            return base.CreateAuthorizationCodeRequest(dsAuthorizationBroker.RedirectUri);
+            return Redirect(url);
         }
     }
 }
