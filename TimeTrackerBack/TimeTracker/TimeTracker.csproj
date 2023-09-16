@@ -14,12 +14,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="Controllers\Services\GoogleOAuthService.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Dapper" Version="2.0.143" />
 		<PackageReference Include="EPPlus" Version="6.2.8" />
+		<PackageReference Include="Google.Apis.Auth" Version="1.62.0" />
+		<PackageReference Include="Google.Apis.Books.v1" Version="1.62.0.2955" />
 		<PackageReference Include="GraphQL" Version="7.6.0" />
 		<PackageReference Include="GraphQL.Authorization" Version="7.0.0" />
 		<PackageReference Include="GraphQL.MicrosoftDI" Version="7.5.0" />

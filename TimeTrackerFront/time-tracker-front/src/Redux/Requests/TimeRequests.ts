@@ -3,11 +3,12 @@ import { catchError, map, mergeMap, Observable, of, timer } from "rxjs";
 import { getCookie, IsRefreshError, RefreshError, setCookie } from "../../Login/Api/login-logout";
 import { TimeResponse, TimeRequest, TimeMark } from "../Types/Time";
 import { response } from "../Types/ResponseType";
-import { locationOffset, startOfWeek } from "../Slices/LocationSlice";
+import {startOfWeek } from "../Slices/LocationSlice";
 import { Session } from "../Types/Time";
 import { ErrorGraphql } from "../Slices/TimeSlice";
 import { StoredTokenType, ajaxForRefresh } from "../../Login/Api/login-logout";
 import { LogoutDeleteCookie } from "../../Components/Navbar";
+import { GetUtcTime,GetDateWithJsOffset } from "./CalendarRequest";
 
 interface GraphqlTime {
     time: {
@@ -315,9 +316,9 @@ export function RequestSetStartDate(offset: number): Observable<Date> {
         map(res => {
             if (res.response.errors) {
                 console.error(JSON.stringify(res.response.errors))
-                throw "error"
+                throw "error";
             }
-            return new Date(new Date(res.response.data.time.setStartDate).getTime() - (locationOffset - offset) * 60000)
+            return GetUtcTime(res.response.data.time.setStartDate,offset);
         })
     );
 }
@@ -341,7 +342,7 @@ export function RequestSetEndDate(offset: number): Observable<Date> {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return new Date(new Date(res.response.data.time.setEndDate).getTime() - (locationOffset - offset) * 60000)
+            return GetUtcTime(res.response.data.time.setEndDate,offset);
         })
     );
 }
@@ -390,14 +391,14 @@ export interface UpdateTimeReturnType {
 
 export function RequestUpdateDate(oldTime: Session, time: Session, offset: number, startOfWeek: startOfWeek): Observable<UpdateTimeReturnType> {
 
-    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
-    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.endTimeTrackDate = GetUtcTime(time.endTimeTrackDate!,offset)
+    time.startTimeTrackDate = GetUtcTime(time.startTimeTrackDate,offset)
 
     const oldStartTime = oldTime.startTimeTrackDate;
     const timeBeforeSent = { ...time };
 
-    oldTime.endTimeTrackDate = new Date(oldTime.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
-    oldTime.startTimeTrackDate = new Date(oldTime.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    oldTime.endTimeTrackDate = GetUtcTime(oldTime.endTimeTrackDate!,offset)
+    oldTime.startTimeTrackDate = GetUtcTime(oldTime.startTimeTrackDate,offset)
 
 
     return GetAjaxObservable<UpdateTimeResult>(`
@@ -447,14 +448,11 @@ export function RequestUpdateDate(oldTime: Session, time: Session, offset: numbe
 
 export function RequestUpdateUserDate(Id: number, oldTime: Session, time: Session, offset: number, startOfWeek: startOfWeek): Observable<string> {
 
-    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
-    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.endTimeTrackDate = GetUtcTime(time.endTimeTrackDate!,offset)
+    time.startTimeTrackDate = GetUtcTime(time.startTimeTrackDate,offset)
 
-    const oldStartTime = oldTime.startTimeTrackDate;
-    const timeBeforeSent = { ...time };
-
-    oldTime.endTimeTrackDate = new Date(oldTime.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
-    oldTime.startTimeTrackDate = new Date(oldTime.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    oldTime.endTimeTrackDate = GetUtcTime(oldTime.endTimeTrackDate!,offset)
+    oldTime.startTimeTrackDate =GetUtcTime(oldTime.startTimeTrackDate,offset)
     let userId: Number = Number(Id)
 
     return GetAjaxObservable<UpdateUserTimeResult>(`
@@ -495,8 +493,8 @@ export function RequestUpdateUserDate(Id: number, oldTime: Session, time: Sessio
 
 export function RequestDeleteUserDate(Id: number, time: Session, offset: number): Observable<string> {
 
-    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
-    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.endTimeTrackDate = GetUtcTime(time.endTimeTrackDate!,offset)
+    time.startTimeTrackDate = GetUtcTime(time.startTimeTrackDate,offset)
 
     let userId: Number = Number(Id)
 
@@ -534,8 +532,8 @@ export function RequestDeleteUserDate(Id: number, time: Session, offset: number)
 
 export function RequestCreateUserDate(Id: number, time: Session, offset: number): Observable<string> {
 
-    time.endTimeTrackDate = new Date(time.endTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
-    time.startTimeTrackDate = new Date(time.startTimeTrackDate!.getTime() + (locationOffset - offset) * 60000)
+    time.endTimeTrackDate = GetUtcTime(time.endTimeTrackDate!,offset)
+    time.startTimeTrackDate = GetUtcTime(time.startTimeTrackDate,offset)
 
     let userId: Number = Number(Id)
 
