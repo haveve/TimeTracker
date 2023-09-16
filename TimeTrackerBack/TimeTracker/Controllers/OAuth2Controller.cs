@@ -32,7 +32,7 @@ namespace TimeTracker.Controllers
         }
 
         [Route("google-response")]
-        public async Task<IActionResult> GoogleResponseAsync([FromServices] IConfiguration config,[FromServices] IUserRepository userRepository,[FromServices] IAuthorizationManager authorizationManager,[FromServices]IAuthorizationRepository _authorizationRepository, string code)
+        public async Task<IActionResult> GoogleResponse([FromServices] IConfiguration config,[FromServices] IUserRepository userRepository,[FromServices] IAuthorizationManager authorizationManager,[FromServices]IAuthorizationRepository _authorizationRepository, string code)
         {
             string DomainName = "https://" + HttpContext.Request.Host.Value;
             string redirectUrl = DomainName + "/google-response";
