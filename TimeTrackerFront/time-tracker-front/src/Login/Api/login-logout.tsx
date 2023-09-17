@@ -1,17 +1,17 @@
-import {ajax} from 'rxjs/ajax';
-import {map, catchError, Observer} from 'rxjs';
+import { ajax } from 'rxjs/ajax';
+import { map, catchError, Observer } from 'rxjs';
 import {
   redirect,
   useNavigate,
 } from "react-router-dom";
-import {LogoutDeleteCookie} from '../../Components/Navbar';
-import {useTranslation} from "react-i18next";
-import {TFunction} from "i18next";
-
+import { LogoutDeleteCookie } from '../../Components/Navbar';
+import { useTranslation } from "react-i18next";
+import { TFunction } from "i18next";
+import { domainBack } from '../../Redux/Requests/TimeRequests';
 
 export const accessTokenLiveTime = 60;
 
-const url = "https://localhost:7226/graphql-login";
+const url = "https://"+domainBack+"/graphql-login";
 
 /*    "errors": [
         {
@@ -115,52 +115,52 @@ export function ajaxForLogin(variables: {}) {
     }),
     withCredentials: true,
   }).pipe(
-      map((value): void => {
+    map((value): void => {
 
 
-        let fullResponse = value.response;
-        let response = fullResponse.data.login;
+      let fullResponse = value.response;
+      let response = fullResponse.data.login;
 
 
-        if (fullResponse.errors)
-          throw fullResponse.errors[0].message;
+      if (fullResponse.errors)
+        throw fullResponse.errors[0].message;
 
 
-        const access_token_to_save: StoredTokenType = {
-          issuedAt: new Date(response.access_token.issuedAt).getTime(),
-          expiredAt: new Date(response.access_token.expiredAt).getTime(),
-          token: response.access_token.token
-        }
+      const access_token_to_save: StoredTokenType = {
+        issuedAt: new Date(response.access_token.issuedAt).getTime(),
+        expiredAt: new Date(response.access_token.expiredAt).getTime(),
+        token: response.access_token.token
+      }
 
-        const refresh_token_to_save: StoredTokenType = {
-          issuedAt: new Date(response.refresh_token.issuedAt).getTime(),
-          expiredAt: new Date(response.refresh_token.expiredAt).getTime(),
-          token: response.refresh_token.token
-        }
+      const refresh_token_to_save: StoredTokenType = {
+        issuedAt: new Date(response.refresh_token.issuedAt).getTime(),
+        expiredAt: new Date(response.refresh_token.expiredAt).getTime(),
+        token: response.refresh_token.token
+      }
 
-        setCookie({
-          name: "access_token",
-          value: JSON.stringify(access_token_to_save),
-          expires_second: access_token_to_save.expiredAt / 1000,
-          path: "/"
-        });
-        setCookie({
-          name: "user_id",
-          value: response.user_id,
-          expires_second: access_token_to_save.expiredAt / 1000,
-          path: "/"
-        });
-        setCookie({
-          name: "refresh_token",
-          value: JSON.stringify(refresh_token_to_save),
-          expires_second: refresh_token_to_save.expiredAt / 1000,
-          path: "/"
-        });
-        setCookie({name: "is_fulltimer", value: response.is_fulltimer, expires_second: 365 * 24 * 60 * 60, path: "/"});
-      }),
-      catchError((error) => {
-        throw error
-      })
+      setCookie({
+        name: "access_token",
+        value: JSON.stringify(access_token_to_save),
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "user_id",
+        value: response.user_id,
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "refresh_token",
+        value: JSON.stringify(refresh_token_to_save),
+        expires_second: refresh_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({ name: "is_fulltimer", value: response.is_fulltimer, expires_second: 365 * 24 * 60 * 60, path: "/" });
+    }),
+    catchError((error) => {
+      throw error
+    })
   );
 }
 
@@ -209,56 +209,56 @@ export function ajaxForRefresh(variables: {}, token: string) {
     }),
     withCredentials: true,
   }).pipe(
-      map((value): void => {
+    map((value): void => {
 
-        let response = value.response.data.refreshToken;
-        let refreshError: RefreshError = {
-          error: "",
-          errorType: RefreshErrorEnum.RefreshError
-        }
+      let response = value.response.data.refreshToken;
+      let refreshError: RefreshError = {
+        error: "",
+        errorType: RefreshErrorEnum.RefreshError
+      }
 
-        if (isUnvalidTokenError(value.response as any)) {
-          LogoutDeleteCookie()
-          refreshError.error = response.refresh_token.token
-          throw refreshError;
-        }
+      if (isUnvalidTokenError(value.response as any)) {
+        LogoutDeleteCookie()
+        refreshError.error = response.refresh_token.token
+        throw refreshError;
+      }
 
-        if (value.response.errors)
-          throw refreshError;
+      if (value.response.errors)
+        throw refreshError;
 
-        const access_token_to_save: StoredTokenType = {
-          issuedAt: new Date(response.access_token.issuedAt).getTime(),
-          expiredAt: new Date(response.access_token.expiredAt).getTime(),
-          token: response.access_token.token
-        }
+      const access_token_to_save: StoredTokenType = {
+        issuedAt: new Date(response.access_token.issuedAt).getTime(),
+        expiredAt: new Date(response.access_token.expiredAt).getTime(),
+        token: response.access_token.token
+      }
 
-        const refresh_token_to_save: StoredTokenType = {
-          issuedAt: new Date(response.refresh_token.issuedAt).getTime(),
-          expiredAt: new Date(response.refresh_token.expiredAt).getTime(),
-          token: response.refresh_token.token
-        }
-        setCookie({
-          name: "access_token",
-          value: JSON.stringify(access_token_to_save),
-          expires_second: access_token_to_save.expiredAt / 1000,
-          path: "/"
-        });
-        setCookie({
-          name: "user_id",
-          value: response.user_id,
-          expires_second: access_token_to_save.expiredAt / 1000,
-          path: "/"
-        });
-        setCookie({
-          name: "refresh_token",
-          value: JSON.stringify(refresh_token_to_save),
-          expires_second: refresh_token_to_save.expiredAt / 1000,
-          path: "/"
-        });
-      }),
-      catchError((error) => {
-        throw error
-      })
+      const refresh_token_to_save: StoredTokenType = {
+        issuedAt: new Date(response.refresh_token.issuedAt).getTime(),
+        expiredAt: new Date(response.refresh_token.expiredAt).getTime(),
+        token: response.refresh_token.token
+      }
+      setCookie({
+        name: "access_token",
+        value: JSON.stringify(access_token_to_save),
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "user_id",
+        value: response.user_id,
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "refresh_token",
+        value: JSON.stringify(refresh_token_to_save),
+        expires_second: refresh_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+    }),
+    catchError((error) => {
+      throw error
+    })
   );
 }
 
@@ -278,25 +278,31 @@ export function ajaxForLogout(token: string) {
     }),
     withCredentials: true,
   }).pipe(
-      map((res: any): void => {
+    map((res: any): void => {
 
-        if (res.response.errors) {
-          console.error(JSON.stringify(res.response.errors))
-          throw "error"
-        }
+      if (res.response.errors) {
+        console.error(JSON.stringify(res.response.errors))
+        throw "error"
+      }
 
-        return res;
-      }),
-      catchError((error) => {
-        throw error
-      })
+      return res;
+    }),
+    catchError((error) => {
+      throw error
+    })
   );
+}
+
+const googleUrl = "https://"+domainBack+"/google-auth"
+
+export function ajaxForGoogleLogin() {
+ window.location.href = googleUrl;
 }
 
 
 type navigateType = ReturnType<typeof useNavigate>;
 
-export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, setLoginByToken: () => void, commitNavigate: navigateType, path: string,t: TFunction): Observer<any> => {
+export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, setLoginByToken: () => void, commitNavigate: navigateType, path: string, t: TFunction): Observer<any> => {
   return {
     next: () => {
       commitNavigate(path);

@@ -1,17 +1,17 @@
 /// <reference types="react-scripts" />
-import React, { useState, useRef, useEffect, Dispatch as DispatchReact, SetStateAction } from 'react';
+import React, { useState, useRef, useEffect, Dispatch as DispatchReact, SetStateAction, useMemo } from 'react';
 import { InputGroup, FloatingLabel, Modal, Button, Form, Col, Row, RowProps } from "react-bootstrap";
 import '../../Custom.css';
 import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
 import { TimeStringFromSeconds } from '../Time/TimeFunction';
-import {SpecialEventType } from '../../Redux/Types/Calendar';
+import { SpecialEventType } from '../../Redux/Types/Calendar';
 import { ErrorMassagePattern } from '../../Redux/epics';
 import {
     GetEvents,
 } from '../../Redux/Requests/CalendarRequest';
 import { DateTime } from 'luxon';
 import CalendarUserslist from './CalendarUsers';
-import { RootState} from '../../Redux/store';
+import { RootState } from '../../Redux/store';
 import { GlobalEventsViewModel } from '../../Redux/Types/Calendar';
 import { GetGlobalCalendar } from '../../Redux/Requests/CalendarRequest';
 import { TypeOfGlobalEvent } from '../../Redux/Types/Calendar';
@@ -26,7 +26,9 @@ import { Subscription } from 'rxjs';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import {setStartGlobalCalendar, setStartUserCalendar,setIdleStatus as setIdleStatusCalendar, setErrorStatusAndError as setErrorStatusAndErrorCalendar, setloadingStatus } from '../../Redux/Slices/CalendarSlicer';
+import { setStartGlobalCalendar, setStartUserCalendar, setIdleStatus as setIdleStatusCalendar, setErrorStatusAndError as setErrorStatusAndErrorCalendar, setloadingStatus } from '../../Redux/Slices/CalendarSlicer';
+
+import useWindowWidth from './useWindowWidth';
 
 import CreateRange from './CalendarActions/UserCalendar/CreateRange';
 import Create from './CalendarActions/UserCalendar/Create';
@@ -101,6 +103,8 @@ export default function Calendar() {
 
     const { i18n, t } = useTranslation();
 
+    const width = useWindowWidth();
+
     useEffect(() => {
         //If user accept track her location, finding gap between his location and
         //local time(location that estimate browser) in other way, finding gap
@@ -166,86 +170,111 @@ export default function Calendar() {
         calendarApi.today()
     }
 
-    return <><FullCalendar
-        ref={calendarRef}
-        dayHeaderClassNames={['calendar-head-color']}
-        height={"90vh"}
-        dayCellContent={(info) => GetDaySellContent(info, globalCalendar)}
-        locales={allLocales}
-        locale={i18n.language}
-        initialView="dayGridMonth"
-        plugins={[dayGridPlugin, timeGridPlugin, bootstrap5Plugin, interactionPlugin]}
-        events={
-            calendarDays.map(day => {
-                return ({
-                    title: day.title,
-                    start: day.start,
-                    end: day.end,
-                    color: getEventColor(day.type),
-                    textColor: 'white',
-                    allDay: day.type ? true : false
-                })
-            })}
-        validRange={{
-            start: minCalendarDate,
-            end: maxCalendarDate
-        }}
-        dateClick={(info) => {
-            if (calendarDays.some(cd => GetDaysFromMilsec(cd.start.getTime()) <= GetDaysFromMilsec(info.date.getTime()) && GetDaysFromMilsec(cd.end.getTime()) >= GetDaysFromMilsec(info.date.getTime()) && cd.type)) {
-                return;
-            }
-            if ((userId == null ||
-                userId < 0)
-                && IsChangableDay(info, globalCalendar, navigateDate)) {
+    useEffect(() => {
+        if (isWerySmallDisplay(width)) {
+            handleBackToWeekClick()
+        }
+    }, [width])
 
-                setIsVisible(n => !n)
-                setChangedDay(info.date)
-            }
+    /*  customButtons={{
+      backToMonthButton: {
+          text: t("Calendar.monthButton"),
+          click: handleBackToMonthClick
+      },
+      backToWeekButton: {
+          text: t("Calendar.weekButton"),
+          click: handleBackToWeekClick
+      },
+      prevButton: {
+          text: '<',
+          click: handlePrevClick
+      },
+      nextButton: {
+          text: '>',
+          click: handleNextClick
+      },
+      todayButton: {
+          text: t("Calendar.todayButton"),
+          click: handleBackToday
+      },
+      othersButton: {
+          text: t("Calendar.othersButton"),
+          click: () => setShowedUserList(n => !n)
+      }
+  }}*/
 
-        }}
+    return <>
+        <Row className='p-0 m-0 d-flex justify-content-around flex-row'>
+            <Col className='p-0 d-flex justify-content-start flex-row m-0 gap-2'>
+                <Button variant='outline-secondary' onClick={handlePrevClick}>{'<'}</Button>
+                <Button variant='outline-secondary' onClick={handleNextClick}>{'>'}</Button>
+            </Col>
+            <Col className='p-0 m-0 mx-2 d-flex justify-content-center flex-row' sm={5}>
+                <div className='h3'>
+                    {calendarRef.current?.getApi().view.title}
+                </div>
+            </Col>
+            <Col className='p-0 m-0 justify-content-end gap-2 d-flex flex-row'>
+                <Button variant='outline-secondary' onClick={() => setShowedUserList(n => !n)}>{t("Calendar.othersButton")}</Button>
+                <Button variant='outline-secondary' onClick={handleBackToday}>{t("Calendar.todayButton")}</Button>
+                <Button variant='outline-secondary' onClick={handleBackToWeekClick}>{t("Calendar.weekButton")}</Button>
+                {!isWerySmallDisplay(width) ?
+                    <Button variant='outline-secondary' onClick={handleBackToMonthClick}>{t("Calendar.monthButton")}</Button> : null}
+            </Col>
+        </Row>
+        <FullCalendar
+            ref={calendarRef}
+            dayHeaderClassNames={['calendar-head-color']}
+            height={"85vh"}
+            dayCellContent={(info) => GetDaySellContent(info, globalCalendar)}
+            locales={allLocales}
+            locale={i18n.language}
+            initialView={"dayGridMonth"}
+            plugins={[dayGridPlugin, timeGridPlugin, bootstrap5Plugin, interactionPlugin]}
+            events={
+                calendarDays.map(day => {
+                    return ({
+                        title: day.title,
+                        start: day.start,
+                        end: day.end,
+                        color: getEventColor(day.type),
+                        textColor: 'white',
+                        allDay: day.type ? true : false
+                    })
+                })}
+            validRange={{
+                start: minCalendarDate,
+                end: maxCalendarDate
+            }}
+            dateClick={(info) => {
+                if (calendarDays.some(cd => GetDaysFromMilsec(cd.start.getTime()) <= GetDaysFromMilsec(info.date.getTime()) && GetDaysFromMilsec(cd.end.getTime()) >= GetDaysFromMilsec(info.date.getTime()) && cd.type)) {
+                    return;
+                }
+                if ((userId == null ||
+                    userId < 0)
+                    && IsChangableDay(info, globalCalendar, navigateDate)) {
 
-        eventTimeFormat={{
-            hour: '2-digit',
-            minute: '2-digit'
-        }}
+                    setIsVisible(n => !n)
+                    setChangedDay(info.date)
+                }
 
-        slotLabelFormat={{
-            hour: '2-digit',
-            minute: '2-digit'
-        }}
+            }}
 
-        customButtons={{
-            backToMonthButton: {
-                text: t("Calendar.monthButton"),
-                click: handleBackToMonthClick
-            },
-            backToWeekButton: {
-                text: t("Calendar.weekButton"),
-                click: handleBackToWeekClick
-            },
-            prevButton: {
-                text: '<',
-                click: handlePrevClick
-            },
-            nextButton: {
-                text: '>',
-                click: handleNextClick
-            },
-            todayButton: {
-                text: t("Calendar.todayButton"),
-                click: handleBackToday
-            },
-            othersButton: {
-                text: t("Calendar.othersButton"),
-                click: () => setShowedUserList(n => !n)
-            }
-        }}
-        headerToolbar={{
-            center: 'title',
-            left: 'prevButton,nextButton,todayButton',
-            right: 'othersButton backToMonthButton,backToWeekButton'
-        }}
-    />
+            eventTimeFormat={{
+                hour: '2-digit',
+                minute: '2-digit'
+            }}
+
+            slotLabelFormat={{
+                hour: '2-digit',
+                minute: '2-digit'
+            }}
+            headerToolbar={{
+                center: '',
+                left: '',
+                right: ''
+            }}
+        />
         <Modal
             data-bs-theme="dark"
             show={isVisible}
@@ -580,4 +609,8 @@ export function GetCalendarAction(userId: null | number, setError: (v: string) =
         }
     }
     return <div></div>
+}
+
+export function isWerySmallDisplay(width: number) {
+    return width < 700
 }

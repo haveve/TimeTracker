@@ -3,6 +3,7 @@ using GraphQL.MicrosoftDI;
 using GraphQL.Types;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using TimeTracker.GraphQL.Types.Calendar;
@@ -300,6 +301,11 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             var d2 = date2.Date.AddDays(-1 * (int)cal.GetDayOfWeek(date2));
 
             return d1 == d2;
+        }
+        public static int GetIso8601WeekOfYear(this DateTime time)
+        {
+            // Return the week of our adjusted day
+            return CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         }
 
     }

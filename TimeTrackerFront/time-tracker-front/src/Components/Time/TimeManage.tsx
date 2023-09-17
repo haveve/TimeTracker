@@ -11,9 +11,9 @@ import { IsSuccessOrIdle } from './TimeFunction';
 import { updateTime, setErrorStatusAndError, setIdleStatus } from '../../Redux/Slices/TimeSlice';
 import { RequestUpdateDate, RequestUpdateUserDate } from '../../Redux/Requests/TimeRequests';
 import { ErrorMassagePattern } from '../../Redux/epics';
-import { locationOffset } from '../../Redux/Slices/LocationSlice';
 import { getStartOfWeekByCountry } from '../../Redux/Slices/LocationSlice';
 import { useTranslation } from 'react-i18next';
+import { GetDateWithJsOffset } from '../../Redux/Requests/CalendarRequest';
 
 export const startLessEnd = "Start date of time period must be less then End"
 export const existedStartDate = "There is occurred error. Maybe you chose start date of session that already exist. If you could not resolved issue, turn to colsole and administrator"
@@ -73,7 +73,7 @@ export default function TimeManage(props: {
                 <Col>
                     <Form.Label>{t('TimeTracker.sDate')}</Form.Label>
                     <input type="datetime-local"
-                        value={new Date(toUpdate.startTimeTrackDate.getTime() + locationOffset * 60000).toISOString().slice(0, 16)}
+                        value={GetDateWithJsOffset(toUpdate.startTimeTrackDate).toISOString().slice(0, 16)}
                         className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
                         onChange={(e) => {
                             setToUpdate(up => {
@@ -87,7 +87,7 @@ export default function TimeManage(props: {
                 <Col>
                     <Form.Label>{t('TimeTracker.eDate')}</Form.Label>
                     <input type="datetime-local"
-                        value={new Date(toUpdate.endTimeTrackDate!.getTime() + locationOffset * 60000).toISOString().slice(0, 16)}
+                        value={GetDateWithJsOffset(toUpdate.endTimeTrackDate!).toISOString().slice(0, 16)}
                         className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
                         onChange={(e) => {
                             setToUpdate(up => {
