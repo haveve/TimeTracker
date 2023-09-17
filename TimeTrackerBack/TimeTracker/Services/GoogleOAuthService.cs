@@ -18,7 +18,7 @@ namespace OAuthTutorial.Services
                 { "redirect_uri", redirectUrl },
                 { "response_type", "code" },
                 { "scope", scope },
-                { "access_type", "offline" }
+                //{ "access_type", "offline" } for obtaining refresh token
             };
 
             var url = QueryHelpers.AddQueryString(OAuthServerEndpoint, queryParams!);

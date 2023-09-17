@@ -7,11 +7,11 @@ import {
 import { LogoutDeleteCookie } from '../../Components/Navbar';
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
-
+import { domainBack } from '../../Redux/Requests/TimeRequests';
 
 export const accessTokenLiveTime = 60;
 
-const url = "https://localhost:7226/graphql-login";
+const url = "https://"+domainBack+"/graphql-login";
 
 /*    "errors": [
         {
@@ -293,7 +293,7 @@ export function ajaxForLogout(token: string) {
   );
 }
 
-const googleUrl = "https://localhost:7226/google-auth"
+const googleUrl = "https://"+domainBack+"/google-auth"
 
 export function ajaxForGoogleLogin() {
  window.location.href = googleUrl;

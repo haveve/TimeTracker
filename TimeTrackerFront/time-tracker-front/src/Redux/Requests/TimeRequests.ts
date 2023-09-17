@@ -28,7 +28,8 @@ interface GraphqlUserTime {
     }
 }
 
-const url = "https://localhost:7226/graphql";
+export const domainBack = "localhost:7226";
+const url = "https://"+domainBack+"/graphql";
 
 export enum RefreshStatus {
     DoRefresh,

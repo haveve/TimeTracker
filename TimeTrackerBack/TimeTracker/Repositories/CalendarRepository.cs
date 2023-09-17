@@ -36,12 +36,17 @@ namespace TimeTracker.Repositories
 
         public List<CalendarEvent> GetAllEvents(int userId,MonthOrWeek weekOrMonth,DateTime date)
         {
-            string query = $"SELECT * FROM CalendarEvents WHERE UserId = {userId} AND DATEPART(Year,StartDate) = {date.Year} AND DATEPART(Month,StartDate) = {date.Month}";
+            string query = $"SELECT * FROM CalendarEvents WHERE UserId = {userId} AND DATEPART(Year,StartDate) = {date.Year}";
             switch (weekOrMonth)
             {
+                case MonthOrWeek.Month:
+                    {
+                        query += $" AND DATEPART(Month,StartDate) = {date.Month}";
+                        break;
+                    }
                 case MonthOrWeek.Week:
                     {
-                        query += $" AND DATEPART(Week,StartDate) = { Math.Ceiling((decimal)date.DayOfYear/7)}";
+                        query += $" AND DATEPART(Week,StartDate) = {date.GetIso8601WeekOfYear()}";
                         break;
                     }
             }
@@ -57,13 +62,18 @@ namespace TimeTracker.Repositories
             if (weekOrMonth != null && date != null)
             {
 
-                query += $" WHERE DATEPART(Year,Date) = {date!.Value.Year} AND DATEPART(Month,Date) = {date!.Value.Month}";
+                query += $" WHERE DATEPART(Year,Date) = {date!.Value.Year}";
 
                 switch (weekOrMonth)
                 {
+                    case MonthOrWeek.Month:
+                        {
+                            query += $" AND DATEPART(Month,Date) = {date!.Value.Month}";
+                            break;
+                        }
                     case MonthOrWeek.Week:
                         {
-                            query += $" AND DATEPART(Week,Date) = {Math.Ceiling((decimal)date!.Value.DayOfYear / 7)}";
+                            query += $" AND DATEPART(Week,Date) = {date!.Value.GetIso8601WeekOfYear()}";
                             break;
                         }
                 }
@@ -121,12 +131,17 @@ namespace TimeTracker.Repositories
         }
         public List<CalendarEvent> GetAllUsersVacations(int userId, MonthOrWeek weekOrMonth, DateTime date)
         {
-            string query = $"Select StartDate, EndDate FROM VacationRequests Where RequesterId = {userId} AND Status = 'Approved' AND DATEPART(Year,StartDate) = {date.Year} AND DATEPART(Month,StartDate) = {date.Month}";
+            string query = $"Select StartDate, EndDate FROM VacationRequests Where RequesterId = {userId} AND Status = 'Approved' AND DATEPART(Year,StartDate) = {date.Year}";
             switch (weekOrMonth)
             {
+                case MonthOrWeek.Month:
+                    {
+                        query += $" AND DATEPART(Month,StartDate) = {date.Month}";
+                        break;
+                    }
                 case MonthOrWeek.Week:
                     {
-                        query += $" AND DATEPART(Week,StartDate) = {Math.Ceiling((decimal)date.DayOfYear / 7)}";
+                        query += $" AND DATEPART(Week,StartDate) = {date.GetIso8601WeekOfYear()}";
                         break;
                     }
             }
@@ -137,12 +152,18 @@ namespace TimeTracker.Repositories
         }
         public List<CalendarEvent> GetAllUsersAbsences(int userId, MonthOrWeek weekOrMonth, DateTime date)
         {
-            string query = $"SELECT * FROM Absences WHERE UserId = {userId} AND DATEPART(Year,Date) = {date.Year} AND DATEPART(Month,Date) = {date.Month}";
+            string query = $"SELECT * FROM Absences WHERE UserId = {userId} AND DATEPART(Year,Date) = {date.Year}";
             switch (weekOrMonth)
             {
+                case MonthOrWeek.Month:
+                    {
+                        query += $" AND DATEPART(Month,Date) = {date.Month}";
+                        break;
+                    }
+
                 case MonthOrWeek.Week:
                     {
-                        query += $" AND DATEPART(Week,Date) = {Math.Ceiling((decimal)date.DayOfYear / 7)}";
+                        query += $" AND DATEPART(Week,Date) = {date.GetIso8601WeekOfYear()}";
                         break;
                     }
             }

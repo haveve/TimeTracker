@@ -26,7 +26,7 @@ namespace TimeTracker.Controllers
         {
 
             string DomainName = "https://"+HttpContext.Request.Host.Value;
-            string redirectUrl =DomainName+"/google-response";
+            string redirectUrl = DomainName+"/google-response";
             string googleRedirect =  GoogleOAuthService.GenerateOAuthRequestUrl("https://www.googleapis.com/auth/userinfo.email", redirectUrl, config["Secrets:Google:ClientId"]!);
             return Redirect(googleRedirect);
         }
@@ -59,7 +59,9 @@ namespace TimeTracker.Controllers
                 { "token", refresh_tokens.token }
             };
 
-            var url = QueryHelpers.AddQueryString("http://localhost:3000/Login", queryParams);
+            var url = QueryHelpers.AddQueryString("http://" + config["FrontDomain"]! +"/Login", queryParams);
+
+
 
             return Redirect(url);
         }
