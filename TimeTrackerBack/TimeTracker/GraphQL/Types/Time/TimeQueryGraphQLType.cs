@@ -151,13 +151,13 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             return dateTime;
         }
 
-        public int GetMonthWorkTime(int id, DateTime d, IUserRepository userRepository, ICalendarRepository calendarRepository)
+        public static int GetMonthWorkTime(int id, DateTime d, IUserRepository userRepository, ICalendarRepository calendarRepository)
         {
             User user = userRepository.GetUser(id);
             d = d.AddDays(1 - d.Day);
             DateTime nd = new DateTime(d.AddMonths(1).Year, d.AddMonths(1).Month, 1);
             int[] days = new int[DateTime.DaysInMonth(d.Year, d.Month) + 1];
-            var globalCalendar = _calendarRepository.GetAllGlobalEvents();
+            var globalCalendar = calendarRepository.GetAllGlobalEvents();
             globalCalendar = globalCalendar.FindAll(e => e.Date.Month == d.Month || (e.Date.Month == d.AddMonths(1).Month && e.Date.Day == 1));
             Array.Fill(days, 8);
             int MonthWorkTime = 0;
@@ -170,26 +170,17 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             }
             globalCalendar.ForEach(e =>
             {
-                //Console.WriteLine(e.Date + " - " + e.TypeOfGlobalEvent);
                 int day = e.Date.Month == d.Month ? e.Date.Day - 1 : days.Length - 1;
-                if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Holiday) days[day] = 0;
-                if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.ShortDay) days[day] = 7;
-                if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Celebrate)
+                if (e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Holiday ||
+                e.TypeOfGlobalEvent == Calendar.TypeOfGlobalEvent.Celebrate)
                 {
                     days[day] = 0;
-                    if (e.Date.Day != 1 || e.Date.Month == d.AddMonths(1).Month)
-                    {
-                        if (days[day - 1] != 0)
-                        {
-                            days[day - 1] = 7;
-                        }
-                    }
                 }
+                else days[day] = 7;
             });
             for (int i = 0; i < days.Length - 1; i++)
             {
                 MonthWorkTime += days[i];
-                //Console.WriteLine(d.AddDays(i) + "-" + days[i]);
             }
             return MonthWorkTime * 36 * user.WorkHours;
         }

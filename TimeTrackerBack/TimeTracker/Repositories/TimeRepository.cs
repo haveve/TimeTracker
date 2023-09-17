@@ -20,6 +20,14 @@ namespace TimeTracker.Repositories
             var time = connection.Query<Models.Time>(query).ToList();
             return time;
         }
+        public List<Models.Time>? GetUserMonthTime(int userId, int month)
+        {
+            string query = $"SELECT * FROM UserTime WHERE UserId = @userId AND MONTH(StartTimeTrackDate) = @month";
+            using var connection = _dapperContext.CreateConnection();
+
+            var time = connection.Query<Models.Time>(query, new { userId, month }).ToList();
+            return time;
+        }
         public Models.Time GetTimeByStartDate(int userId, DateTime date)
         {
             string query = $"SELECT * FROM UserTime WHERE UserId = @userId AND StartTimeTrackDate = @date";

@@ -89,5 +89,22 @@ namespace TimeTracker.Services
 
             client.Send(mail);
         }
+
+        public void SendBadMonthlyWorkResults(User user, int MonthWorkTimeSeconds, int userMonthWorkTimeSeconds)
+        {
+            int hours = MonthWorkTimeSeconds / 3600;
+            int userHours = userMonthWorkTimeSeconds / 3600;
+            var client = new SmtpClient(_serverUrl, _port)
+            {
+                EnableSsl = true,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(_emailFrom, _emailPassword)
+            };
+            var mail = new MailMessage(_emailFrom, user.Email);
+            mail.Subject = "Monthly work";
+            mail.Body = $"Dear {user.FullName}!\n Last month You worked total {userHours} out of {hours} hours\nWe hope you will do better this time";
+
+            client.Send(mail);
+        }
     }
 }

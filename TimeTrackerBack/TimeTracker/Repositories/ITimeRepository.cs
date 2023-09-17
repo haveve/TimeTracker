@@ -6,6 +6,7 @@ namespace TimeTracker.Repositories
     public interface ITimeRepository
     {
         public List<Models.Time>? GetTime(int userId);
+        public List<Models.Time>? GetUserMonthTime(int userId, int month);
         public Models.Time GetTimeByStartDate(int userId, DateTime date);
         public void DeleteTime(int userId, DateTime date);
         public void UpdateTime(DateTime oldStartDate,Models.Time time,int userId);

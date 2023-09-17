@@ -1,4 +1,5 @@
 ﻿using TimeTracker.GraphQL.Types.Calendar;
+using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.Services
@@ -10,67 +11,68 @@ namespace TimeTracker.Services
         public ICalendarRepository CalendarRepository { get; }
         public IAbsenceRepository AbsenceRepository { get; }
         public IVacationRepository VacationRepository { get; }
+        public IEmailSender EmailSender { get; }
 
-        public BackgroundTasksService(ITimeRepository timeRepository, IUserRepository userRepository, ICalendarRepository calendarRepository, IAbsenceRepository absenceRepository, IVacationRepository vacationRepository)
+        public BackgroundTasksService(ITimeRepository timeRepository,
+            IUserRepository userRepository,
+            ICalendarRepository calendarRepository,
+            IAbsenceRepository absenceRepository,
+            IVacationRepository vacationRepository,
+            IEmailSender emailSender
+            )
         {
             TimeRepository = timeRepository;
             UserRepository = userRepository;
             CalendarRepository = calendarRepository;
             AbsenceRepository = absenceRepository;
             VacationRepository = vacationRepository;
+            EmailSender = emailSender;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             do
             {
-                updateFullTimersWorkTime(DateTime.Now);
-                if (DateTime.Now.Day == 1)
+                DateTime date = DateTime.Now;
+                updateFullTimersWorkTime(date);
+                if (date.Day == 1)
                 {
                     UserRepository.AddUsersVacationDays();
+                    CheckUsersWorkTime(date);
                 }
                 await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
             while (!stoppingToken.IsCancellationRequested);
         }
+
         private void updateFullTimersWorkTime(DateTime date)
         {
-            Comparer comparer = new Comparer();
             bool bIsShortDay = false;
-            bool bIsCelebrateOrHoliday = false;
 
-            //var globalevent = CalendarQueryGraphQLType.ukraineGovernmentGlobalEvents.Where(e => comparer.DateEquals(e.Date, date)).FirstOrDefault();
-            //if (globalevent == null)
-            //{
-            //    globalevent = CalendarRepository.GetDateGlobalEvent(date);
-            //}
-            //if (globalevent != null)
-            //{
-            //    if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate || globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.Holiday)
-            //    {
-            //        Console.WriteLine("No work due to selebration/holiday");
-            //        bIsCelebrateOrHoliday = true;
-            //        return;
-            //    }
-            //    if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay) { bIsShortDay = true; Console.WriteLine("Short day"); }
-            //}
-            
-            if (bIsCelebrateOrHoliday) return;
+            var globalevent = CalendarRepository.GetDateGlobalEvent(date);
+
+            if (globalevent != null)
+            {
+                if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay)
+                {
+                    bIsShortDay = true;
+                }
+                else return;
+            }
+
             var users = UserRepository.GetFulltimers();
 
-            DateTime start = new DateTime(date.Year, date.Month, date.Day, 9, 0, 0);
-            DateTime end = new DateTime(date.Year, date.Month, date.Day, 17, 0, 0);
-            if (bIsShortDay)
-            {
-                end = end.AddHours(-1);
-            }
-            
+            var time = new Models.Time();
+
+            time.StartTimeTrackDate = new DateTime(date.Year, date.Month, date.Day, 9, 0, 0);
+
+            time.EndTimeTrackDate = bIsShortDay ? new DateTime(date.Year, date.Month, date.Day, 17, 0, 0) :
+                new DateTime(date.Year, date.Month, date.Day, 16, 0, 0);
 
             foreach (var user in users)
             {
                 if (CheckUserDay(user.Id, date) == "Work")
                 {
-                    TimeRepository.CreateTime(start, user.Id);
-                    TimeRepository.SetEndTrackDate(end, user.Id);
+                    TimeRepository.CreateTimeWithEnd(time, user.Id);
                 }
             }
         }
@@ -79,6 +81,24 @@ namespace TimeTracker.Services
             if (AbsenceRepository.GetUserDayAbsence(userId, date) != null) return "Absent";
             if (VacationRepository.GetCurrentVacationRequest(userId, date) != null) return "Vacation";
             return "Work";
+        }
+
+        public void CheckUsersWorkTime(DateTime d)
+        {
+            d = d.AddDays(-1);
+            var list = UserRepository.GetEnabledUsers();
+
+            foreach (var user in list)
+            {
+                var userTime = TimeQueryGraphQLType.GetTimeFromSession(TimeRepository.GetUserMonthTime(user.Id, d.Month), new List<ViewModels.TimeMark>(), 0, startOfWeek.Monday);
+
+                var time = TimeQueryGraphQLType.GetMonthWorkTime(user.Id, d, UserRepository, CalendarRepository);
+
+                if (time > userTime.Time.MonthSeconds)
+                {
+                    EmailSender.SendBadMonthlyWorkResults(user, time, userTime.Time.MonthSeconds);
+                }
+            }
         }
     }
 }

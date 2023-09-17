@@ -48,6 +48,13 @@ namespace TimeTracker.Repositories
                 return db.Query<User>("SELECT * FROM Users WHERE WorkHours = 100 AND Enabled = 1").ToList();
             }
         }
+        public List<User> GetEnabledUsers()
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<User>("SELECT * FROM Users WHERE Enabled = 1").ToList();
+            }
+        }
         public User GetUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
