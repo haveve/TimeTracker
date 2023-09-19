@@ -1,23 +1,25 @@
 ﻿using Microsoft.AspNetCore.WebUtilities;
 using OAuthTutorial.Helpers;
+using OAuthTutorial.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace OAuthTutorial.Services
+namespace TimeTracker.Services.ForeignServiceAuth
 {
-    public class GoogleOAuthService
+    public class GoogleOAuthService:IOauthService
     {
         private const string OAuthServerEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
         private const string TokenServerEndpoint = "https://oauth2.googleapis.com/token";
+        private const string EmailEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo";
 
-        public static string GenerateOAuthRequestUrl(string scope, string redirectUrl,string ClientId)
+        public string GenerateOAuthRequestUrl( string redirectUrl, string ClientId)
         {
             var queryParams = new Dictionary<string, string>
             {
                 {"client_id", ClientId},
                 { "redirect_uri", redirectUrl },
                 { "response_type", "code" },
-                { "scope", scope },
+                { "scope", "email" },
                 //{ "access_type", "offline" } for obtaining refresh token
             };
 
@@ -25,7 +27,7 @@ namespace OAuthTutorial.Services
             return url;
         }
 
-        public static async Task<TokenResult> ExchangeCodeOnTokenAsync(string code, string redirectUrl,string ClientId,string ClientSecret)
+        public async Task<TokenResult> ExchangeCodeOnTokenAsync(string code, string redirectUrl, string ClientId, string ClientSecret)
         {
             var authParams = new Dictionary<string, string>
             {
@@ -40,19 +42,12 @@ namespace OAuthTutorial.Services
             return tokenResult;
         }
 
-        public static async Task<TokenResult> RefreshTokenAsync(string refreshToken, string ClientId, string ClientSecret)
+        public async Task<string> GetEmail(string accessToken)
         {
-            var refreshParams = new Dictionary<string, string>
-            {
-                { "client_id", ClientId },
-                { "client_secret", ClientSecret },
-                { "grant_type", "refresh_token" },
-                { "refresh_token", refreshToken }
-            };
 
-            var tokenResult = await HttpClientHelper.SendPostRequest<TokenResult>(TokenServerEndpoint, refreshParams);
-
-            return tokenResult;
+            var response = await HttpClientHelper.SendGetRequest<IOauthService.GetEmailObject>(EmailEndpoint, new Dictionary<string, string>(), accessToken);
+            var email = response.email;
+            return email;
         }
     }
 }

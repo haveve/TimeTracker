@@ -293,10 +293,10 @@ export function ajaxForLogout(token: string) {
   );
 }
 
-const googleUrl = "https://"+domainBack+"/google-auth"
+const googleUrl = "https://"+domainBack+"/foreign-service-auth"
 
-export function ajaxForGoogleLogin() {
- window.location.href = googleUrl;
+export function ajaxForServiceLogin(serviceName:string) {
+ window.location.href = googleUrl+`?serviceName=${serviceName}`;
 }
 
 

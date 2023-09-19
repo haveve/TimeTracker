@@ -33,7 +33,7 @@ namespace TimeTracker.Services
             do
             {
                 DateTime date = DateTime.Now;
-                updateFullTimersWorkTime(date);
+                //updateFullTimersWorkTime(date);
                 if (date.Day == 1)
                 {
                     UserRepository.AddUsersVacationDays();

@@ -18,6 +18,7 @@ using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
+using TimeTracker.Services.ForeignServiceAuth;
 using static TimeTracker.Controllers.TestController;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHostedService<BackgroundTasksService>();
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
+
+builder.Services.AddSingleton<OauthFactory>(new OauthFactory(new List<(string name, IOauthService service)>{
+    ("Google",new GoogleOAuthService()),
+    ("Github",new GithubOAuthService())
+}));
 
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IExcelHandler, ExcelHandler>();
