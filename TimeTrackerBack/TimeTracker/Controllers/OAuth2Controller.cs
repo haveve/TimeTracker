@@ -47,14 +47,14 @@ namespace TimeTracker.Controllers
 
             if(!HttpContext.Request.Cookies.TryGetValue("serviceName", out value))
             {
-                return Redirect("error?error=\"there is no specified service\"");
+                return Redirect("error?error=there is no specified service");
             }
 
             IOauthService service = oauthService.GetService(value);
 
             if (service == null)
             {
-                return Redirect("error?error=\"uncorrect login service\"");
+                return Redirect("error?error=uncorrect login service");
             }
 
             string DomainName = "https://" + HttpContext.Request.Host.Value;
@@ -64,11 +64,16 @@ namespace TimeTracker.Controllers
 
             var email = await service.GetEmail(googleTokens.AccessToken);
 
+            if (email == null)
+            {
+                return Redirect("error?error=you didn't grant permission on login provider settings for receiving your data");
+            }
+
             var user = userRepository.GetUserByEmailOrLogin(email);
 
             if(user == null)
             {
-                return Redirect("error?error=\"user does not exist or you didn't grant permission on login provider settings for receiving your data\"");
+                return Redirect("error?error=user does not exist");
             }
 
 
