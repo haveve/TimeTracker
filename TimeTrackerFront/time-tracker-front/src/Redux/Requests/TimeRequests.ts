@@ -324,7 +324,7 @@ export function RequestSetStartDate(offset: number): Observable<Date> {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error";
             }
-            return GetUtcTime(res.response.data.time.setStartDate, offset);
+            return GetUtcTime(new Date(res.response.data.time.setStartDate), offset);
         })
     );
 }
@@ -348,7 +348,7 @@ export function RequestSetEndDate(offset: number): Observable<Date> {
                 console.error(JSON.stringify(res.response.errors))
                 throw "error"
             }
-            return GetUtcTime(res.response.data.time.setEndDate, offset);
+            return GetUtcTime(new Date(res.response.data.time.setEndDate), offset);
         })
     );
 }
