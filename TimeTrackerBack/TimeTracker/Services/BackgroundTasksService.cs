@@ -1,4 +1,5 @@
-﻿using TimeTracker.GraphQL.Types.Calendar;
+﻿using System.Globalization;
+using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Repositories;
 
@@ -11,33 +12,58 @@ namespace TimeTracker.Services
         public ICalendarRepository CalendarRepository { get; }
         public IAbsenceRepository AbsenceRepository { get; }
         public IVacationRepository VacationRepository { get; }
+        public IUpdateRepository UpdateRepository { get; }
         public IEmailSender EmailSender { get; }
+        public ITransactionService TransactionService { get; }
+        public ILogger<BackgroundTasksService> Logger { get; }
 
         public BackgroundTasksService(ITimeRepository timeRepository,
             IUserRepository userRepository,
             ICalendarRepository calendarRepository,
             IAbsenceRepository absenceRepository,
             IVacationRepository vacationRepository,
-            IEmailSender emailSender
+            IUpdateRepository updateRepository,
+            IEmailSender emailSender,
+            ITransactionService transactionService,
+            ILogger<BackgroundTasksService> logger
             )
         {
+            Logger = logger;
             TimeRepository = timeRepository;
             UserRepository = userRepository;
             CalendarRepository = calendarRepository;
             AbsenceRepository = absenceRepository;
             VacationRepository = vacationRepository;
+            UpdateRepository = updateRepository;
             EmailSender = emailSender;
+            TransactionService = transactionService;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             do
             {
-                DateTime date = DateTime.Now;
-                //updateFullTimersWorkTime(date);
-                if (date.Day == 1)
+                Comparer comparer = new Comparer();
+                DateTime date = DateTime.UtcNow.AddDays(-2);
+
+                if (!comparer.DateEquals(UpdateRepository.getLastUpdate(), date))
                 {
-                    UserRepository.AddUsersVacationDays();
-                    CheckUsersWorkTime(date);
+                    TransactionService.AddToExecuteString($"INSERT INTO Updates (Update_Id, Update_Date) VALUES((SELECT ISNULL(MAX(Update_Id) + 1, 1) FROM UPDATES), '{date.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)}')");
+                    updateFullTimersWorkTime(date);
+                    if (date.Day == 1)
+                    {
+                        UserRepository.AddUsersVacationDays();
+                        TransactionService.AddToExecuteString("UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1");
+                        CheckUsersWorkTime(date);
+                    }
+                    
+                    try
+                    {
+                        TransactionService.Execute();
+                    }
+                    catch
+                    {
+                        Logger.LogInformation("Background task that updates time already was invoked");
+                    }
                 }
                 await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
@@ -72,7 +98,8 @@ namespace TimeTracker.Services
             {
                 if (CheckUserDay(user.Id, date) == "Work")
                 {
-                    TimeRepository.CreateTimeWithEnd(time, user.Id);
+                    //TimeRepository.CreateTimeWithEnd(time, user.Id);
+                    TransactionService.AddToExecuteString($"INSERT INTO UserTime (StartTimeTrackDate, EndTimeTrackDate, UserId) VALUES ('{time.StartTimeTrackDate.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)}', '{time.EndTimeTrackDate.Value.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)}', {user.Id})");
                 }
             }
         }

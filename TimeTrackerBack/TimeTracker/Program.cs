@@ -22,6 +22,9 @@ using TimeTracker.Services.ForeignServiceAuth;
 using static TimeTracker.Controllers.TestController;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 
 builder.Services.AddHostedService<BackgroundTasksService>();
 //Dapper
@@ -32,6 +35,7 @@ builder.Services.AddSingleton<OauthFactory>(new OauthFactory(new List<(string na
     ("Github",new GithubOAuthService())
 }));
 
+builder.Services.AddTransient<ITransactionService, TransactionService>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IExcelHandler, ExcelHandler>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
@@ -40,6 +44,7 @@ builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
 builder.Services.AddSingleton<IVacationRepository, VacationRepository>();
 builder.Services.AddSingleton<IAbsenceRepository, AbsenceRepository>();
 builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>();
+builder.Services.AddSingleton<IUpdateRepository, UpdateRepository>();
 
 builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
 

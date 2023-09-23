@@ -176,32 +176,6 @@ export default function Calendar() {
         }
     }, [width])
 
-    /*  customButtons={{
-      backToMonthButton: {
-          text: t("Calendar.monthButton"),
-          click: handleBackToMonthClick
-      },
-      backToWeekButton: {
-          text: t("Calendar.weekButton"),
-          click: handleBackToWeekClick
-      },
-      prevButton: {
-          text: '<',
-          click: handlePrevClick
-      },
-      nextButton: {
-          text: '>',
-          click: handleNextClick
-      },
-      todayButton: {
-          text: t("Calendar.todayButton"),
-          click: handleBackToday
-      },
-      othersButton: {
-          text: t("Calendar.othersButton"),
-          click: () => setShowedUserList(n => !n)
-      }
-  }}*/
 
     return <>
         <Row className='p-0 m-0 d-flex justify-content-around flex-row'>
