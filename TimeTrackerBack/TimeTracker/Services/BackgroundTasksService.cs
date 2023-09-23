@@ -43,7 +43,7 @@ namespace TimeTracker.Services
             do
             {
                 Comparer comparer = new Comparer();
-                DateTime date = DateTime.UtcNow.AddDays(-2);
+                DateTime date = DateTime.UtcNow;
 
                 if (!comparer.DateEquals(UpdateRepository.getLastUpdate(), date))
                 {
