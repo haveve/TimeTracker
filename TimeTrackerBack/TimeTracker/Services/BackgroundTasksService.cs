@@ -11,14 +11,18 @@ namespace TimeTracker.Services
         public ICalendarRepository CalendarRepository { get; }
         public IAbsenceRepository AbsenceRepository { get; }
         public IVacationRepository VacationRepository { get; }
+        public IUpdateRepository UpdateRepository { get; }
         public IEmailSender EmailSender { get; }
+        public ITransactionService TransactionService { get; }
 
         public BackgroundTasksService(ITimeRepository timeRepository,
             IUserRepository userRepository,
             ICalendarRepository calendarRepository,
             IAbsenceRepository absenceRepository,
             IVacationRepository vacationRepository,
-            IEmailSender emailSender
+            IUpdateRepository updateRepository,
+            IEmailSender emailSender,
+            ITransactionService transactionService
             )
         {
             TimeRepository = timeRepository;
@@ -26,18 +30,29 @@ namespace TimeTracker.Services
             CalendarRepository = calendarRepository;
             AbsenceRepository = absenceRepository;
             VacationRepository = vacationRepository;
+            UpdateRepository = updateRepository;
             EmailSender = emailSender;
+            TransactionService = transactionService;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             do
             {
-                DateTime date = DateTime.Now;
-                updateFullTimersWorkTime(date);
-                if (date.Day == 1)
+                Comparer comparer = new Comparer();
+                DateTime date = DateTime.UtcNow;
+
+                if (!comparer.DateEquals(UpdateRepository.getLastUpdate(), date))
                 {
-                    UserRepository.AddUsersVacationDays();
-                    CheckUsersWorkTime(date);
+                    TransactionService.AddToExecuteString($"INSERT INTO Updates (Update_Id, Update_Date) VALUES((SELECT ISNULL(MAX(Update_Id) + 1, 1) FROM UPDATES), {date})");
+                    updateFullTimersWorkTime(date);
+                    if (date.Day == 1)
+                    {
+                        //UserRepository.AddUsersVacationDays();
+                        TransactionService.AddToExecuteString("UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1");
+                        CheckUsersWorkTime(date);
+                    }
+                    Console.WriteLine(TransactionService.GetExecuteString());
+                    TransactionService.Execute();
                 }
                 await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
@@ -72,7 +87,8 @@ namespace TimeTracker.Services
             {
                 if (CheckUserDay(user.Id, date) == "Work")
                 {
-                    TimeRepository.CreateTimeWithEnd(time, user.Id);
+                    //TimeRepository.CreateTimeWithEnd(time, user.Id);
+                    TransactionService.AddToExecuteString($"INSERT INTO UserTime (StartTimeTrackDate, EndTimeTrackDate, UserId) VALUES ({time.StartTimeTrackDate}, {time.EndTimeTrackDate}, {user.Id})");
                 }
             }
         }

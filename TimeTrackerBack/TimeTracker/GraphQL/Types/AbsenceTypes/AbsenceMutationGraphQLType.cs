@@ -11,11 +11,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
     public class AbsenceMutationGraphQLType : ObjectGraphType
     {
         public AbsenceMutationGraphQLType(
-            ICalendarRepository CalendarRepository,
-            IUserRepository UserRepository,
-            ITimeRepository TimeRepository,
-            IAbsenceRepository AbsenceRepository,
-            IVacationRepository VacationRepository)
+            IAbsenceRepository AbsenceRepository)
         {
             Field<StringGraphType>("addUserAbsence")
                 .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
