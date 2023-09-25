@@ -45,9 +45,9 @@ namespace TimeTracker.Services
             {
                 Comparer comparer = new Comparer();
                 DateTime date = DateTime.UtcNow;
-                Transaction transaction = new Transaction();
                 if (!comparer.DateEquals(UpdateRepository.GetLastUpdate(), date))
                 {
+                    Transaction transaction = new Transaction();
                     transaction.AddToExecuteString(UpdateRepository.GetQuerySetLastUpdate(date));
                     updateFullTimersWorkTime(date, transaction);
 
