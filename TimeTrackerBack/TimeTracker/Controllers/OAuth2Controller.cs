@@ -22,7 +22,7 @@ namespace TimeTracker.Controllers
     {
 
         [Route("foreign-service-auth")]
-        public IActionResult GoogleAuth([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService,string serviceName)
+        public IActionResult Auth([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService,string serviceName)
         {
 
             IOauthService service = oauthService.GetService(serviceName);
@@ -36,12 +36,12 @@ namespace TimeTracker.Controllers
 
             string DomainName = "https://"+HttpContext.Request.Host.Value;
             string redirectUrl = DomainName+ "/foreign-service-response";
-            string googleRedirect = service.GenerateOAuthRequestUrl(redirectUrl, config[$"Secrets:{serviceName}:ClientId"]!);
-            return Redirect(googleRedirect);
+            string redirect = service.GenerateOAuthRequestUrl(redirectUrl, config[$"Secrets:{serviceName}:ClientId"]!);
+            return Redirect(redirect);
         }
 
         [Route("foreign-service-response")]
-        public async Task<IActionResult> GoogleResponse([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService,[FromServices] IUserRepository userRepository,[FromServices] IAuthorizationManager authorizationManager,[FromServices]IAuthorizationRepository _authorizationRepository, string code)
+        public async Task<IActionResult> AuthResponse([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService,[FromServices] IUserRepository userRepository,[FromServices] IAuthorizationManager authorizationManager,[FromServices]IAuthorizationRepository _authorizationRepository, string code)
         {
             string value;
 
