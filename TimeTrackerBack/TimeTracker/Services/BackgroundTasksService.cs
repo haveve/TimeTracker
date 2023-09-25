@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.TimeQuery;
+using TimeTracker.Models;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.Services
@@ -44,22 +45,22 @@ namespace TimeTracker.Services
             {
                 Comparer comparer = new Comparer();
                 DateTime date = DateTime.UtcNow;
-
+                Transaction transaction = new Transaction();
                 if (!comparer.DateEquals(UpdateRepository.GetLastUpdate(), date))
                 {
-                    TransactionService.AddToExecuteString(UpdateRepository.GetQuerySetLastUpdate(date));
-                    updateFullTimersWorkTime(date);
+                    transaction.AddToExecuteString(UpdateRepository.GetQuerySetLastUpdate(date));
+                    updateFullTimersWorkTime(date, transaction);
 
                     if (date.Day == 1)
                     {
                         UserRepository.AddUsersVacationDays();
-                        TransactionService.AddToExecuteString(UserRepository.GetQueryAddUsersVacationDays());
+                        transaction.AddToExecuteString(UserRepository.GetQueryAddUsersVacationDays());
                         CheckUsersWorkTime(date);
                     }
                     
                     try
                     {
-                        TransactionService.Execute();
+                        transaction.Execute(TransactionService);
                     }
                     catch
                     {
@@ -71,7 +72,7 @@ namespace TimeTracker.Services
             while (!stoppingToken.IsCancellationRequested);
         }
 
-        private void updateFullTimersWorkTime(DateTime date)
+        private void updateFullTimersWorkTime(DateTime date, Transaction transaction)
         {
             bool bIsShortDay = false;
 
@@ -100,7 +101,7 @@ namespace TimeTracker.Services
                 if (CheckUserDay(user.Id, date) == "Work")
                 {
                     //TimeRepository.CreateTimeWithEnd(time, user.Id);
-                    TransactionService.AddToExecuteString(TimeRepository.GetQueryCreateTimeWithEnd(time, user.Id));
+                    transaction.AddToExecuteString(TimeRepository.GetQueryCreateTimeWithEnd(time, user.Id));
                 }
             }
         }

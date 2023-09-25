@@ -35,7 +35,7 @@ builder.Services.AddSingleton<OauthFactory>(new OauthFactory(new List<(string na
     ("Github",new GithubOAuthService())
 }));
 
-builder.Services.AddTransient<ITransactionService, TransactionService>();
+builder.Services.AddSingleton<ITransactionService, TransactionService>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IExcelHandler, ExcelHandler>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
