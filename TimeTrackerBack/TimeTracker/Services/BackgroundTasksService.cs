@@ -53,7 +53,6 @@ namespace TimeTracker.Services
 
                     if (date.Day == 1)
                     {
-                        UserRepository.AddUsersVacationDays();
                         transaction.AddToExecuteString(UserRepository.GetQueryAddUsersVacationDays());
                         CheckUsersWorkTime(date);
                     }
@@ -100,7 +99,6 @@ namespace TimeTracker.Services
             {
                 if (CheckUserDay(user.Id, date) == "Work")
                 {
-                    //TimeRepository.CreateTimeWithEnd(time, user.Id);
                     transaction.AddToExecuteString(TimeRepository.GetQueryCreateTimeWithEnd(time, user.Id));
                 }
             }
