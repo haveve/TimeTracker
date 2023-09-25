@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Globalization;
 
 namespace TimeTracker.Services
 {
@@ -32,6 +33,10 @@ namespace TimeTracker.Services
             count += connection.Execute(query);
 
             return count;
+        }
+        public static string GetDateString(DateTime date)
+        {
+            return $"'{date.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)}'";
         }
     }
 }

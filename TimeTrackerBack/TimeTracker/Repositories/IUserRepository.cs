@@ -22,6 +22,7 @@ namespace TimeTracker.Repositories
         public void UpdateUserPassword(int id,string Password);
         public void UpdateUserPermissions(Permissions permissions);
         public void AddUsersVacationDays();
+        public string GetQueryAddUsersVacationDays();
         public void DisableUser(int id);
         public void DeleteUser(int id);
         User? GetUserByEmailOrLogin(string LoginOrEmail);

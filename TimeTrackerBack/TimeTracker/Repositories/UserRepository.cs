@@ -180,6 +180,10 @@ namespace TimeTracker.Repositories
                 db.Execute(sqlQuery);
             }
         }
+        public string GetQueryAddUsersVacationDays()
+        {
+            return "UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1";
+        }
         public void DisableUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))

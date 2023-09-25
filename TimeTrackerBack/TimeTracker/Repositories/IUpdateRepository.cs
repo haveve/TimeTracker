@@ -9,8 +9,9 @@ namespace TimeTracker.Repositories
 {
     public interface IUpdateRepository
     {
-        public DateTime getLastUpdate();
-        public void setLastUpdate(DateTime date);
+        public DateTime GetLastUpdate();
+        public void SetLastUpdate(DateTime date);
+        public string GetQuerySetLastUpdate(DateTime date);
 
     }
 }

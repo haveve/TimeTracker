@@ -45,14 +45,15 @@ namespace TimeTracker.Services
                 Comparer comparer = new Comparer();
                 DateTime date = DateTime.UtcNow;
 
-                if (!comparer.DateEquals(UpdateRepository.getLastUpdate(), date))
+                if (!comparer.DateEquals(UpdateRepository.GetLastUpdate(), date))
                 {
-                    TransactionService.AddToExecuteString($"INSERT INTO Updates (Update_Id, Update_Date) VALUES((SELECT ISNULL(MAX(Update_Id) + 1, 1) FROM UPDATES), '{date.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)}')");
+                    TransactionService.AddToExecuteString(UpdateRepository.GetQuerySetLastUpdate(date));
                     updateFullTimersWorkTime(date);
+
                     if (date.Day == 1)
                     {
                         UserRepository.AddUsersVacationDays();
-                        TransactionService.AddToExecuteString("UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1");
+                        TransactionService.AddToExecuteString(UserRepository.GetQueryAddUsersVacationDays());
                         CheckUsersWorkTime(date);
                     }
                     
@@ -99,7 +100,7 @@ namespace TimeTracker.Services
                 if (CheckUserDay(user.Id, date) == "Work")
                 {
                     //TimeRepository.CreateTimeWithEnd(time, user.Id);
-                    TransactionService.AddToExecuteString($"INSERT INTO UserTime (StartTimeTrackDate, EndTimeTrackDate, UserId) VALUES ('{time.StartTimeTrackDate.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)}', '{time.EndTimeTrackDate.Value.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)}', {user.Id})");
+                    TransactionService.AddToExecuteString(TimeRepository.GetQueryCreateTimeWithEnd(time, user.Id));
                 }
             }
         }

@@ -20,20 +20,23 @@ namespace TimeTracker.Repositories
         }
 
 
-        public DateTime getLastUpdate()
+        public DateTime GetLastUpdate()
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 return db.Query<DateTime>("SELECT TOP(1) Update_Date FROM Updates ORDER BY Update_Date DESC").First();
             }
         }
-        public void setLastUpdate(DateTime date)
+        public void SetLastUpdate(DateTime date)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 db.Execute("INSERT INTO Updates (Update_Id, Update_Date) VALUES((SELECT ISNULL(MAX(Update_Id) + 1, 1) FROM UPDATES), @date)", new { date });
             }
         }
-
+        public string GetQuerySetLastUpdate(DateTime date)
+        {
+            return $"INSERT INTO Updates (Update_Id, Update_Date) VALUES((SELECT ISNULL(MAX(Update_Id) + 1, 1) FROM UPDATES), {DapperBulk.GetDateString(date)})";
+        }
     }
 }
