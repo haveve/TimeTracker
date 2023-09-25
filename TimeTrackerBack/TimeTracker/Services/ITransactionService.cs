@@ -2,9 +2,6 @@
 {
     public interface ITransactionService
     {
-        public string GetExecuteString();
-        public void AddToExecuteString(string query);
-        public void Execute();
-
+        public void Execute(string query);
     }
 }

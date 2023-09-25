@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using TimeTracker.Models;
+using TimeTracker.Services;
 using TimeTracker.ViewModels;
 
 namespace TimeTracker.Repositories
@@ -52,6 +53,10 @@ namespace TimeTracker.Repositories
             string query = "INSERT INTO UserTime (StartTimeTrackDate, EndTimeTrackDate, UserId) VALUES (@StartTimeTrackDate, @EndTimeTrackDate, @userId)";
             using var connection = _dapperContext.CreateConnection();
             connection.Execute(query, new { time.StartTimeTrackDate, time.EndTimeTrackDate, userId });
+        }
+        public string GetQueryCreateTimeWithEnd(Models.Time time, int userId)
+        {
+            return $"INSERT INTO UserTime (StartTimeTrackDate, EndTimeTrackDate, UserId) VALUES ({DapperBulk.GetDateString(time.StartTimeTrackDate)}, {DapperBulk.GetDateString(time.EndTimeTrackDate.Value)}, {userId})";
         }
         public void CreateTime(DateTime startDate, int userId)
         {

@@ -13,6 +13,7 @@ namespace TimeTracker.Repositories
         public void SetEndTrackDate(DateTime date, int userId);
         public void CreateTime(DateTime startDate, int userId);
         public void CreateTimeWithEnd(Models.Time time, int userId);
+        public string GetQueryCreateTimeWithEnd(Models.Time time, int userId);
         public bool IsStarted(int userId);
     }
 }

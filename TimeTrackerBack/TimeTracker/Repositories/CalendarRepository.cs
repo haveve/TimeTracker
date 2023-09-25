@@ -31,7 +31,7 @@ namespace TimeTracker.Repositories
         public void AddEventRange(int userId, List<CalendarEventViewModel> addEventRange)
         {
             using var dapperConnection = _dapperContext.CreateConnection();
-            dapperConnection.BulkInsert<CalendarEventViewModel>(addEventRange,(ce)=>$"({userId}, '{ce.Title}', '{ce.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff",CultureInfo.InvariantCulture)}', '{ce.EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff")}')", "(UserId, Title, StartDate, EndDate)", "CalendarEvents");
+            dapperConnection.BulkInsert<CalendarEventViewModel>(addEventRange,(ce)=>$"({userId}, '{ce.Title}', {DapperBulk.GetDateString(ce.StartDate)}, {DapperBulk.GetDateString(ce.EndDate)}')", "(UserId, Title, StartDate, EndDate)", "CalendarEvents");
         }
 
         public List<CalendarEvent> GetAllEvents(int userId,MonthOrWeek weekOrMonth,DateTime date)
