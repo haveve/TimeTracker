@@ -1,6 +1,6 @@
 /// <reference types="react-scripts" />
 import React, { useState, useRef, useEffect, Dispatch as DispatchReact, SetStateAction, useMemo } from 'react';
-import { InputGroup, FloatingLabel, Modal, Button, Form, Col, Row, RowProps } from "react-bootstrap";
+import {Modal, Button, Form, Col, Row} from "react-bootstrap";
 import '../../Custom.css';
 import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
 import { TimeStringFromSeconds } from '../Time/TimeFunction';

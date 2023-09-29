@@ -4,33 +4,22 @@ namespace TimeTracker.Services.ForeignServiceAuth
 {
     public class OauthFactory
     {
-        private List<(string name, IOauthService service)> _oauthServices = new List<(string name, IOauthService service)>();
+        private Dictionary<string,IOauthService> _oauthServices = new();
 
         public OauthFactory()
         {
 
         }
 
-        public OauthFactory(List<(string name, IOauthService service)> initialServices)
+        public OauthFactory(Dictionary<string, IOauthService> initialServices)
         {
             _oauthServices = initialServices;
         }
 
-        public void SetService<T>(string name) where T : class, IOauthService
-        {
-            if (_oauthServices.Any(s => s.name == name))
-            {
-                return;
-            }
-
-            var serviceInstance = Activator.CreateInstance(typeof(T).Assembly.FullName, typeof(T).FullName);
-
-            _oauthServices.Add((name, (IOauthService)serviceInstance!.Unwrap()));
-        }
-
         public IOauthService? GetService(string name)
         {
-            return _oauthServices.FirstOrDefault(s => s.name == name).service;
+            _oauthServices.TryGetValue(name, out IOauthService value);
+            return value;
         }
     }
 }

@@ -30,9 +30,9 @@ builder.Services.AddHostedService<BackgroundTasksService>();
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 
-builder.Services.AddSingleton<OauthFactory>(new OauthFactory(new List<(string name, IOauthService service)>{
-    ("Google",new GoogleOAuthService()),
-    ("Github",new GithubOAuthService())
+builder.Services.AddSingleton<OauthFactory>(new OauthFactory(new Dictionary<string, IOauthService>{
+    { "Google",new GoogleOAuthService()},
+    { "Github",new GithubOAuthService()}
 }));
 
 builder.Services.AddTransient<ITransactionService, TransactionService>();

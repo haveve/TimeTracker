@@ -63,7 +63,6 @@ function AppNavbar() {
 
 		if (tokenStatus) {
 			const canUseUserIp = getCookie("canUseUserIp")
-
 			if (canUseUserIp && canUseUserIp === "true") {
 				GetLocation().subscribe({
 					next: (value) => {

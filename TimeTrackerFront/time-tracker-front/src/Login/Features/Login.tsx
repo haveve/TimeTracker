@@ -43,6 +43,7 @@ export default function Login() {
         expires_second: new Date(expiredAt!).getTime() / 1000,
         path: "/"
       });
+      dispatch(setLoginByToken(true))
       navigate("/");
     }
   }, [])

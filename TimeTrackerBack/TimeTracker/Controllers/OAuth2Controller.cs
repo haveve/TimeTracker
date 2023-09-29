@@ -29,7 +29,7 @@ namespace TimeTracker.Controllers
 
             if (service == null)
             {
-                return Redirect("error");
+                return Redirect("error?error=there is no specified service");
             }
 
             HttpContext.Response.Cookies.Append("serviceName", serviceName);

@@ -60,7 +60,10 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+	"rules":{
+	  "semi":"warn"
+	}
   },
   "browserslist": {
     "production": [
