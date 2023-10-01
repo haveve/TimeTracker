@@ -6,6 +6,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.Models
     {
         public DateTime ExpiresStart { get; set; }
         public DateTime ExpiresEnd { get; set; }
+        public bool? Activated2fAuth { get; set; }
         public string Token { get; set; } = null!;
     }
 }

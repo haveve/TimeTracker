@@ -1,8 +1,10 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+using Microsoft.AspNetCore.WebUtilities;
 using TimeTracker.GraphQL.Types.IdentityTipes;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
+using TimeTracker.Helpers;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
@@ -32,6 +34,7 @@ namespace TimeTracker.GraphQL.Queries
             {
                 Login UserLogData = context.GetArgument<Login>("login");
                 var userRepository = context.RequestServices.GetService<IUserRepository>();
+                var config = context.RequestServices.GetService<IConfiguration>();
 
                 var user = userRepository.GetUserByCredentials(UserLogData.LoginOrEmail, UserLogData.Password);
                 if (user == null)
@@ -44,7 +47,30 @@ namespace TimeTracker.GraphQL.Queries
                     context.Errors.Add(new ExecutionError("User was disabled"));
                     return null;
                 }
+
                 var encodedJwt = _authorizationManager.GetAccessToken(user.Id);
+
+                if (user.Key2Auth != null)
+                {
+                    var refresh_2f_tokens = authorizationManager.GetRefreshToken(user.Id);
+                    _authorizationRepository.CreateRefreshToken(refresh_2f_tokens, user.Id, false);
+
+                    var tempToken = _2fAuthHelper.GetTemporaty2fAuthToken(user, refresh_2f_tokens, config["JWT:Author"], config["JWT:Audience"], config["JWT:Key"]);
+
+                    Dictionary<string, string?> tempQueryParams = new Dictionary<string, string?>
+            {
+                { "tempToken", tempToken }
+            };
+                    return new LoginOutput()
+                    {
+                        access_token = null,
+                        user_id = -1,
+                        refresh_token = null,
+                        redirect_url = QueryHelpers.AddQueryString("/2f-auth", tempQueryParams)
+                    };
+
+                }
+
 
                 var refreshToken = _authorizationManager.GetRefreshToken(user.Id);
                 _authorizationRepository.CreateRefreshToken(refreshToken, user.Id);
@@ -55,7 +81,6 @@ namespace TimeTracker.GraphQL.Queries
                     user_id = user.Id,
                     refresh_token = refreshToken,
                     is_fulltimer = (user.WorkHours == 100)
-
                 };
 
                 //HttpContext.Response.Cookies.Append("gdfg", "gdfdgdf", new()
@@ -159,13 +184,5 @@ namespace TimeTracker.GraphQL.Queries
                 refresh_token = new("Your session was expired. Please, login again", new DateTime(), new DateTime()),
             };
         }
-    }
-
-    public class RememberMe
-    {
-        public string userEmail { get; set; }
-        public string userPassword { get; set; }
-        public string userRefreshToken { get; set; }
-        public long Expired {get; set; }
     }
 }

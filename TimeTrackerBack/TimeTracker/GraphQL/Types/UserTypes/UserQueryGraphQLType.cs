@@ -91,7 +91,10 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                 {
                     var a = context.User!;
                     var userId = GetUserIdFromClaims(context.User!);
-                    return repo.GetUser(userId);
+                    var user = repo.GetUser(userId);
+                    //If user has key, we hide it
+                    user.Key2Auth = user.Key2Auth != null? "key" : user.Key2Auth;
+                    return user;
                 });
             Field<PermissionsGraphType>("userPermissions")
                 .Argument<NonNullGraphType<IntGraphType>>("id")

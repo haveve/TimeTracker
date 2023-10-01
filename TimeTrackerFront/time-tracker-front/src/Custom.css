@@ -12067,3 +12067,7 @@ body {
   margin: 10px 0 20px;
   background-color: white; 
 } 
+
+.autoWordSpace{
+  overflow-wrap: anywhere;
+}

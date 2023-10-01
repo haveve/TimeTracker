@@ -105,6 +105,11 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is expired");
             }
 
+            if(savedToken.Activated2fAuth == false)
+            {
+                return new ValidateRefreshAndGetAccess(null, false, "Refresh token is not activated");
+            }
+
             return new ValidateRefreshAndGetAccess(GetAccessToken(userId), true, null);
 
         }
@@ -123,6 +128,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
     audience: _configuration["JWT:Audience"],
     claims: new[] {
             new Claim("UserId", userId.ToString()),
+            new Claim("IsAccess",true.ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
             new Claim("CRUDUsers",permissions.CRUDUsers.ToString()),
             new Claim("ViewUsers",permissions.ViewUsers.ToString()),

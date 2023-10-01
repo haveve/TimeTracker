@@ -18,6 +18,7 @@ import { RootState } from '../Redux/store';
 import PermissionError from './Service/PermissionError';
 import { setCookie } from '../Login/Api/login-logout';
 import { RequestCurrentUser, RequestCurrentUserPermissions } from '../Redux/Requests/UserRequests';
+import Auth2f from '../Login/Features/Auth2f';
 
 import NotificationModalWindow, { MessageType } from './Service/NotificationModalWindow';
 import { clearErrorMessage as clearErrorMessageTime } from '../Redux/Slices/TimeSlice';
@@ -109,6 +110,10 @@ const router = () => createBrowserRouter([
     {
         path: "/UserRegistration",
         element: <UserRegistration />
+    },
+    {
+        path:"/2f-auth",
+        element:<Auth2f/>
     }
 ])
 

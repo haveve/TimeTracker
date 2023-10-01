@@ -17,5 +17,6 @@ namespace TimeTracker.Models
         public int VacationDays { get; set; }
         public LasUpdatedBy TimeManagedBy { get; set; }
         public double WorkedHours { get; set; }
+        public string? Key2Auth { get; set;}
     }
 }

@@ -1,5 +1,5 @@
 import { ajax } from 'rxjs/ajax';
-import { map, catchError, Observer } from 'rxjs';
+import { map, catchError, Observer, Observable } from 'rxjs';
 import {
   redirect,
   useNavigate,
@@ -7,7 +7,9 @@ import {
 import { LogoutDeleteCookie } from '../../Components/Navbar';
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
-import { domainBack } from '../../Redux/Requests/TimeRequests';
+import { GetTokenObservable, domainBack } from '../../Redux/Requests/TimeRequests';
+import { GetAjaxObservable } from '../../Redux/Requests/TimeRequests';
+import { mergeMap } from 'rxjs';
 
 export const accessTokenLiveTime = 60;
 
@@ -69,7 +71,8 @@ export type LoginType = {
       access_token: RequestTokenType,
       user_id: string,
       is_fulltimer: string,
-      refresh_token: RequestTokenType
+      refresh_token: RequestTokenType,
+      redirect_url:string,
     }
   },
   errors: LoginErrorType[]
@@ -86,7 +89,7 @@ export type RefreshType = {
   errors: LoginErrorType[]
 }
 
-export function ajaxForLogin(variables: {}) {
+export function ajaxForLogin(variables: {}){
   return ajax<LoginType>({
     url: url,
     method: "POST",
@@ -109,13 +112,14 @@ export function ajaxForLogin(variables: {}) {
             expiredAt
           }
           is_fulltimer
+          redirect_url
         }
       }`,
       variables
     }),
     withCredentials: true,
   }).pipe(
-    map((value): void => {
+    map((value): string => {
 
 
       let fullResponse = value.response;
@@ -125,6 +129,10 @@ export function ajaxForLogin(variables: {}) {
       if (fullResponse.errors)
         throw fullResponse.errors[0].message;
 
+
+      if(response.redirect_url){
+          return response.redirect_url;
+      }
 
       const access_token_to_save: StoredTokenType = {
         issuedAt: new Date(response.access_token.issuedAt).getTime(),
@@ -137,7 +145,6 @@ export function ajaxForLogin(variables: {}) {
         expiredAt: new Date(response.refresh_token.expiredAt).getTime(),
         token: response.refresh_token.token
       }
-
       setCookie({
         name: "access_token",
         value: JSON.stringify(access_token_to_save),
@@ -156,7 +163,14 @@ export function ajaxForLogin(variables: {}) {
         expires_second: refresh_token_to_save.expiredAt / 1000,
         path: "/"
       });
-      setCookie({ name: "is_fulltimer", value: response.is_fulltimer, expires_second: 365 * 24 * 60 * 60, path: "/" });
+      setCookie({
+        name: "is_fulltimer",
+        value: JSON.stringify(response.is_fulltimer),
+        expires_second: 60*60*24*365,
+        path: "/"
+      });
+
+      return "/";
     }),
     catchError((error) => {
       throw error
@@ -293,18 +307,83 @@ export function ajaxForLogout(token: string) {
   );
 }
 
-const googleUrl = "https://"+domainBack+"/foreign-service-auth"
+const serviceUrl = "https://"+domainBack+"/foreign-service-auth"
 
 export function ajaxForServiceLogin(serviceName:string) {
- window.location.href = googleUrl+`?serviceName=${serviceName}`;
+ window.location.href = serviceUrl+`?serviceName=${serviceName}`;
 }
 
+const _2fAuthUrl = "https://"+domainBack+"/2f-auth"
+
+export interface _2fAuthResult{
+  qrUrl:string,
+  manualEntry:string,
+  key:string
+}
+
+export function ajaxFor2fAuth(){
+  return GetTokenObservable().pipe( mergeMap(()=>{
+    const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+   return ajax<_2fAuthResult>({
+      url:_2fAuthUrl,
+      method: "POST",
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token.token,
+      }
+  })}))
+}
+
+const _2fSetUrl = "https://"+domainBack+"/set-2f-auth";
+
+export function axajSetUser2fAuth(key:string,code:string){
+  return GetTokenObservable().pipe( mergeMap(()=>{
+  const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+   return ajax<_2fAuthResult>({
+      url:_2fSetUrl+`?key=${key}&code=${code}`,
+      method: "POST",
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token.token,
+      }
+  })}))
+}
+
+const _2fVerifyServiceUrl = "https://"+domainBack+"/verify-2f-auth";
+
+export function ajaxVerifyUserCode(token:string,code:string){
+    return ajax({
+      url: _2fVerifyServiceUrl + `?token=${token}&code=${code}`
+    })
+}
+
+const _2fDropUrl = "https://"+domainBack+"/drop-2f-auth"
+
+export enum WayToDrop2f
+{
+    Code = 0,
+    Email = 1
+}
+
+export function ajaxFor2fDrop(code:string,way:WayToDrop2f){
+
+  return GetTokenObservable().pipe( mergeMap(()=>{
+    const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+     return ajax<string>({
+        url:_2fDropUrl+`?code=${code}&way=${way}`,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token.token,
+        }
+    })}))
+}
 
 type navigateType = ReturnType<typeof useNavigate>;
 
-export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, setLoginByToken: () => void, commitNavigate: navigateType, path: string, t: TFunction): Observer<any> => {
+export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, setLoginByToken: () => void, commitNavigate: navigateType, t: TFunction): Observer<any> => {
   return {
-    next: () => {
+    next: (path) => {
       commitNavigate(path);
       setLoginByToken();
     },

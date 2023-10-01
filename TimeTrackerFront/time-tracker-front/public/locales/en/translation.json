@@ -66,6 +66,8 @@
     "workedToday": "Worked today",
     "workedWeek": "Worked this week",
     "workedMonth": "Worked this month",
+    "set2Auth":"Set 2f Auth",
+    "drop2Auth":"Drop 2f Auth",
     "EditModal": {
       "header": "Edit your information",
       "fullName": "Full Name",

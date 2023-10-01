@@ -1,36 +1,36 @@
-import React, {useEffect, useState} from 'react';
-import {Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup, ListGroup} from "react-bootstrap";
-import {useNavigate} from 'react-router-dom';
-import {useSelector, useDispatch} from 'react-redux';
-import {User} from '../../Redux/Types/User';
+import React, { useEffect, useState } from 'react';
+import { Form, Button, Card, Modal, Row, Col, ProgressBar, InputGroup, ListGroup, Image } from "react-bootstrap";
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { User } from '../../Redux/Types/User';
 import {
 	RequestUpdateUser,
 	RequestUpdatePassword,
 	RequestUser,
 	RequestCurrentUser
 } from '../../Redux/Requests/UserRequests';
-import {RootState} from '../../Redux/store';
-import {ErrorMassagePattern, getCurrentUser, getUsers} from '../../Redux/epics';
-import {Error} from '../Service/Error';
+import { RootState } from '../../Redux/store';
+import { ErrorMassagePattern, getCurrentUser, getUsers } from '../../Redux/epics';
+import { Error } from '../Service/Error';
 import '../../Custom.css';
-import {RequestGetTimeInSeconds, RequestGetTotalWorkTime, RequestUserTime} from '../../Redux/Requests/TimeRequests';
-import {getCookie} from '../../Login/Api/login-logout';
-import {TimeForStatisticFromSeconds} from '../Time/TimeStatistic';
+import { RequestGetTimeInSeconds, RequestGetTotalWorkTime, RequestUserTime } from '../../Redux/Requests/TimeRequests';
+import { getCookie } from '../../Login/Api/login-logout';
+import { TimeForStatisticFromSeconds } from '../Time/TimeStatistic';
 import VacationRequests from "./VacationRequests";
-import {Time, TimeRequest} from '../../Redux/Types/Time';
-import {Absence} from '../../Redux/Types/Absence';
+import { Time, TimeRequest } from '../../Redux/Types/Time';
+import { Absence } from '../../Redux/Types/Absence';
 import {
 	RequestAddCurrentUserAbsence,
 	RequestCurrentUserAbsences,
 	RequestRemoveCurrentUserAbsence
 } from '../../Redux/Requests/AbsenceRequests';
-import NotificationModalWindow, {MessageType} from '../Service/NotificationModalWindow';
-import {useTranslation} from "react-i18next";
+import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
+import { useTranslation } from "react-i18next";
 import { startOfWeek } from '../../Redux/Slices/LocationSlice';
-
+import { ajaxFor2fAuth, ajaxFor2fDrop, WayToDrop2f, axajSetUser2fAuth, _2fAuthResult } from '../../Login/Api/login-logout';
 
 function UserProfile() {
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
@@ -42,6 +42,8 @@ function UserProfile() {
 
 	const [showError, setShowError] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
+
+	const [_2fAuthData, set2fAuthData] = useState<_2fAuthResult | null>(null);
 
 	const handleCloseAbcense = () => {
 		setShowAbsence(false);
@@ -67,17 +69,17 @@ function UserProfile() {
 	const handleShowVacationRequests = () => setShowVacationRequests(true);
 	const handleCloseVacationRequests = () => setShowVacationRequests(false);
 
-    const [user, setUser] = useState({} as User);
-    const [time, setTime] = useState<TimeRequest>({
-        time: {
-            daySeconds: 0,
-            weekSeconds: 0,
-            monthSeconds: 0,
-            sessions: []
-        }
-    });
-    const [absences, setAbsences] = useState([] as Absence[]);
-    const [totalWorkTime, setTotalWorkTime] = useState(0);
+	const [user, setUser] = useState({} as User);
+	const [time, setTime] = useState<TimeRequest>({
+		time: {
+			daySeconds: 0,
+			weekSeconds: 0,
+			monthSeconds: 0,
+			sessions: []
+		}
+	});
+	const [absences, setAbsences] = useState([] as Absence[]);
+	const [totalWorkTime, setTotalWorkTime] = useState(0);
 
 	const [id, setId] = useState(0);
 	const [login, setLogin] = useState('');
@@ -88,21 +90,26 @@ function UserProfile() {
 	const [newPassword, setNewPassword] = useState('');
 	const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
 
+	const [enteredCode, setEnteredCode] = useState('')
 
 	const [date, setDate] = useState<Date>();
 	const [type, setType] = useState('Absence');
+	const [isVisibleSet2fa, setVisibleSet2fa] = useState(false);
 
-    useEffect(() => {
-        RequestCurrentUser().subscribe((x) => {
-            setUser(x);
-        })
-        RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
-            setTotalWorkTime(x);
-        })
-        RequestGetTimeInSeconds([], 1, 1, 0, startOfWeek.Monday).subscribe((x) => {
-            setTime(x);
-        })
-    }, []);
+	const [isVisibleDrop2fa, setVisibleDrop2fa] = useState(false);
+	const [code, setCode] = useState("")
+
+	useEffect(() => {
+		RequestCurrentUser().subscribe((x) => {
+			setUser(x);
+		})
+		RequestGetTotalWorkTime(parseInt(getCookie("user_id")!)).subscribe((x) => {
+			setTotalWorkTime(x);
+		})
+		RequestGetTimeInSeconds([], 1, 1, 0, startOfWeek.Monday).subscribe((x) => {
+			setTime(x);
+		})
+	}, []);
 
 	useEffect(() => {
 		if (user) {
@@ -219,202 +226,288 @@ function UserProfile() {
 		<div className='UserDetails d-flex align-items-center flex-column m-1'>
 			<Button variant='dark' className='ms-2 me-auto' onClick={() => navigate(-1)}>
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-				     className="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
+					className="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
 					<path fillRule="evenodd"
-					      d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4z"/>
+						d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4z" />
 				</svg>
 			</Button>
 			{user! ? (
-					<>
-						<Card style={{width: '18rem'}} className='w-75'>
-							<Card.Body className='d-flex flex-column'>
-								<Row className='mb-3'>
-									<Col>
-                                    <span
-	                                    className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 h-100 bg-darkgray'>
-                                        <p className='m-0 fs-5 text-white'>{user.fullName}</p>
-                                        <p className="m-0 fs-6 text-secondary">@{user.login}</p>
-                                        <p className="m-0 fs-6 text-secondary">{user.email}</p>
-                                        <InputGroup className='mt-auto'>
-                                            <Button variant='outline-secondary'
-                                                    onClick={handleShowEdit}>{t("UserProfile.editButton")}</Button>
-                                            <Button variant='outline-secondary'
-                                                    onClick={handleShowPassword}>{t("UserProfile.changePassButton")}</Button>
-                                            <Button variant='outline-secondary'
-                                                    onClick={handleShowAbcense}>{t("UserProfile.presence")}</Button>
-                                        </InputGroup>
-                                    </span>
-									</Col>
-									<Col>
-                                    <span
-	                                    className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
-                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>{t("UserProfile.workedToday")}</p>
-                                            {TimeForStatisticFromSeconds(time!.time.daySeconds)}
-                                        </div>
-                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>{t("UserProfile.workedWeek")}</p>
-                                            {TimeForStatisticFromSeconds(time!.time.weekSeconds)}
-                                        </div>
-                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>{t("UserProfile.workedMonth")}</p>
-                                            {TimeForStatisticFromSeconds(time!.time.monthSeconds)}
-                                        </div>
-                                        <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <ProgressBar now={(time!.time.monthSeconds / totalWorkTime) * 100} animated className='w-75 mt-1'
-                                                variant='success' />
-                                            {TimeForStatisticFromSeconds(totalWorkTime)}
-                                        </div>
-                                    </span>
-									</Col>
-								</Row>
-								<VacationRequests user={user}></VacationRequests>
-							</Card.Body>
-						</Card>
-						<Modal
-							show={showEdit}
-							backdrop="static"
-							keyboard={false}
-							centered
-							data-bs-theme="dark"
-							onHide={handleCloseEdit}
-						>
+				<>
+					<Card style={{ width: '18rem' }} className='w-75'>
+						<Card.Body className='d-flex flex-column'>
+							<Row className='mb-3'>
+								<Col>
+									<span
+										className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 h-100 bg-darkgray'>
+										<p className='m-0 fs-5 text-white'>{user.fullName}</p>
+										<p className="m-0 fs-6 text-secondary">@{user.login}</p>
+										<p className="m-0 fs-6 text-secondary">{user.email}</p>
+										<InputGroup className='mt-auto'>
+											<Button variant='outline-secondary'
+												onClick={handleShowEdit}>{t("UserProfile.editButton")}</Button>
+											<Button variant='outline-secondary'
+												onClick={handleShowPassword}>{t("UserProfile.changePassButton")}</Button>
+											<Button variant='outline-secondary'
+												onClick={handleShowAbcense}>{t("UserProfile.presence")}</Button>
+											{user.key2Auth ? <Button variant='outline-secondary'
+												onClick={() => setVisibleDrop2fa(true)
+												}>{t("UserProfile.drop2Auth")}</Button>
+												:
+												<Button variant='outline-secondary'
+													onClick={() => {
+														ajaxFor2fAuth().subscribe({
+															next: (data) => {
+																set2fAuthData(data.response)
+																setVisibleSet2fa(true)
+															},
+															error: (error) => {
+																console.log(error)
+																setError(ErrorMassagePattern)
+															}
+														})
+													}}>{t("UserProfile.set2Auth")}</Button>}
+										</InputGroup>
+									</span>
+								</Col>
+								<Col>
+									<span
+										className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
+										<div className='d-flex flex-row w-100 justify-content-between mb-2'>
+											<p className='m-0'>{t("UserProfile.workedToday")}</p>
+											{TimeForStatisticFromSeconds(time!.time.daySeconds)}
+										</div>
+										<div className='d-flex flex-row w-100 justify-content-between mb-2'>
+											<p className='m-0'>{t("UserProfile.workedWeek")}</p>
+											{TimeForStatisticFromSeconds(time!.time.weekSeconds)}
+										</div>
+										<div className='d-flex flex-row w-100 justify-content-between mb-2'>
+											<p className='m-0'>{t("UserProfile.workedMonth")}</p>
+											{TimeForStatisticFromSeconds(time!.time.monthSeconds)}
+										</div>
+										<div className='d-flex flex-row w-100 justify-content-between mb-2'>
+											<ProgressBar now={(time!.time.monthSeconds / totalWorkTime) * 100} animated className='w-75 mt-1'
+												variant='success' />
+											{TimeForStatisticFromSeconds(totalWorkTime)}
+										</div>
+									</span>
+								</Col>
+							</Row>
+							<VacationRequests user={user}></VacationRequests>
+						</Card.Body>
+					</Card>
+					<Modal
+						show={showEdit}
+						backdrop="static"
+						keyboard={false}
+						centered
+						data-bs-theme="dark"
+						onHide={handleCloseEdit}
+					>
 
-							<Form onSubmit={e => handleUpdate(e)}>
-								<Modal.Header closeButton>
-									<Modal.Title>{t("UserProfile.EditModal.header")}</Modal.Title>
-								</Modal.Header>
-								<Modal.Body>
-									<Form.Group className="mb-3">
-										<Form.Label>{t("UserProfile.EditModal.fullName")}</Form.Label>
-										<Form.Control type="text" defaultValue={user.fullName}
-										              onChange={e => setFullName(e.target.value)}/>
-									</Form.Group>
-									<Form.Group className="mb-3">
-										<Form.Label>{t("UserProfile.EditModal.login")}</Form.Label>
-										<Form.Control type="text" defaultValue={user.login}
-										              onChange={e => setLogin(e.target.value)}/>
-									</Form.Group>
-									<Form.Group className="mb-3">
-										<Form.Label>{t("UserProfile.EditModal.email")}</Form.Label>
-										<Form.Control type="email" defaultValue={user.email}
-										              onChange={e => setEmail(e.target.value)}/>
-									</Form.Group>
-									<Form.Group className="mb-3">
-										<Form.Label>{t("UserProfile.EditModal.password")}</Form.Label>
-										<Form.Control type="password" onChange={e => setPassword(e.target.value)}/>
-										<Form.Text muted>{t("UserProfile.EditModal.hintPassword")}</Form.Text>
-										<Error ErrorText={errorMessage} Show={showError}
-										       SetShow={() => setShowError(false)}></Error>
-									</Form.Group>
-								</Modal.Body>
-								<Modal.Footer>
-									<Button variant="secondary" onClick={handleCloseEdit}>{t("cancel")}</Button>
-									<Button variant="success" type="submit">{t("update")}</Button>
-								</Modal.Footer>
-							</Form>
-						</Modal>
-						<Modal
-							show={showPassword}
-							backdrop="static"
-							keyboard={false}
-							centered
-							data-bs-theme="dark"
-							onHide={handleClosePassword}
-						>
-							<Form onSubmit={e => handlePasswordUpdate(e)}>
-								<Modal.Header closeButton>
-									<Modal.Title>{t("UserProfile.ChangePasswordModal.header")}</Modal.Title>
-								</Modal.Header>
-								<Modal.Body>
-									<Form.Group className="mb-3">
-										<Form.Label>{t("UserProfile.ChangePasswordModal.newPass")}</Form.Label>
-										<Form.Control type="password" onChange={e => setNewPassword(e.target.value)}/>
-									</Form.Group>
-									<Form.Group className="mb-3">
-										<Form.Label>{t("UserProfile.ChangePasswordModal.repeatNewPass")}</Form.Label>
-										<Form.Control type="password" onChange={e => setNewPasswordRepeat(e.target.value)}/>
-									</Form.Group>
-									<Form.Group className="mb-3">
-										<Form.Label>{t("UserProfile.ChangePasswordModal.oldPass")}</Form.Label>
-										<Form.Control type="password" onChange={e => setPassword(e.target.value)}/>
-										<Form.Text muted>{t("UserProfile.ChangePasswordModal.hintPassword")}</Form.Text>
-										<Error ErrorText={errorMessage} Show={showError}
-										       SetShow={() => setShowError(false)}></Error>
-									</Form.Group>
-								</Modal.Body>
-								<Modal.Footer>
-									<Button variant="secondary" onClick={handleClosePassword}>{t("cancel")}</Button>
-									<Button variant="success" type="submit">{t("update")}</Button>
-								</Modal.Footer>
-							</Form>
-						</Modal>
-						<Modal
-							show={showAbsence}
-							backdrop="static"
-							keyboard={false}
-							centered
-							data-bs-theme="dark"
-							onHide={handleCloseAbcense}
-						>
+						<Form onSubmit={e => handleUpdate(e)}>
 							<Modal.Header closeButton>
-								<Modal.Title>{t("UserProfile.AbsenceModal.header")}</Modal.Title>
+								<Modal.Title>{t("UserProfile.EditModal.header")}</Modal.Title>
 							</Modal.Header>
 							<Modal.Body>
-								<Form className='mb-2' onSubmit={e => handleAddAbsence(e)}>
-									<InputGroup>
-										<Form.Control type="date" onChange={e => setDate(new Date(e.target.value))}/>
-										<Form.Select onChange={e => setType(e.target.value)}>
-											<option value="Absence">{t("UserProfile.AbsenceModal.absenceItem")}</option>
-											<option value="Illness">{t("UserProfile.AbsenceModal.illnessItem")}</option>
-										</Form.Select>
-										<Button variant='success' type='submit'>{t("add")}</Button>
-									</InputGroup>
+								<Form.Group className="mb-3">
+									<Form.Label>{t("UserProfile.EditModal.fullName")}</Form.Label>
+									<Form.Control type="text" defaultValue={user.fullName}
+										onChange={e => setFullName(e.target.value)} />
+								</Form.Group>
+								<Form.Group className="mb-3">
+									<Form.Label>{t("UserProfile.EditModal.login")}</Form.Label>
+									<Form.Control type="text" defaultValue={user.login}
+										onChange={e => setLogin(e.target.value)} />
+								</Form.Group>
+								<Form.Group className="mb-3">
+									<Form.Label>{t("UserProfile.EditModal.email")}</Form.Label>
+									<Form.Control type="email" defaultValue={user.email}
+										onChange={e => setEmail(e.target.value)} />
+								</Form.Group>
+								<Form.Group className="mb-3">
+									<Form.Label>{t("UserProfile.EditModal.password")}</Form.Label>
+									<Form.Control type="password" onChange={e => setPassword(e.target.value)} />
+									<Form.Text muted>{t("UserProfile.EditModal.hintPassword")}</Form.Text>
 									<Error ErrorText={errorMessage} Show={showError}
-									       SetShow={() => setShowError(false)}></Error>
-								</Form>
-								<ListGroup className='w-100 d-flex scroll pe-2'>
-									{
-										absences?.map((absence, index) =>
-											<ListGroup.Item key={index}
-											                className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
-												<Row className='w-100'>
-													<Col sm={4} className='d-flex align-items-center'>
-														<p className='m-0 fs-5'>{absence.date!.toLocaleString()}</p>
-													</Col>
-													<Col sm={4} className='d-flex align-items-center'>
-														<p className='m-0 fs-5'>{absence.type}</p>
-													</Col>
-													<Col className='d-flex align-items-center pe-0'>
-														<Button variant="outline-danger"
-														        onClick={() => handleRemoveAbsence(absence)}
-														        className='ms-auto'>
-															<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-															     fill="currentColor"
-															     className="bi bi-trash mb-1" viewBox="0 0 16 16">
-																<path
-																	d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
-																<path
-																	d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
-															</svg>
-														</Button>
-													</Col>
-												</Row>
-											</ListGroup.Item>
-										)
-									}
-								</ListGroup>
+										SetShow={() => setShowError(false)}></Error>
+								</Form.Group>
 							</Modal.Body>
 							<Modal.Footer>
-								<Button variant="secondary" onClick={handleCloseAbcense}>{t("close")}</Button>
+								<Button variant="secondary" onClick={handleCloseEdit}>{t("cancel")}</Button>
+								<Button variant="success" type="submit">{t("update")}</Button>
 							</Modal.Footer>
-						</Modal>
-						<NotificationModalWindow isShowed={error !== ""} dropMessage={setError}
-						                         messageType={MessageType.Error}>{error}</NotificationModalWindow>
-						<NotificationModalWindow isShowed={success !== ""} dropMessage={setSuccess}
-						                         messageType={MessageType.Success}>{success}</NotificationModalWindow>
-					</>
-				)
+						</Form>
+					</Modal>
+					<Modal
+						show={showPassword}
+						backdrop="static"
+						keyboard={false}
+						centered
+						data-bs-theme="dark"
+						onHide={handleClosePassword}
+					>
+						<Form onSubmit={e => handlePasswordUpdate(e)}>
+							<Modal.Header closeButton>
+								<Modal.Title>{t("UserProfile.ChangePasswordModal.header")}</Modal.Title>
+							</Modal.Header>
+							<Modal.Body>
+								<Form.Group className="mb-3">
+									<Form.Label>{t("UserProfile.ChangePasswordModal.newPass")}</Form.Label>
+									<Form.Control type="password" onChange={e => setNewPassword(e.target.value)} />
+								</Form.Group>
+								<Form.Group className="mb-3">
+									<Form.Label>{t("UserProfile.ChangePasswordModal.repeatNewPass")}</Form.Label>
+									<Form.Control type="password" onChange={e => setNewPasswordRepeat(e.target.value)} />
+								</Form.Group>
+								<Form.Group className="mb-3">
+									<Form.Label>{t("UserProfile.ChangePasswordModal.oldPass")}</Form.Label>
+									<Form.Control type="password" onChange={e => setPassword(e.target.value)} />
+									<Form.Text muted>{t("UserProfile.ChangePasswordModal.hintPassword")}</Form.Text>
+									<Error ErrorText={errorMessage} Show={showError}
+										SetShow={() => setShowError(false)}></Error>
+								</Form.Group>
+							</Modal.Body>
+							<Modal.Footer>
+								<Button variant="secondary" onClick={handleClosePassword}>{t("cancel")}</Button>
+								<Button variant="success" type="submit">{t("update")}</Button>
+							</Modal.Footer>
+						</Form>
+					</Modal>
+					<Modal
+						show={showAbsence}
+						backdrop="static"
+						keyboard={false}
+						centered
+						data-bs-theme="dark"
+						onHide={handleCloseAbcense}
+					>
+						<Modal.Header closeButton>
+							<Modal.Title>{t("UserProfile.AbsenceModal.header")}</Modal.Title>
+						</Modal.Header>
+						<Modal.Body>
+							<Form className='mb-2' onSubmit={e => handleAddAbsence(e)}>
+								<InputGroup>
+									<Form.Control type="date" onChange={e => setDate(new Date(e.target.value))} />
+									<Form.Select onChange={e => setType(e.target.value)}>
+										<option value="Absence">{t("UserProfile.AbsenceModal.absenceItem")}</option>
+										<option value="Illness">{t("UserProfile.AbsenceModal.illnessItem")}</option>
+									</Form.Select>
+									<Button variant='success' type='submit'>{t("add")}</Button>
+								</InputGroup>
+								<Error ErrorText={errorMessage} Show={showError}
+									SetShow={() => setShowError(false)}></Error>
+							</Form>
+							<ListGroup className='w-100 d-flex scroll pe-2'>
+								{
+									absences?.map((absence, index) =>
+										<ListGroup.Item key={index}
+											className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
+											<Row className='w-100'>
+												<Col sm={4} className='d-flex align-items-center'>
+													<p className='m-0 fs-5'>{absence.date!.toLocaleString()}</p>
+												</Col>
+												<Col sm={4} className='d-flex align-items-center'>
+													<p className='m-0 fs-5'>{absence.type}</p>
+												</Col>
+												<Col className='d-flex align-items-center pe-0'>
+													<Button variant="outline-danger"
+														onClick={() => handleRemoveAbsence(absence)}
+														className='ms-auto'>
+														<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+															fill="currentColor"
+															className="bi bi-trash mb-1" viewBox="0 0 16 16">
+															<path
+																d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
+															<path
+																d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
+														</svg>
+													</Button>
+												</Col>
+											</Row>
+										</ListGroup.Item>
+									)
+								}
+							</ListGroup>
+						</Modal.Body>
+						<Modal.Footer>
+							<Button variant="secondary" onClick={handleCloseAbcense}>{t("close")}</Button>
+						</Modal.Footer>
+					</Modal>
+					<Modal
+						show={isVisibleSet2fa}
+						onHide={() => setVisibleSet2fa(false)}
+						size='lg'
+						data-bs-theme="dark"
+						centered>
+						<Modal.Header closeButton className='h2'>2 factor authorization</Modal.Header>
+						<Modal.Body>
+							<Col className="d-flex  flex-row  ">
+								<Col>
+									<div className='h5'>Use QR code</div>
+									<Image thumbnail src={_2fAuthData?.qrUrl}></Image>
+								</Col>
+								<Col sm = {8} className='ms-3'>
+									<div className='h5'>If you cannot use QR code, use manual code</div>
+									<p><em className="autoWordSpace">{_2fAuthData?.manualEntry}</em></p>
+								</Col>
+							</Col>
+						</Modal.Body>
+						<Modal.Footer className='d-flex flex-row justify-content-between'>
+							<div className='w-50'>
+								<Form.Control
+									placeholder='one-time code'
+									onChange={(event) => setEnteredCode(event.target.value)}>
+								</Form.Control>
+							</div>
+							<Button variant='outline-success' className='w-25'
+								onClick={() => axajSetUser2fAuth(_2fAuthData!.key, enteredCode).subscribe({
+									next: () => {
+										setSuccess('You succesfully set 2 factor autorization')
+									},
+									error: (error) => {
+										console.log(error)
+										setError('Codes are not matched')
+									}
+								})}
+							>Set 2f auth</Button>
+						</Modal.Footer>
+					</Modal>
+
+					<Modal
+						show={isVisibleDrop2fa}
+						onHide={() => setVisibleDrop2fa(false)}
+						size='lg'
+						data-bs-theme="dark"
+						centered>
+						<Modal.Header closeButton className='h2'>Drop 2 factor authorization</Modal.Header>
+						<Modal.Body className='d-flex flex-row justify-content-between'>
+							<div className='w-50 ms-3'>
+								<Form.Control
+									placeholder='one-time code'
+									onChange={(event) => setCode(event.target.value)}>
+								</Form.Control>
+							</div>
+							<Button variant='outline-success' className='w-25'
+								onClick={() => ajaxFor2fDrop(code, WayToDrop2f.Code).subscribe({
+									next: () => {
+										setSuccess('You succesfully drop 2 factor autorization')
+									},
+									error: (error) => {
+										console.log(error)
+										setError('Codes are not matched')
+									}
+								})}
+							>Drop 2f auth</Button>
+						</Modal.Body>
+						<Modal.Footer>
+						</Modal.Footer>
+					</Modal>
+					<NotificationModalWindow isShowed={error !== ""} dropMessage={setError}
+						messageType={MessageType.Error}>{error}</NotificationModalWindow>
+					<NotificationModalWindow isShowed={success !== ""} dropMessage={setSuccess}
+						messageType={MessageType.Success}>{success}</NotificationModalWindow>
+				</>
+			)
 				: (
 					<p>User not found</p>
 				)

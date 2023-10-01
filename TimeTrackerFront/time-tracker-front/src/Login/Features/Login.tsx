@@ -62,7 +62,7 @@ export default function Login() {
       }
     }).subscribe(getQueryObserver(setErrorMessage, setShowError, () => {
       dispatch(setLoginByToken(true))
-    }, navigate, "/", t))
+    }, navigate, t))
   }
 
   useEffect(() => {

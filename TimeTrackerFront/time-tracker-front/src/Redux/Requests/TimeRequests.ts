@@ -133,13 +133,13 @@ export enum TokenAjaxStatus {
     Error
 }
 
-export function GetAjaxObservable<T>(query: string, variables: {}, withCredentials = false,) {
+export function GetAjaxObservable<T>(query: string, variables: {}, withCredentials = false,requestUrl = url,forGraphql = true) {
 
     return GetTokenObservable().pipe(
         mergeMap(() => {
             const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
             return ajax<response<T>>({
-                url,
+                url:requestUrl,
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

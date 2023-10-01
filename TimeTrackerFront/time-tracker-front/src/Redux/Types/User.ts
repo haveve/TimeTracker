@@ -17,7 +17,8 @@ export interface User {
     monthSeconds?: number,
     workHours?: number,
     timeManagedBy?:LasUpdatedBy,
-    enabled?: boolean
+    enabled?: boolean,
+    key2Auth?: string
 }
 
 export enum LasUpdatedBy

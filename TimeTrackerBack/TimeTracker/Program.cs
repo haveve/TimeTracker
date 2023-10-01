@@ -198,11 +198,12 @@ public class CustomJwtBearerHandler : JwtBearerHandler
         }
 
         var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+        var tokenData = _authorizationManager.ReadJwtToken(token);
+        var isAccess = tokenData.Claims.FirstOrDefault(c=>c.Type == "IsAccess")?.Value;
 
-        if (_authorizationManager.IsValidToken(token))
+        if (_authorizationManager.IsValidToken(token) && bool.TryParse(isAccess,out bool value) && value)
         {
-            var a = _authorizationManager.ReadJwtToken(token);
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(a.Claims, "Token"));
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
             return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
         }
 

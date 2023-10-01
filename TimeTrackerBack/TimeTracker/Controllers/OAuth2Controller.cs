@@ -15,6 +15,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using TimeTracker.GraphQL.Types.IdentityTipes.Models;
 using TimeTracker.Services.ForeignServiceAuth;
+using TimeTracker.Helpers;
+using TimeTracker.Models;
+using static QRCoder.PayloadGenerator;
 
 namespace TimeTracker.Controllers
 {
@@ -22,10 +25,10 @@ namespace TimeTracker.Controllers
     {
 
         [Route("foreign-service-auth")]
-        public IActionResult GoogleAuth([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService,string serviceName)
+        public IActionResult ForeignServiceAuth([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService, string serviceName)
         {
 
-            IOauthService service = oauthService.GetService(serviceName);
+            IOauthService? service = oauthService.GetService(serviceName);
 
             if (service == null)
             {
@@ -34,23 +37,23 @@ namespace TimeTracker.Controllers
 
             HttpContext.Response.Cookies.Append("serviceName", serviceName);
 
-            string DomainName = "https://"+HttpContext.Request.Host.Value;
-            string redirectUrl = DomainName+ "/foreign-service-response";
+            string DomainName = "https://" + HttpContext.Request.Host.Value;
+            string redirectUrl = DomainName + "/foreign-service-response";
             string googleRedirect = service.GenerateOAuthRequestUrl(redirectUrl, config[$"Secrets:{serviceName}:ClientId"]!);
             return Redirect(googleRedirect);
         }
 
         [Route("foreign-service-response")]
-        public async Task<IActionResult> GoogleResponse([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService,[FromServices] IUserRepository userRepository,[FromServices] IAuthorizationManager authorizationManager,[FromServices]IAuthorizationRepository _authorizationRepository, string code)
+        public async Task<IActionResult> ForeignServiceResponse([FromServices] IConfiguration config, [FromServices] OauthFactory oauthService, [FromServices] IUserRepository userRepository, [FromServices] IAuthorizationManager authorizationManager, [FromServices] IAuthorizationRepository _authorizationRepository, string code)
         {
-            string value;
+            string? value;
 
-            if(!HttpContext.Request.Cookies.TryGetValue("serviceName", out value))
+            if (!HttpContext.Request.Cookies.TryGetValue("serviceName", out value))
             {
                 return Redirect("error?error=there is no specified service");
             }
 
-            IOauthService service = oauthService.GetService(value);
+            IOauthService? service = oauthService.GetService(value);
 
             if (service == null)
             {
@@ -71,28 +74,42 @@ namespace TimeTracker.Controllers
 
             var user = userRepository.GetUserByEmailOrLogin(email);
 
-            if(user == null)
+            if (user == null)
             {
                 return Redirect("error?error=user does not exist");
             }
 
 
+            if(user.Key2Auth != null)
+            {
+                var refresh_2f_tokens = authorizationManager.GetRefreshToken(user.Id);
+                _authorizationRepository.CreateRefreshToken(refresh_2f_tokens, user.Id,false);
+
+                var tempToken = _2fAuthHelper.GetTemporaty2fAuthToken(user, refresh_2f_tokens, config["JWT:Author"], config["JWT:Audience"], config["JWT:Key"]);
+
+                Dictionary<string, string?> tempQueryParams = new Dictionary<string, string?>
+            {
+                { "tempToken", tempToken }
+            };
+
+                return Redirect(QueryHelpers.AddQueryString("http://" + config["FrontDomain"]! + "/2f-auth", tempQueryParams));
+            }
+
             var refresh_tokens = authorizationManager.GetRefreshToken(user.Id);
             _authorizationRepository.CreateRefreshToken(refresh_tokens, user.Id);
 
-            Dictionary<string, string> queryParams = new Dictionary<string, string>
+            Dictionary<string, string?> queryParams = new Dictionary<string, string?>
             {
                 { "expiredAt", JsonSerializer.Serialize(refresh_tokens.expiredAt)},
                 { "issuedAt", JsonSerializer.Serialize(refresh_tokens.issuedAt) },
                 { "token", refresh_tokens.token }
             };
 
-            var url = QueryHelpers.AddQueryString("http://" + config["FrontDomain"]! +"/Login", queryParams);
-
-
+            var url = QueryHelpers.AddQueryString("http://" + config["FrontDomain"]! + "/Login", queryParams);
 
             return Redirect(url);
         }
+
         [Route("error")]
         public IActionResult Error(string error)
         {
