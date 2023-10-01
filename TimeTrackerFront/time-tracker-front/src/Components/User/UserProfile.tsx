@@ -463,6 +463,7 @@ function UserProfile() {
 								onClick={() => axajSetUser2fAuth(_2fAuthData!.key, enteredCode).subscribe({
 									next: () => {
 										setSuccess('You succesfully set 2 factor autorization')
+										setUser(u=>({...u,key2Auth:'key'}));
 									},
 									error: (error) => {
 										console.log(error)
@@ -491,6 +492,7 @@ function UserProfile() {
 								onClick={() => ajaxFor2fDrop(code, WayToDrop2f.Code).subscribe({
 									next: () => {
 										setSuccess('You succesfully drop 2 factor autorization')
+										setUser(u=>({...u,key2Auth:null}));
 									},
 									error: (error) => {
 										console.log(error)
