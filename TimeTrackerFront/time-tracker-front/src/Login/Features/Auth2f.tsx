@@ -23,7 +23,7 @@ export default function Auth2f(){
             onChange={(event)=>setCode(event.target.value)}></Form.Control>
             <Button variant="outline-success mt-4" onClick={()=>{
                 ajaxVerifyUserCode(token,code).subscribe({
-                    error:(error)=>setError("Error"),
+                    error:(error)=>setError("Codes are not matched"),
                     next:(response)=>redirect(response.response as string)
                 })
             }}> Verify 2f code</Button>

@@ -204,7 +204,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             {
                 var today = DateTime.UtcNow.AddHours(offSet);
 
-                var seconds = (session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds;
+                var seconds = 0;
                 var dateStartOfWeek = DateTime.UtcNow.AddHours(offSet).StartOfWeek(startNetOfWeek);
                 var dateEndOfWeek = DateTime.UtcNow.AddHours(offSet).StartOfWeek(startNetOfWeek).AddDays(6);
 
@@ -218,37 +218,20 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
 
                 if (session.IsBelogedThisDay(dayEqualsComparer,today,offSet))
                 {
-                    int getSeconds;
 
-                    if(session.TryGetSecondsIfOutOfDay(offSet, dayEqualsComparer,out getSeconds))
-                    {
-                        seconds = getSeconds;
-                    }
-
+                    seconds = (int)(session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds; 
                     timeSession.TimeMark = TimeMark.Day;
 
                 }
                 else if (session.IsBelogedThisWeek(dateStartOfWeek,dateEndOfWeek, offSet))
                 {
-                    int getSeconds;
-
-                    if (session.TryGetSecondsIfOutOfWeek(offSet, startNetOfWeek, out getSeconds))
-                    {
-                        seconds = getSeconds;
-                    }
-
+                    seconds = (int)(session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds;
                     timeSession.TimeMark = TimeMark.Week;
 
                 }
                 else if (session.IsBelogedThisMonth(dateStartOfMonth, dateEndOfMonth, offSet))
                 {
-                    int getSeconds;
-
-                    if (session.TryGetSecondsIfOutOfMonth(offSet, out getSeconds))
-                    {
-                        seconds = getSeconds;
-                    }
-
+                    seconds = (int)(session.EndTimeTrackDate - session.StartTimeTrackDate).Value.TotalSeconds;
                     timeSession.TimeMark = TimeMark.Month;
 
                 }
@@ -256,7 +239,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
                 {
                     timeSession.TimeMark = TimeMark.Year;
                 }
-                return (int)seconds;
+                return seconds;
             }
             return 0;
         }
@@ -318,8 +301,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             if (operand.EndTimeTrackDate is null)
                 return false;
 
-            return dayEqualsComparer.DateEquals(operand.StartTimeTrackDate.AddHours(offSet), today)
-                || dayEqualsComparer.DateEquals(operand.EndTimeTrackDate.Value.AddHours(offSet), today);
+            return dayEqualsComparer.DateEquals(operand.StartTimeTrackDate.AddHours(offSet), today);
         }
 
         public static bool IsBelogedThisWeek(this Models.Time operand, DateTime dateStartOfWeek, DateTime dateEndOfWeek, int offSet = 0)
@@ -327,8 +309,7 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             if (operand.EndTimeTrackDate is null)
                 return false;
 
-            return (dateStartOfWeek.Ticks <= operand.StartTimeTrackDate.AddHours(offSet).Ticks && operand.StartTimeTrackDate.AddHours(offSet).Ticks <= dateEndOfWeek.Ticks)
-                    || (dateStartOfWeek.Ticks <= operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks && operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks <= dateEndOfWeek.Ticks);
+            return (dateStartOfWeek.Ticks <= operand.StartTimeTrackDate.AddHours(offSet).Ticks && operand.StartTimeTrackDate.AddHours(offSet).Ticks <= dateEndOfWeek.Ticks);
         }
 
         public static bool IsBelogedThisMonth(this Models.Time operand, DateTime dateStartOfMonth, DateTime dateEndOfMonth,int offSet = 0)
@@ -336,99 +317,8 @@ namespace TimeTracker.GraphQL.Types.TimeQuery
             if (operand.EndTimeTrackDate is null)
                 return false;
 
-            return (dateStartOfMonth.Ticks <= operand.StartTimeTrackDate.AddHours(offSet).Ticks && operand.StartTimeTrackDate.AddHours(offSet).Ticks <= dateEndOfMonth.Ticks)
-                    || (dateStartOfMonth.Ticks <= operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks && operand.EndTimeTrackDate.Value.AddHours(offSet).Ticks <= dateEndOfMonth.Ticks);
+            return (dateStartOfMonth.Ticks <= operand.StartTimeTrackDate.AddHours(offSet).Ticks && operand.StartTimeTrackDate.AddHours(offSet).Ticks <= dateEndOfMonth.Ticks);
         }
-
-        public static bool TryGetSecondsIfOutOfDay(this Models.Time operand, int offSet, Comparer dayEqualsComparer, out int seconds)
-        {
-            seconds = 0;
-
-            if (operand.EndTimeTrackDate is null)
-                return false;
-
-            DateTime startDateInRequesterTime = operand.StartTimeTrackDate.AddHours(offSet);
-            DateTime endDateInRequesterTime = operand.EndTimeTrackDate!.Value.AddHours(offSet);
-
-            DateTime now = DateTime.UtcNow.AddHours(offSet);
-
-            if (!dayEqualsComparer.DateEquals(endDateInRequesterTime, endDateInRequesterTime) && dayEqualsComparer.DateEquals(endDateInRequesterTime, now))
-            {
-                seconds = (int)(endDateInRequesterTime - now.StartOfDay()).TotalSeconds;
-                return true;
-            }
-
-            if (!dayEqualsComparer.DateEquals(endDateInRequesterTime, endDateInRequesterTime) && dayEqualsComparer.DateEquals(startDateInRequesterTime, now))
-            {
-                seconds = (int)(startDateInRequesterTime - now.StartOfDay()).TotalSeconds;
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool TryGetSecondsIfOutOfWeek(this Models.Time operand, int offSet, DayOfWeek startNetOfWeek, out int seconds)
-        {
-            seconds = 0;
-
-            if (operand.EndTimeTrackDate is null)
-                return false;
-
-            DateTime startDateInRequesterTime = operand.StartTimeTrackDate.AddHours(offSet);
-            DateTime endDateInRequesterTime = operand.EndTimeTrackDate!.Value.AddHours(offSet);
-
-            DateTime now = DateTime.UtcNow.AddHours(offSet);
-
-            DateTime dateStartOfWeek = now.StartOfWeek(startNetOfWeek);
-            DateTime dateEndOfWeek = dateStartOfWeek.AddDays(6);
-
-            if (endDateInRequesterTime.IsBetwee(dateStartOfWeek, dateEndOfWeek) && !startDateInRequesterTime.IsBetwee(dateStartOfWeek, dateEndOfWeek))
-            {
-                seconds = (int)(endDateInRequesterTime - dateStartOfWeek).TotalSeconds;
-                return true;
-            }
-
-            if (startDateInRequesterTime.IsBetwee(dateStartOfWeek, dateEndOfWeek) && !endDateInRequesterTime.IsBetwee(dateStartOfWeek, dateEndOfWeek))
-            {
-                seconds = (int)(startDateInRequesterTime - dateStartOfWeek).TotalSeconds;
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool TryGetSecondsIfOutOfMonth(this Models.Time operand, int offSet, out int seconds)
-        {
-            seconds = 0;
-
-            if (operand.EndTimeTrackDate is null)
-                return false;
-
-            DateTime startDateInRequesterTime = operand.StartTimeTrackDate.AddHours(offSet);
-            DateTime endDateInRequesterTime = operand.EndTimeTrackDate!.Value.AddHours(offSet);
-
-            DateTime now = DateTime.UtcNow.AddHours(offSet);
-
-            int dayInMonth = DateTime.DaysInMonth(now.Year, now.Month);
-
-            DateTime dateStartOfMonth = now.StartOfMonth();
-            DateTime dateEndOfMonth = dateStartOfMonth.AddDays(dayInMonth-1);
-
-            if (endDateInRequesterTime.IsBetwee(dateStartOfMonth, dateEndOfMonth) && !startDateInRequesterTime.IsBetwee(dateStartOfMonth, dateEndOfMonth))
-            {
-                seconds = (int)(endDateInRequesterTime - dateStartOfMonth).TotalSeconds;
-                return true;
-            }
-
-            if (startDateInRequesterTime.IsBetwee(dateStartOfMonth, dateEndOfMonth) && !endDateInRequesterTime.IsBetwee(dateStartOfMonth, dateEndOfMonth))
-            {
-                seconds = (int)(startDateInRequesterTime - dateStartOfMonth).TotalSeconds;
-                return true;
-            }
-
-            return false;
-        }
-
     }
 
 

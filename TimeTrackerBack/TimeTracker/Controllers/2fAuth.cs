@@ -52,7 +52,7 @@ namespace TimeTracker.Controllers
 
         [AllowAnonymous]
         [Route("verify-2f-auth")]
-        public IActionResult Verify2fAuth([FromServices] IUserRepository userRepository, [FromServices] IConfiguration config, [FromServices] IAuthorizationManager authorizationManager, [FromServices] IAuthorizationRepository _authorizationRepository, [FromQuery] string token, [FromQuery] string code)
+        public IActionResult Verify2fAuth([FromServices] IUserRepository userRepository, [FromServices] IAuthorizationManager authorizationManager, [FromServices] IAuthorizationRepository _authorizationRepository, [FromQuery] string token, [FromQuery] string code)
         {
             if (!authorizationManager.IsValidToken(token))
             {
@@ -104,18 +104,14 @@ namespace TimeTracker.Controllers
             }
 
             var id = TimeQueryGraphQLType.GetUserIdFromClaims(HttpContext.User);
-
-            TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-
             string? key = authorizationRepository.Get2factorKey(id);
 
             switch (way)
             {
                 case WayToDrop2f.Code:
                     {
-                        if (!tfa.ValidateTwoFactorPIN(key, code))
-                            return BadRequest("Invalid one-time code");
-
+                        if (key == null || !_2fAuthHelper.Check2fAuth(key, code))
+                            return BadRequest("Invalid one-time code or you does not turn on 2f auth");
 
                         authorizationRepository.Drop2factorKey(id, code, way);
                         break;
