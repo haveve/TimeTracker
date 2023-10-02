@@ -28,6 +28,8 @@ import NotificationModalWindow, { MessageType } from '../Service/NotificationMod
 import { useTranslation } from "react-i18next";
 import { startOfWeek } from '../../Redux/Slices/LocationSlice';
 import { ajaxFor2fAuth, ajaxFor2fDrop, WayToDrop2f, axajSetUser2fAuth, _2fAuthResult } from '../../Login/Api/login-logout';
+import Drop2factorAuht from './Drop2f';
+import Set2factorAuth from './Set2f';
 
 function UserProfile() {
 	const { t } = useTranslation();
@@ -433,77 +435,8 @@ function UserProfile() {
 							<Button variant="secondary" onClick={handleCloseAbcense}>{t("close")}</Button>
 						</Modal.Footer>
 					</Modal>
-					<Modal
-						show={isVisibleSet2fa}
-						onHide={() => setVisibleSet2fa(false)}
-						size='lg'
-						data-bs-theme="dark"
-						centered>
-						<Modal.Header closeButton className='h2'>2 factor authorization</Modal.Header>
-						<Modal.Body>
-							<Col className="d-flex  flex-row  ">
-								<Col>
-									<div className='h5'>Use QR code</div>
-									<Image thumbnail src={_2fAuthData?.qrUrl}></Image>
-								</Col>
-								<Col sm = {8} className='ms-3'>
-									<div className='h5'>If you cannot use QR code, use manual code</div>
-									<p><em className="autoWordSpace">{_2fAuthData?.manualEntry}</em></p>
-								</Col>
-							</Col>
-						</Modal.Body>
-						<Modal.Footer className='d-flex flex-row justify-content-between'>
-							<div className='w-50'>
-								<Form.Control
-									placeholder='one-time code'
-									onChange={(event) => setEnteredCode(event.target.value)}>
-								</Form.Control>
-							</div>
-							<Button variant='outline-success' className='w-25'
-								onClick={() => axajSetUser2fAuth(_2fAuthData!.key, enteredCode).subscribe({
-									next: () => {
-										setSuccess('You succesfully set 2 factor autorization')
-										setUser(u=>({...u,key2Auth:'key'}));
-									},
-									error: (error) => {
-										console.log(error)
-										setError('Codes are not matched')
-									}
-								})}
-							>Set 2f auth</Button>
-						</Modal.Footer>
-					</Modal>
-
-					<Modal
-						show={isVisibleDrop2fa}
-						onHide={() => setVisibleDrop2fa(false)}
-						size='lg'
-						data-bs-theme="dark"
-						centered>
-						<Modal.Header closeButton className='h2'>Drop 2 factor authorization</Modal.Header>
-						<Modal.Body className='d-flex flex-row justify-content-between'>
-							<div className='w-50 ms-3'>
-								<Form.Control
-									placeholder='one-time code'
-									onChange={(event) => setCode(event.target.value)}>
-								</Form.Control>
-							</div>
-							<Button variant='outline-success' className='w-25'
-								onClick={() => ajaxFor2fDrop(code, WayToDrop2f.Code).subscribe({
-									next: () => {
-										setSuccess('You succesfully drop 2 factor autorization')
-										setUser(u=>({...u,key2Auth:null}));
-									},
-									error: (error) => {
-										console.log(error)
-										setError('Codes are not matched')
-									}
-								})}
-							>Drop 2f auth</Button>
-						</Modal.Body>
-						<Modal.Footer>
-						</Modal.Footer>
-					</Modal>
+					<Drop2factorAuht isVisibleDrop2fa={isVisibleDrop2fa} setVisibleDrop2fa={setVisibleDrop2fa} setUser={setUser} />
+					<Set2factorAuth isVisibleSet2fa={isVisibleSet2fa} setVisibleSet2fa={setVisibleSet2fa} setUser={setUser} _2fAuthData={_2fAuthData} />
 					<NotificationModalWindow isShowed={error !== ""} dropMessage={setError}
 						messageType={MessageType.Error}>{error}</NotificationModalWindow>
 					<NotificationModalWindow isShowed={success !== ""} dropMessage={setSuccess}
