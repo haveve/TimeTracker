@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿ 
+using System.Globalization;
 using TimeTracker.GraphQL.Types.Calendar;
 using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
@@ -27,7 +28,7 @@ namespace TimeTracker.Services
             IEmailSender emailSender,
             ITransactionService transactionService,
             ILogger<BackgroundTasksService> logger
-            )
+        )
         {
             Logger = logger;
             TimeRepository = timeRepository;
@@ -39,6 +40,7 @@ namespace TimeTracker.Services
             EmailSender = emailSender;
             TransactionService = transactionService;
         }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             do
@@ -51,12 +53,17 @@ namespace TimeTracker.Services
                     transaction.AddToExecuteString(UpdateRepository.GetQuerySetLastUpdate(date));
                     updateFullTimersWorkTime(date, transaction);
 
+                    var lastBusinessDay = getLastBusinessDay(date);
+                    if (date.Day == lastBusinessDay?.Day)
+                    {
+                        CheckUsersWorkTime(date);
+                    }
+
                     if (date.Day == 1)
                     {
                         transaction.AddToExecuteString(UserRepository.GetQueryAddUsersVacationDays());
-                        CheckUsersWorkTime(date);
                     }
-                    
+
                     try
                     {
                         transaction.Execute(TransactionService);
@@ -66,9 +73,9 @@ namespace TimeTracker.Services
                         Logger.LogInformation("Background task that updates time already was invoked");
                     }
                 }
+
                 await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
-            }
-            while (!stoppingToken.IsCancellationRequested);
+            } while (!stoppingToken.IsCancellationRequested);
         }
 
         private void updateFullTimersWorkTime(DateTime date, Transaction transaction)
@@ -92,8 +99,9 @@ namespace TimeTracker.Services
 
             time.StartTimeTrackDate = new DateTime(date.Year, date.Month, date.Day, 9, 0, 0);
 
-            time.EndTimeTrackDate = bIsShortDay ? new DateTime(date.Year, date.Month, date.Day, 17, 0, 0) :
-                new DateTime(date.Year, date.Month, date.Day, 16, 0, 0);
+            time.EndTimeTrackDate = bIsShortDay
+                ? new DateTime(date.Year, date.Month, date.Day, 17, 0, 0)
+                : new DateTime(date.Year, date.Month, date.Day, 16, 0, 0);
 
             foreach (var user in users)
             {
@@ -103,6 +111,7 @@ namespace TimeTracker.Services
                 }
             }
         }
+
         public string CheckUserDay(int userId, DateTime date)
         {
             if (AbsenceRepository.GetUserDayAbsence(userId, date) != null) return "Absent";
@@ -117,7 +126,9 @@ namespace TimeTracker.Services
 
             foreach (var user in list)
             {
-                var userTime = TimeQueryGraphQLType.GetTimeFromSession(TimeRepository.GetUserMonthTime(user.Id, d.Month), new List<ViewModels.TimeMark>(), 0, startOfWeek.Monday);
+                var userTime = TimeQueryGraphQLType.GetTimeFromSession(
+                    TimeRepository.GetUserMonthTime(user.Id, d.Month), new List<ViewModels.TimeMark>(), 0,
+                    startOfWeek.Monday);
 
                 var time = TimeQueryGraphQLType.GetMonthWorkTime(user.Id, d, UserRepository, CalendarRepository);
 
@@ -126,6 +137,31 @@ namespace TimeTracker.Services
                     EmailSender.SendBadMonthlyWorkResults(user, time, userTime.Time.MonthSeconds);
                 }
             }
+        }
+
+        public DateTime? getLastBusinessDay(DateTime date)
+        {
+            var globalEvents = CalendarRepository.GetAllGlobalEvents(MonthOrWeek.Month, date);
+            int lastDay = DateTime.DaysInMonth(date.Year, date.Month);
+            for (int currDay = lastDay; currDay > 0; currDay--)
+            {
+                var currDate = new DateTime(date.Year, date.Month, currDay);
+                if (currDate.DayOfWeek == DayOfWeek.Sunday || currDate.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    continue;
+                }
+
+                var eventAtDate = globalEvents.Find(globalEvent => globalEvent.Date.Day == currDate.Day);
+                if (eventAtDate?.TypeOfGlobalEvent == TypeOfGlobalEvent.Holiday ||
+                    eventAtDate?.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate)
+                {
+                    continue;
+                }
+
+                return currDate;
+            }
+
+            return null;
         }
     }
 }

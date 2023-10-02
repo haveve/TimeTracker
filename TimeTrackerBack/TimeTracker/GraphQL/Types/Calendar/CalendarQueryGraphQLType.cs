@@ -23,7 +23,8 @@ namespace TimeTracker.GraphQL.Types.Calendar
                 .Argument<NonNullGraphType<EnumerationGraphType<MonthOrWeek>>>("weekOrMonth")
                 .Resolve(context =>
                 {
-                    var userId = context.GetArgument<int?>("userId") ?? TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
+                    var userId = context.GetArgument<int?>("userId") ??
+                                 TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                     var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
                     var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
                     var events = _calendarRepository.GetAllEvents(userId, weekOrMonth, date);
@@ -48,26 +49,26 @@ namespace TimeTracker.GraphQL.Types.Calendar
                     return new CalendarPage()
                     {
                         CalendarUsers = list.Skip(pageNumber * itemsInPage).Take(itemsInPage)
-                                               .Select(u => new CalendarUserViewModel() { Email = u.Email, Id = u.Id, FullName = u.FullName })
-                                               .ToList(),
+                            .Select(u => new CalendarUserViewModel()
+                                { Email = u.Email, Id = u.Id, FullName = u.FullName })
+                            .ToList(),
                         Count = list.Count()
                     };
                 });
 
             Field<ListGraphType<NonNullGraphType<CalendarGlobalOutputGraphType>>>("getGlobalEvents")
-            .Argument<NonNullGraphType<DateTimeGraphType>>("date")
-            .Argument<NonNullGraphType<EnumerationGraphType<MonthOrWeek>>>("weekOrMonth")
-            .Resolve(context =>
-    {
-        var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
-        var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
+                .Argument<NonNullGraphType<DateTimeGraphType>>("date")
+                .Argument<NonNullGraphType<EnumerationGraphType<MonthOrWeek>>>("weekOrMonth")
+                .Resolve(context =>
+                {
+                    var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
+                    var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
 
-        var globalCalendar = _calendarRepository.GetAllGlobalEvents(weekOrMonth, date);
+                    var globalCalendar = _calendarRepository.GetAllGlobalEvents(weekOrMonth, date);
 
 
-        return globalCalendar;
-    });
-
+                    return globalCalendar;
+                });
         }
     }
 
