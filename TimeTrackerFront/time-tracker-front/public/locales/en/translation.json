@@ -301,5 +301,15 @@
     "header": "Settings",
     "chooseLang": "App lenguage",
     "location": "Location"
+  },
+  "Auth2factor":{
+    "successfullySet": "You succesfully set 2 factor autorization",
+    "successfullyDrop": "You succesfully droped 2 factor autorization",
+    "notMatched":"Codes are not matched",
+    "oneTimeCde": "one-time code",
+    "manualCode": "If you cannot use QR code, use manual code",
+    "useQr":"Use QR code",
+    "drop2fTitle":"Drop 2 factor authorization",
+    "set2fTitle":"Set 2 factor authorization"
   }
 }
