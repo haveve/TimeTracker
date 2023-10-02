@@ -74,7 +74,7 @@ namespace TimeTracker.Controllers
                     return BadRequest("Invalid one-time code or you does not turn on 2f auth");
                 }
 
-                _authorizationRepository.Activate2fRefreshToken(refreshToken, userId);
+                _authorizationRepository.CreateRefreshToken(new(refreshToken,expiredAt,issuedAt), user.Id);
 
                 Dictionary<string, string?> queryParams = new Dictionary<string, string?>
             {

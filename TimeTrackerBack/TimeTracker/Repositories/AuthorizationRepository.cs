@@ -16,19 +16,12 @@ namespace TimeTracker.Repositories
             _dapperContext = context;
         }
 
-        void IAuthorizationRepository.CreateRefreshToken(TokenResult refreshToken, int userId,bool? _2fActivatedValue = null)
+        void IAuthorizationRepository.CreateRefreshToken(TokenResult refreshToken, int userId)
         {
 
-            string query = "INSERT INTO UserRefreshes (UserId, ExpiresStart, ExpiresEnd, Token,Activated2fAuth) VALUES(@userId, @issuedAt, @expiredAt, @token,@_2fActivatedValue)";
+            string query = "INSERT INTO UserRefreshes (UserId, ExpiresStart, ExpiresEnd, Token) VALUES(@userId, @issuedAt, @expiredAt, @token)";
             using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query, new { userId, refreshToken.token, refreshToken.expiredAt, refreshToken.issuedAt, _2fActivatedValue });
-        }
-
-        void IAuthorizationRepository.Activate2fRefreshToken(string refreshToken, int userId)
-        {
-            string query = "UPDATE UserRefreshes SET Activated2fAuth = @activatedValue WHERE UserId = @userId AND Token = @refreshToken";
-            using var connection = _dapperContext.CreateConnection();
-            connection.Execute(query, new { activatedValue = true, refreshToken ,userId});
+            connection.Execute(query, new { userId, refreshToken.token, refreshToken.expiredAt, refreshToken.issuedAt});
         }
 
         void IAuthorizationRepository.DeleteAllRefreshTokens(int userId)

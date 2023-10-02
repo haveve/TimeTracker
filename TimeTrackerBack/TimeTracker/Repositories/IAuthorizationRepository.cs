@@ -6,8 +6,7 @@ namespace TimeTracker.Repositories
 {
     public interface IAuthorizationRepository
     {
-        public void CreateRefreshToken(TokenResult refreshToken,int userId, bool? _2fActivatedValue = null);
-        public void Activate2fRefreshToken(string refreshToken, int userId);
+        public void CreateRefreshToken(TokenResult refreshToken,int userId);
         public void UpdateRefreshToken(string oldRefreshToken, TokenResult refreshToken, int userId);
         public void DeleteRefreshToken(string refreshToken);
         public void DeleteAllRefreshTokens(int userId);

@@ -83,7 +83,6 @@ namespace TimeTracker.Controllers
             if(user.Key2Auth != null)
             {
                 var refresh_2f_tokens = authorizationManager.GetRefreshToken(user.Id);
-                _authorizationRepository.CreateRefreshToken(refresh_2f_tokens, user.Id,false);
 
                 var tempToken = _2fAuthHelper.GetTemporaty2fAuthToken(user, refresh_2f_tokens, config["JWT:Author"], config["JWT:Audience"], config["JWT:Key"]);
 

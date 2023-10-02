@@ -105,11 +105,6 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
                 return new ValidateRefreshAndGetAccess(null, false, "Refresh token is expired");
             }
 
-            if(savedToken.Activated2fAuth == false)
-            {
-                return new ValidateRefreshAndGetAccess(null, false, "Refresh token is not activated");
-            }
-
             return new ValidateRefreshAndGetAccess(GetAccessToken(userId), true, null);
 
         }
