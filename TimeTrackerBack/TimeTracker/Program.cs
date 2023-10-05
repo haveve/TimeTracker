@@ -26,7 +26,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 
-builder.Services.AddHostedService<BackgroundTasksService>();
+//builder.Services.AddHostedService<BackgroundTasksService>();
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 
@@ -52,7 +52,6 @@ builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
 builder.Services.AddAuthentication(opt =>
 {
     opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    opt.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 })
     .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { })
     .AddGoogle(options =>

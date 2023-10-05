@@ -28,7 +28,7 @@ interface GraphqlUserTime {
     }
 }
 
-export const domainBack = "localhost:7226";
+export const domainBack = "time-tracker3.azurewebsites.net";
 const url = "https://"+domainBack+"/graphql";
 
 export enum RefreshStatus {

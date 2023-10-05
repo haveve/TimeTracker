@@ -9,6 +9,7 @@ using System.Net;
 using Microsoft.AspNetCore.WebUtilities;
 using TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace TimeTracker.Controllers
 {
@@ -96,9 +97,9 @@ namespace TimeTracker.Controllers
 
 
         [Route("drop-2f-auth")]
-        public IActionResult Drop2fAuth([FromServices] IConfiguration config,[FromServices] IAuthorizationRepository authorizationRepository, [FromQuery]string code, [FromQuery] WayToDrop2f way)
+        public IActionResult Drop2fAuth([FromServices] IConfiguration config, [FromServices] IAuthorizationRepository authorizationRepository, [BindRequired][FromQuery] string code, [BindRequired][FromQuery] WayToDrop2f way)
         {
-            if (!ModelState.IsValid)
+            if (! ModelState.IsValid )
             {
                 return BadRequest("Invalid parameters");
             }
