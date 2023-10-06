@@ -11,6 +11,8 @@ namespace TimeTracker.Repositories
     {
         public List<User> GetUsers();
         public List<User> GetSearchedSortedfUsers(string search, string orderfield, string order, string enabled);
+        public List<User> GetFulltimers();
+        public List<User> GetEnabledUsers();
         public User GetUser(int id);
         public User? GetUserByCredentials(string login, string password,bool hashed = false);
         public Permissions GetUserPermissions(int id);
@@ -20,6 +22,7 @@ namespace TimeTracker.Repositories
         public void UpdateUserPassword(int id,string Password);
         public void UpdateUserPermissions(Permissions permissions);
         public void AddUsersVacationDays();
+        public string GetQueryAddUsersVacationDays();
         public void DisableUser(int id);
         public void DeleteUser(int id);
         User? GetUserByEmailOrLogin(string LoginOrEmail);

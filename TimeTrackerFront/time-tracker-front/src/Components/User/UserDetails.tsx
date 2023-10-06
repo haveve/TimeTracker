@@ -10,15 +10,19 @@ import {
     Col,
     ListGroupItem,
     ListGroup,
-    Overlay, Pagination
+    Overlay, Pagination, Image, Alert
 } from "react-bootstrap";
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import '../../Custom.css';
+import dayImg from '../../Pictures/day-session-img.png'
+import weekImg from '../../Pictures/week-session-img.png'
+import monthImg from '../../Pictures/month-session-img.png'
+import yearImg from '../../Pictures/year-session-img.png'
 import { ErrorMassagePattern, getUsers } from '../../Redux/epics';
-import { TimeForStatisticFromSeconds } from '../Time/TimeStatistic';
-import { RequestGetTotalWorkTime, RequestUserTime } from '../../Redux/Requests/TimeRequests';
+import { TimeForStatisticFromSeconds, itemsInPage } from '../Time/TimeStatistic';
+import { RequestCreateUserDate, RequestDeleteUserDate, RequestGetTime, RequestGetTotalWorkTime, RequestUserTime } from '../../Redux/Requests/TimeRequests';
 import { User } from '../../Redux/Types/User';
 import {
     RequestDisableUser,
@@ -31,7 +35,7 @@ import { addApprover, deleteApprover, getApprovers } from "../../Redux/VacationE
 import { getPagedUsers } from "../../Redux/epics"
 import { ApproverNode } from "../../Redux/Types/ApproverNode";
 import { Page } from "../../Redux/Types/Page";
-import { Time } from '../../Redux/Types/Time';
+import { Session, Time, TimeMark, TimeRequest, TimeResponse } from '../../Redux/Types/Time';
 import {
     RequestAddUserAbsence,
     RequestRemoveUserAbsence,
@@ -40,8 +44,13 @@ import {
 import { Absence } from '../../Redux/Types/Absence';
 import { Error } from '../Service/Error';
 import NotificationModalWindow, { MessageType } from '../Service/NotificationModalWindow';
+import { getStartOfWeekByCountry, startOfWeek, startWeekOfCountry } from '../../Redux/Slices/LocationSlice';
+import { getCookie } from '../../Login/Api/login-logout';
+import TimeManage from '../Time/TimeManage';
+import { useTranslation } from 'react-i18next';
 
 function UserDetails() {
+    const { t } = useTranslation();
     const { userId = "" } = useParams();
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -49,8 +58,20 @@ function UserDetails() {
     const [showPermissions, setShowPermissions] = useState(false);
     const [showApprovers, setShowApprovers] = useState(false);
     const [showAbsence, setShowAbsence] = useState(false);
+    const [showCreateSession, setShowCreateSession] = useState(false);
     const [user, setUser] = useState({} as User);
-    const [time, setTime] = useState({} as Time);
+    const [time, setTime] = useState<TimeResponse>({
+        time: {
+            daySeconds: 0,
+            weekSeconds: 0,
+            monthSeconds: 0,
+            sessions: []
+        },
+        itemsCount: 0,
+        isStarted: false
+    });
+    const [createSessionStart, setCreateSessionStart] = useState<Date>();
+    const [createSessionEnd, setCreateSessionEnd] = useState<Date>();
     const [absences, setAbsences] = useState([] as Absence[]);
     const [totalWorkTime, setTotalWorkTime] = useState(0);
 
@@ -67,13 +88,10 @@ function UserDetails() {
 
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-
     const [search, setSearch] = useState('');
     const [orderfield, setOrderfield] = useState('');
     const [enabled, setEnabled] = useState('1');
     const [order, setOrder] = useState("ASC");
-    const target = useRef(null);
-    const [show, setShow] = useState(false);
 
     const first = 6;
     const [after, setAfter] = useState(0);
@@ -88,7 +106,19 @@ function UserDetails() {
     const navigate = useNavigate();
 
     let currentUserPermissions = useSelector((state: RootState) => state.currentUser.Permissions);
+    const [sessionPage, setSessionPage] = useState(0);
 
+    const [selected, SetSelected] = useState<Session | null>(null);
+    const [timeShow, setTimeShow] = useState(false)
+    const [showTimeDelete, setShowTimeDelete] = useState(false);
+
+    const offset = useSelector((state: RootState) => {
+        return state.location.userOffset;
+    })
+
+    const country = useSelector((state: RootState) => {
+        return state.location.country;
+    })
     useEffect(() => {
         RequestUser(parseInt(userId)).subscribe((x) => {
             setUser(x);
@@ -96,10 +126,16 @@ function UserDetails() {
         RequestGetTotalWorkTime(parseInt(userId)).subscribe((x) => {
             setTotalWorkTime(x);
         })
-        RequestUserTime(parseInt(userId)).subscribe((x) => {
-            setTime(x.time);
+        RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+            setTime(x);
         })
     }, []);
+
+    useEffect(() => {
+        RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+            setTime(x);
+        })
+    }, [sessionPage]);
 
     useEffect(() => {
         const page: Page = {
@@ -120,6 +156,7 @@ function UserDetails() {
     }, [user, dispatch])
 
     const handleCloseAbcense = () => {
+        setType("Absence");
         setShowAbsence(false);
         setShowError(false);
     };
@@ -127,9 +164,19 @@ function UserDetails() {
         RequestUserAbsences(parseInt(userId)).subscribe(x => setAbsences(x));
         setShowAbsence(true);
     };
+    const handleCloseCreateSession = () => {
+        setShowCreateSession(false);
+        setShowError(false);
+    };
+    const handleShowCreateSession = () => {
+        setShowCreateSession(true);
+    };
 
     const handleCloseDisable = () => setShowDisable(false);
     const handleShowDisable = () => setShowDisable(true);
+
+    const handleCloseTimeDelete = () => setShowTimeDelete(false);
+    const handleShowTimeDelete = () => setShowTimeDelete(true);
 
     const handleClosePermissions = () => setShowPermissions(false);
     const handleShowPermissions = () => {
@@ -193,13 +240,12 @@ function UserDetails() {
         RequestUpdateUserPermissions(Permissions).subscribe({
             next(x) {
                 if (x === "Permissions updated successfully") {
-                    setSuccess(x)
-                }
-                else {
-                    setError(x);
+                    setSuccess(t("UserDetails.PermissionsModal.permissionsUpdated"))
                 }
             },
-            error(error) { setError(ErrorMassagePattern) }
+            error(error) {
+                setError(ErrorMassagePattern)
+            }
         })
         handleClosePermissions()
     }
@@ -240,6 +286,56 @@ function UserDetails() {
         });
     }
 
+    const handleTimeDelete = () => {
+        RequestDeleteUserDate(parseInt(userId), selected!, offset).subscribe({
+            next: () => {
+                setSuccess(t("UserDetails.DeleteSessionModal.Deleted"));
+                RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+                    setTime(x);
+                });
+                setShowTimeDelete(false);
+            },
+            error(error) {
+                setError(error);
+            }
+        })
+    }
+
+    const handleCreateSession = () => {
+        if (createSessionStart === undefined || createSessionEnd === undefined) {
+            setShowError(true);
+            setErrorMessage(t("UserDetails.CreateSessionModal.FillFields"));
+            return;
+        }
+        if (createSessionStart! >= createSessionEnd!) {
+            setShowError(true);
+            setErrorMessage(t("UserDetails.CreateSessionModal.CorrectInterval"));
+            return;
+        }
+
+        let session: Session = {
+            startTimeTrackDate: createSessionStart,
+            endTimeTrackDate: createSessionEnd,
+            timeMark: TimeMark.Year
+        }
+        RequestCreateUserDate(parseInt(userId), session, offset).subscribe({
+            next(x) {
+                if (x === "Session was created successfully") {
+                    setSuccess(t("UserDetails.CreateSessionModal.Created"));
+                    RequestUserTime(parseInt(userId), [], sessionPage, itemsInPage, offset, getStartOfWeekByCountry(country)).subscribe((x) => {
+                        setTime(x);
+                    });
+                }
+                else {
+                    setShowError(true);
+                    setErrorMessage(t("UserDetails.CreateSessionModal.Error"));
+                }
+            },
+            error(x) {
+                setError(x);
+            }
+        })
+    }
     return (
 
         <div className='UserDetails d-flex align-items-center flex-column m-1'>
@@ -256,7 +352,8 @@ function UserDetails() {
                         <Card.Body className='d-flex flex-column'>
                             <Row className='mb-3'>
                                 <Col>
-                                    <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 h-100 bg-darkgray'>
+                                    <span
+                                        className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 h-100 bg-darkgray'>
                                         <p className='m-0 fs-5 text-white'>{user.fullName}</p>
                                         <p className="m-0 fs-6 text-secondary">@{user.login}</p>
                                         <p className="m-0 fs-6 text-secondary">{user.email}</p>
@@ -268,11 +365,13 @@ function UserDetails() {
                                                 {currentUserPermissions.cRUDUsers ?
                                                     <InputGroup className='mt-auto'>
                                                         <Button variant='outline-secondary'
-                                                            onClick={handleShowPermissions}>Permissions</Button>
+                                                            onClick={handleShowPermissions}>{t("UserDetails.PermissionsButton")}</Button>
                                                         <Button variant='outline-secondary'
-                                                            onClick={handleShowApprovers}>Approvers</Button>
-                                                        <Button variant='outline-secondary' onClick={handleShowAbcense}>Presence</Button>
-                                                        <Button variant='outline-secondary' onClick={handleShowDisable}>Disable</Button>
+                                                            onClick={handleShowApprovers}>{t("UserDetails.ApproversButton")}</Button>
+                                                        <Button variant='outline-secondary'
+                                                            onClick={handleShowAbcense}>{t("UserDetails.PresenceButton")}</Button>
+                                                        <Button variant='outline-secondary'
+                                                            onClick={handleShowDisable}>{t("UserDetails.DisableButton")}</Button>
                                                     </InputGroup>
                                                     :
                                                     <></>
@@ -282,31 +381,89 @@ function UserDetails() {
                                     </span>
                                 </Col>
                                 <Col>
-                                    <span className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
+                                    <span
+                                        className='d-flex flex-column border border-secondary rounded-1 p-3 w-100 bg-darkgray'>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>Worked today</p>
-                                            {TimeForStatisticFromSeconds(time.daySeconds)}
+                                            <p className='m-0'>{t("UserDetails.workedToday")}</p>
+                                            {TimeForStatisticFromSeconds(time.time.daySeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>Worked this week</p>
-                                            {TimeForStatisticFromSeconds(time.weekSeconds!)}
+                                            <p className='m-0'>{t("UserDetails.workedWeek")}</p>
+                                            {TimeForStatisticFromSeconds(time.time.weekSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <p className='m-0'>Worked this month</p>
-                                            {TimeForStatisticFromSeconds(time.monthSeconds!)}
+                                            <p className='m-0'>{t("UserDetails.workedMonth")}</p>
+                                            {TimeForStatisticFromSeconds(time.time.monthSeconds)}
                                         </div>
                                         <div className='d-flex flex-row w-100 justify-content-between mb-2'>
-                                            <ProgressBar now={(time.monthSeconds! / totalWorkTime) * 100} animated className='w-75 mt-1'
+                                            <ProgressBar now={(time.time.monthSeconds / totalWorkTime) * 100} animated className='w-75 mt-1'
                                                 variant='success' />
                                             {TimeForStatisticFromSeconds(totalWorkTime)}
                                         </div>
                                     </span>
                                 </Col>
                             </Row>
-                            <div className='ms-auto'>
-                            </div>
+                            <Row className='mt-4 p-0 m-0'>
+                                <Row className='flex flex-column p-0 m-0 justify-content-center'>
+                                    <Pagination className='mt-auto  justify-content-between p-0 m-0 d-flex'>
+                                        <Col className='mt-auto justify-content-start ms-3 mb-3 p-0 m-0 d-flex'>
+                                            <Pagination.First onClick={() => setSessionPage(0)} />
+                                            <Pagination.Prev onClick={() => {
+                                                if (sessionPage !== 0) setSessionPage(n => n - 1)
+                                            }} />
+                                        </Col>
+                                        <Col className='h3 text-center text-secondary gap-2 d-flex flex-row justify-content-center'>
+                                            <Col xs={7} className='d-flex flex-row justify-content-end align-items-center'>{t("UserDetails.TimeSessions.tSession")}</Col>
+                                            <Col xs={7} className='d-flex flex-row justify-content-start'><Button variant='success' onClick={handleShowCreateSession}>{t("create")}</Button></Col>
+                                        </Col>
+                                        <Col className='mt-auto justify-content-end me-3 p-0 d-flex mb-3'>
+                                            <Pagination.Next onClick={() => {
+                                                if (sessionPage !== Math.ceil(time.itemsCount / itemsInPage) - 1) setSessionPage(n => n + 1)
+                                            }} />
+                                            <Pagination.Last onClick={() => setSessionPage(Math.ceil(time.itemsCount / itemsInPage) - 1)} />
+                                        </Col>
+                                    </Pagination>
+                                    {time.time.sessions.map(s => {
+                                        const image = <Image height={45}
+                                            src={s.timeMark === TimeMark.Day ? dayImg : s.timeMark === TimeMark.Week ? weekImg : s.timeMark === TimeMark.Month ? monthImg : yearImg}></Image>
+                                        const bgColor = s.endTimeTrackDate ? "dark" : "danger";
+                                        const endDate = s.endTimeTrackDate ? s.endTimeTrackDate.toLocaleString() : "----------"
+                                        return <Col className={`m-0 `} key={s.startTimeTrackDate.toISOString()}><Alert
+                                            className={`pt-3 ps-2 mb-2 m-0 p-2`} variant={bgColor}>
+                                            <Row className='p-0 m-0'>
+                                                <Col sm={1}>
+                                                    {image}
+                                                </Col>
+                                                <Col>
+                                                    <span>{t("UserDetails.TimeSessions.sDate")}<br />{s.startTimeTrackDate.toLocaleString()}</span>
+                                                </Col>
+                                                <Col>
+                                                    <span>{t("UserDetails.TimeSessions.eDate")}<br /><span>{endDate}</span></span>
+                                                </Col>
+                                                <Col sm={2} className='d-flex align-items-center justify-content-end '>
+                                                    <Button
+                                                        variant={`${s.endTimeTrackDate ? "outline-secondary text-white" : "outline-danger"} h-75 me-2`}
+                                                        disabled={!s.endTimeTrackDate} onClick={() => {
+                                                            setTimeShow(true);
+                                                            SetSelected(s);
+                                                        }}>{t("edit")}</Button>
+                                                    <Button
+                                                        variant="outline-danger h-75"
+                                                        disabled={!s.endTimeTrackDate} onClick={() => {
+                                                            SetSelected(s);
+                                                            setShowTimeDelete(true);
+                                                        }}>{t("delete")}</Button>
+                                                </Col>
+                                            </Row>
+                                        </Alert></Col>
+                                    })}
+                                </Row>
+                            </Row>
                         </Card.Body>
                     </Card>
+                    {selected !== null ?
+                        <TimeManage userId={parseInt(userId)} selected={selected!} setShow={setTimeShow} isShowed={timeShow}
+                            setSelected={SetSelected}></TimeManage> : null}
                     <Modal
                         show={showDisable}
                         onHide={handleCloseDisable}
@@ -316,14 +473,14 @@ function UserDetails() {
                         data-bs-theme="dark"
                     >
                         <Modal.Header closeButton>
-                            <Modal.Title>Disable user @{user.login}</Modal.Title>
+                            <Modal.Title>{t("UserDetails.DisableModal.header")} @{user.login}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            Are you sure you want to disable user {user.fullName}?
+                            {t("UserDetails.DisableModal.text")} {user.fullName}?
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={handleCloseDisable}>Cancel</Button>
-                            <Button variant="danger" onClick={handleUserDisable}>Disable</Button>
+                            <Button variant="secondary" onClick={handleCloseDisable}>{t("close")}</Button>
+                            <Button variant="danger" onClick={handleUserDisable}>{t("UserDetails.DisableModal.disable")}</Button>
                         </Modal.Footer>
                     </Modal>
                     <Modal
@@ -334,17 +491,16 @@ function UserDetails() {
                         data-bs-theme="dark"
                         onHide={handleClosePermissions}
                     >
-
                         <Form onSubmit={(e) => handleSubmit(e)}>
                             <Modal.Header closeButton>
-                                <Modal.Title>Permissions</Modal.Title>
+                                <Modal.Title>{t("UserDetails.PermissionsModal.header")}</Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
                                 <InputGroup className="mb-3 d-flex flex-column">
                                     <Form.Check
                                         type="switch"
                                         id="custom-switch-1"
-                                        label="View users"
+                                        label={t("UserDetails.PermissionsModal.viewUsers")}
                                         checked={viewUsers}
                                         onClick={() => {
                                             setViewUsers(!viewUsers);
@@ -353,7 +509,7 @@ function UserDetails() {
                                     <Form.Check
                                         type="switch"
                                         id="custom-switch-2"
-                                        label="Export excell"
+                                        label={t("UserDetails.PermissionsModal.exportExcel")}
                                         checked={exportExcel}
                                         onClick={() => {
                                             setExportExcel(!exportExcel)
@@ -362,7 +518,7 @@ function UserDetails() {
                                     <Form.Check
                                         type="switch"
                                         id="custom-switch-3"
-                                        label="Manage users"
+                                        label={t("UserDetails.PermissionsModal.manageUsers")}
                                         checked={cRUDUsers}
                                         onClick={() => {
                                             setCRUDUsers(!cRUDUsers)
@@ -371,7 +527,7 @@ function UserDetails() {
                                     <Form.Check
                                         type="switch"
                                         id="custom-switch-4"
-                                        label="Manage approvers"
+                                        label={t("UserDetails.PermissionsModal.manageApprovers")}
                                         checked={editApprovers}
                                         onClick={() => {
                                             setEditApprovers(!editApprovers)
@@ -380,7 +536,7 @@ function UserDetails() {
                                     <Form.Check
                                         type="switch"
                                         id="custom-switch-5"
-                                        label="Manage work hours"
+                                        label={t("UserDetails.PermissionsModal.manageWorkHours")}
                                         checked={editWorkHours}
                                         onClick={() => {
                                             setEditWorkHours(!editWorkHours)
@@ -389,7 +545,7 @@ function UserDetails() {
                                     <Form.Check
                                         type="switch"
                                         id="custom-switch-6"
-                                        label="Manage presence"
+                                        label={t("UserDetails.PermissionsModal.managePresence")}
                                         checked={controlPresence}
                                         onClick={() => {
                                             setControlPresence(!controlPresence)
@@ -398,7 +554,7 @@ function UserDetails() {
                                     <Form.Check
                                         type="switch"
                                         id="custom-switch-7"
-                                        label="Manage day offs"
+                                        label={t("UserDetails.PermissionsModal.manageDayOffs")}
                                         checked={controlDayOffs}
                                         onClick={() => {
                                             setControlDayOffs(!controlDayOffs)
@@ -407,8 +563,8 @@ function UserDetails() {
                                 </InputGroup>
                             </Modal.Body>
                             <Modal.Footer>
-                                <Button variant="secondary" onClick={handleClosePermissions}>Cancel</Button>
-                                <Button variant="success" type="submit">Update</Button>
+                                <Button variant="secondary" onClick={handleClosePermissions}>{t("cancel")}</Button>
+                                <Button variant="success" type="submit">{t("update")}</Button>
                             </Modal.Footer>
                         </Form>
                     </Modal>
@@ -422,14 +578,13 @@ function UserDetails() {
                         onHide={handleCloseApprovers}
                     >
                         <Modal.Header closeButton>
-                            <Modal.Title>Approvers</Modal.Title>
+                            <Modal.Title>{t("UserDetails.ApproversModal.header")}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <h5>Approvers list</h5>
+                            <h5>{t("UserDetails.ApproversModal.ApproversList")}</h5>
                             <ListGroup>
                                 {
                                     approverList.map((itemUser) =>
-
                                         <ListGroupItem key={itemUser.id}
                                             className='d-flex flex-row align-items-center justify-content-between rounded-2 mb-1'>
                                             <Col sm={4}>
@@ -440,18 +595,18 @@ function UserDetails() {
                                             <Button
                                                 variant="outline-primary"
                                                 onClick={(event) => RemoveClickHandler(event, itemUser)}>
-                                                Remove from approvers
+                                                {t("UserDetails.ApproversModal.Remove")}
                                             </Button>
                                         </ListGroupItem>
                                     )
                                 }
                             </ListGroup>
-                            <h5>Approvers to add</h5>
+                            <h5>{t("UserDetails.ApproversModal.Add")}</h5>
                             <Row className='m-0 p-0 w-100'>
                                 <Col className='m-0 p-0 me-2' sm={7}>
                                     <InputGroup>
                                         <Form.Control
-                                            placeholder="Search"
+                                            placeholder={t("UserDetails.ApproversModal.Search")}
                                             aria-describedby="Search"
                                             onChange={e => setSearch(e.target.value)}
                                             onKeyDown={e => handleKeyDown(e)}
@@ -469,9 +624,9 @@ function UserDetails() {
                                 <Col className='m-0 p-0'>
                                     <InputGroup>
                                         <Form.Select onChange={e => setOrderfield(e.target.value)}>
-                                            <option value="">Sort by</option>
-                                            <option value="Login">Login</option>
-                                            <option value="FullName">Name</option>
+                                            <option value="">{t("UserDetails.ApproversModal.Sortby")}</option>
+                                            <option value="Login">{t("UserDetails.ApproversModal.Login")}</option>
+                                            <option value="FullName">{t("UserDetails.ApproversModal.Name")}</option>
                                         </Form.Select>
                                         <Button variant="outline-secondary" onClick={() => {
                                             order === "ASC" ? setOrder("DESC") : setOrder("ASC")
@@ -491,7 +646,6 @@ function UserDetails() {
                                                 </svg>
                                             }
                                         </Button>
-
                                     </InputGroup>
                                 </Col>
                             </Row>
@@ -510,11 +664,9 @@ function UserDetails() {
                                                 <Button
                                                     variant="outline-primary"
                                                     onClick={(event) => AddApproverClickHandler(event, itemUser)}>
-                                                    Pick
+                                                    {t("UserDetails.ApproversModal.Pick")}
                                                 </Button>
                                             </Col>
-
-
                                         </ListGroup.Item>
                                     )
                                 }
@@ -531,11 +683,11 @@ function UserDetails() {
                                     }} />
                                     <Pagination.Last onClick={() => setAfter((page.totalCount - 1) * first)} />
                                 </Pagination>
-                                : <p>No users found</p>
+                                : <p>{t("UserDetails.ApproversModal.NoUsers")}</p>
                             }
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button variant="danger" onClick={handleCloseApprovers}>Close</Button>
+                            <Button variant="danger" onClick={handleCloseApprovers}>{t("close")}</Button>
                         </Modal.Footer>
                     </Modal>
                     <Modal
@@ -547,17 +699,17 @@ function UserDetails() {
                         onHide={handleCloseAbcense}
                     >
                         <Modal.Header closeButton>
-                            <Modal.Title>Presence</Modal.Title>
+                            <Modal.Title>{t("UserDetails.AbsenceModal.header")}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             <Form className='mb-2' onSubmit={e => handleAddAbsence(e)}>
                                 <InputGroup>
                                     <Form.Control type="date" onChange={e => setDate(new Date(e.target.value))} />
                                     <Form.Select onChange={e => setType(e.target.value)}>
-                                        <option value="Absence">Absence</option>
-                                        <option value="Illness">Illness</option>
+                                        <option value="Absence">{t("UserDetails.AbsenceModal.absenceItem")}</option>
+                                        <option value="Illness">{t("UserDetails.AbsenceModal.illnessItem")}</option>
                                     </Form.Select>
-                                    <Button variant='success' type='submit'>Add</Button>
+                                    <Button variant='success' type='submit'>{t("add")}</Button>
                                 </InputGroup>
                                 <Error ErrorText={errorMessage} Show={showError}
                                     SetShow={() => setShowError(false)}></Error>
@@ -572,15 +724,15 @@ function UserDetails() {
                                                     <p className='m-0 fs-5'>{absence.date!.toLocaleString()}</p>
                                                 </Col>
                                                 <Col sm={4} className='d-flex align-items-center'>
-                                                    <p className='m-0 fs-5'>{absence.type}</p>
+                                                    <p className='m-0 fs-5'>{absence.type === "Absence" ? t("UserDetails.AbsenceModal.absenceItem") : t("UserDetails.AbsenceModal.illnessItem")}</p>
                                                 </Col>
                                                 <Col className='d-flex align-items-center pe-0'>
                                                     <Button variant="outline-danger"
                                                         onClick={() => handleRemoveAbsence(absence)}
                                                         className='ms-auto'>
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                                                            fill="currentColor" className="bi bi-trash mb-1"
-                                                            viewBox="0 0 16 16">
+                                                            fill="currentColor"
+                                                            className="bi bi-trash mb-1" viewBox="0 0 16 16">
                                                             <path
                                                                 d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
                                                             <path
@@ -595,7 +747,73 @@ function UserDetails() {
                             </ListGroup>
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={handleCloseAbcense}>Close</Button>
+                            <Button variant="secondary" onClick={handleCloseAbcense}>{t("close")}</Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <Modal
+                        show={showTimeDelete}
+                        onHide={handleCloseTimeDelete}
+                        backdrop="static"
+                        keyboard={false}
+                        centered
+                        data-bs-theme="dark"
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>{t("UserDetails.DeleteSessionModal.header")}</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            {selected ? <>
+                                <>{t("UserDetails.DeleteSessionModal.IsSure")}</>
+                                <div>{selected!.startTimeTrackDate.toLocaleString()} - {selected!.endTimeTrackDate!.toLocaleString()}?</div></>
+                                : <></>
+                            }
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={handleCloseTimeDelete}>{t("cancel")}</Button>
+                            <Button variant="danger" onClick={handleTimeDelete}>{t("delete")}</Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <Modal show={showCreateSession}
+                        onHide={handleCloseCreateSession}
+                        backdrop="static"
+                        keyboard={false}
+                        aria-labelledby="contained-modal-title-vcenter"
+                        centered
+                        data-bs-theme="dark"
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>
+                                {t("UserDetails.CreateSessionModal.header")}
+                            </Modal.Title>
+                        </Modal.Header>
+
+                        <Modal.Body>
+                            <Row>
+                                <Col>
+                                    <Form.Label>{t("UserDetails.CreateSessionModal.sDate")}</Form.Label>
+                                    <input type="datetime-local"
+                                        className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
+                                        onChange={(e) => {
+                                            setCreateSessionStart(new Date(e.target.value))
+                                        }}>
+
+                                    </input>
+                                </Col>
+                                <Col>
+                                    <Form.Label>{t("UserDetails.CreateSessionModal.eDate")}</Form.Label>
+                                    <input type="datetime-local"
+                                        className='w-100 h-50 bg-dark rounded-3 border-info p-2 text-light'
+                                        onChange={(e) => {
+                                            setCreateSessionEnd(new Date(e.target.value))
+                                        }}>
+                                    </input>
+                                </Col>
+                            </Row>
+                            <Error ErrorText={errorMessage} Show={showError} SetShow={() => setShowError(false)}></Error>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant='outline-secondary' onClick={handleCloseCreateSession}>{t("cancel")}</Button>
+                            <Button variant='outline-success' onClick={handleCreateSession}>{t("submit")}</Button>
                         </Modal.Footer>
                     </Modal>
                     <NotificationModalWindow isShowed={error !== ""} dropMessage={setError}

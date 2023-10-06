@@ -3,6 +3,7 @@ using GraphQL;
 using GraphQL.MicrosoftDI;
 using GraphQL.Types;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -17,14 +18,24 @@ using TimeTracker.GraphQL.Types.Vacation;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.Services;
+using TimeTracker.Services.ForeignServiceAuth;
 using static TimeTracker.Controllers.TestController;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
-builder.Services.AddHostedService<BackgroundTasksService>();
+
+//builder.Services.AddHostedService<BackgroundTasksService>();
 //Dapper
 builder.Services.AddSingleton<DapperContext>();
 
+builder.Services.AddSingleton<OauthFactory>(new OauthFactory(new Dictionary<string, IOauthService>{
+    { "Google",new GoogleOAuthService()},
+    { "Github",new GithubOAuthService()}
+}));
+
+builder.Services.AddTransient<ITransactionService, TransactionService>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IExcelHandler, ExcelHandler>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
@@ -33,12 +44,22 @@ builder.Services.AddSingleton<ICalendarRepository, CalendarRepository>();
 builder.Services.AddSingleton<IVacationRepository, VacationRepository>();
 builder.Services.AddSingleton<IAbsenceRepository, AbsenceRepository>();
 builder.Services.AddSingleton<IAuthorizationRepository, AuthorizationRepository>();
+builder.Services.AddSingleton<IUpdateRepository, UpdateRepository>();
 
 builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
 
 //Token
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { });
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddScheme<JwtBearerOptions, CustomJwtBearerHandler>(JwtBearerDefaults.AuthenticationScheme, options => { })
+    .AddGoogle(options =>
+    {
+        IConfiguration config = builder.Configuration;
+        options.ClientId = config["Secrets:Google:ClientId"]!;
+        options.ClientSecret = config["Secrets:Google:ClientSecret"]!;
+    });
 //.AddJwtBearer(options =>
 //{
 //    options.TokenValidationParameters = new TokenValidationParameters
@@ -107,6 +128,7 @@ builder.Services.AddGraphQL(c => c.AddSystemTextJson()
 var app = builder.Build();
 
 app.UseCors(builder => builder.WithOrigins("http://localhost:3000")
+    //.AllowAnyOrigin()
                  .AllowAnyHeader()
                  .WithMethods("POST")
                  .AllowCredentials());
@@ -135,7 +157,7 @@ app.UseGraphQL<IdentitySchema>("/graphql-login", (config) =>
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller}/{action=Download}/{id}");
+    pattern: "{controller}/{action=Download}/{id?}");
 
 app.UseGraphQLAltair();
 
@@ -175,11 +197,12 @@ public class CustomJwtBearerHandler : JwtBearerHandler
         }
 
         var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+        var tokenData = _authorizationManager.ReadJwtToken(token);
+        var isAccess = tokenData.Claims.FirstOrDefault(c=>c.Type == "IsAccess")?.Value;
 
-        if (_authorizationManager.IsValidToken(token))
+        if (_authorizationManager.IsValidToken(token) && bool.TryParse(isAccess,out bool value) && value)
         {
-            var a = _authorizationManager.ReadJwtToken(token);
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(a.Claims, "Token"));
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(tokenData.Claims, "Token"));
             return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
         }
 

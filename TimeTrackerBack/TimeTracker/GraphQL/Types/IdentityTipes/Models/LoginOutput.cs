@@ -8,7 +8,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.Models
         public int user_id { get; set; }
         public TokenResult access_token { get; set; } = null!;
         public TokenResult refresh_token { get; set; } = null!;
+        public string? redirect_url { get; set; } = null;
         public bool is_fulltimer { get; set; }
-
     }
 }

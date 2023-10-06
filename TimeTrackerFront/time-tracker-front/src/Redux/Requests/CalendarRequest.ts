@@ -1,10 +1,9 @@
 import { Observable, map } from "rxjs";
 import { GetAjaxObservable } from "./TimeRequests";
 import { CalendarDay } from "../Types/Calendar";
-import { CalendarDayRequest,CalendarDayResponse } from "../Types/Calendar";
+import { CalendarDayRequest, CalendarDayResponse } from "../Types/Calendar";
 import { MonthOrWeek } from "../../Components/Calendar/Calendar";
 import { ajax } from "rxjs/ajax";
-import { locationOffset } from "../Slices/LocationSlice";
 import { GlobalEventsViewModel } from "../Types/Calendar";
 import { DateTime } from "luxon";
 
@@ -19,7 +18,7 @@ const geolocationApiUrl = "https://ipgeolocation.abstractapi.com/v1/?api_key=7a5
 interface GeologationType {
   "city": string,
   "country_code": string,
-  "country":string,
+  "country": string,
   timezone: {
     name: string,
     abbreviation: string,
@@ -47,8 +46,8 @@ export function addEvent(event: CalendarDay, geoOffset: number) {
 
   const requestData: CalendarDayRequest = {
     title: event.title,
-    endDate: new Date(event.end.getTime() + (locationOffset - geoOffset) * 60000),
-    startDate: new Date(event.start.getTime() + (locationOffset - geoOffset) * 60000)
+    endDate: GetUtcTime(event.end, geoOffset),
+    startDate: GetUtcTime(event.start, geoOffset)
   };
   return GetAjaxObservable<string>(`mutation($event:CalendarInput!){
         calendar{
@@ -71,7 +70,7 @@ export function addEvent(event: CalendarDay, geoOffset: number) {
 
 export function addEventRange(events: CalendarDay[], geoOffset: number) {
 
-  const rangeEvent: CalendarDayRequest[] = events.map(c => ({ title: c.title, endDate: new Date(c.end.getTime() + (locationOffset - geoOffset) * 60000), startDate: new Date(c.start.getTime() + (locationOffset - geoOffset) * 60000) }))
+  const rangeEvent: CalendarDayRequest[] = events.map(c => ({ title: c.title, endDate: GetUtcTime(c.end, geoOffset), startDate: GetUtcTime(c.start, geoOffset) }))
 
   return GetAjaxObservable<string>(`mutation($rangeEvent:[CalendarInput!]){
     calendar{
@@ -110,7 +109,7 @@ export function GetEvents(date: Date, weekOrMonth: MonthOrWeek, userId: number |
         console.error(JSON.stringify(res.response.errors))
         throw "error"
       }
-      return res.response.data.calendar.getEvents.map(c => ({ title: c.title, end: new Date(c.endDate), start: new Date(c.startDate),type : c.type }));
+      return res.response.data.calendar.getEvents.map(c => ({ title: c.title, end: new Date(c.endDate), start: new Date(c.startDate), type: c.type }));
     })
   )
 }
@@ -118,8 +117,8 @@ export function GetEvents(date: Date, weekOrMonth: MonthOrWeek, userId: number |
 export function UpdateEvent(eventStartDate: Date, ev: CalendarDay, geoOffset: number): Observable<string> {
   const event: CalendarDayRequest = {
     title: ev.title,
-    endDate: new Date(ev.end.getTime() + (locationOffset - geoOffset) * 60000),
-    startDate: new Date(ev.start.getTime() + (locationOffset - geoOffset) * 60000)
+    endDate: GetUtcTime(ev.end, geoOffset),
+    startDate: GetUtcTime(ev.start, geoOffset)
   };
 
   return GetAjaxObservable<string>(`mutation($eventStartDate:DateTime!,$event:CalendarInput!){
@@ -139,7 +138,7 @@ export function UpdateEvent(eventStartDate: Date, ev: CalendarDay, geoOffset: nu
 
 
 export function DeleteEvent(eventStartDate: Date, geoOffset: number): Observable<string> {
-  eventStartDate = new Date(eventStartDate.getTime() + (locationOffset - geoOffset) * 60000)
+  eventStartDate = GetUtcTime(eventStartDate, geoOffset)
   return GetAjaxObservable<string>(`mutation($eventStartDate:DateTime!){
     calendar{
       deleteEvent(eventStartDate:$eventStartDate)
@@ -224,7 +223,7 @@ export function GetGlobalCalendar(date: Date, weekOrMonth: MonthOrWeek) {
 
 export function DeleteGlobalEvent(eventDate: Date): Observable<string> {
   const fullDate = DateTime.fromJSDate(eventDate)
-  const eventStartDate = new Date(fullDate.year, fullDate.month - 1, fullDate.day, locationOffset / 60)
+  const eventStartDate = GetDateWithJsOffset(new Date(fullDate.year, fullDate.month - 1, fullDate.day))
   return GetAjaxObservable<string>(`mutation($eventStartDate:DateTime!){
     calendar{
       globalCalendar{
@@ -244,7 +243,7 @@ export function DeleteGlobalEvent(eventDate: Date): Observable<string> {
 
 export function addGlobalEvent(event: GlobalEventsViewModel) {
   const fullDate = DateTime.fromJSDate(event.date)
-  const date = new Date(fullDate.year, fullDate.month - 1, fullDate.day, locationOffset / 60)
+  const date = GetDateWithJsOffset(new Date(fullDate.year, fullDate.month - 1, fullDate.day))
   return GetAjaxObservable<string>(`mutation($event:CalendarGlobalInput!){
     calendar{
       globalCalendar{
@@ -269,10 +268,10 @@ export function addGlobalEvent(event: GlobalEventsViewModel) {
 
 export function UpdateGlobalEvent(eventDate: Date, ev: GlobalEventsViewModel): Observable<string> {
   let fullDate = DateTime.fromJSDate(eventDate)
-  const eventStartDate = new Date(fullDate.year, fullDate.month - 1, fullDate.day, locationOffset / 60)
+  const eventStartDate = GetDateWithJsOffset(new Date(fullDate.year, fullDate.month - 1, fullDate.day))
 
   fullDate = DateTime.fromJSDate(ev.date);
-  ev.date = new Date(fullDate.year, fullDate.month - 1, fullDate.day, locationOffset / 60)
+  ev.date = GetDateWithJsOffset(new Date(fullDate.year, fullDate.month - 1, fullDate.day))
   const event = { ...ev }
 
   return GetAjaxObservable<string>(`mutation($eventStartDate:DateTime!,$event:CalendarGlobalInput!){
@@ -296,7 +295,7 @@ export function addEventGlobalRange(events: GlobalEventsViewModel[]) {
 
   events.forEach(ev => {
     const fullDate = DateTime.fromJSDate(ev.date);
-    ev.date = new Date(fullDate.year, fullDate.month - 1, fullDate.day, locationOffset / 60)
+    ev.date = GetDateWithJsOffset(new Date(fullDate.year, fullDate.month - 1, fullDate.day))
   })
 
   return GetAjaxObservable<string>(`mutation($rangeEvent:[CalendarGlobalInput!]){
@@ -318,4 +317,13 @@ export function addEventGlobalRange(events: GlobalEventsViewModel[]) {
       return res;
     })
   )
+}
+export function GetUtcTime(date: Date, userOffset:number) {
+  const jsOffset = (-date.getTimezoneOffset())
+  return new Date(date.getTime() + (jsOffset - userOffset) * 60000)
+}
+
+export function GetDateWithJsOffset(date: Date) {
+  const jsOffset = (-date.getTimezoneOffset())
+  return new Date(date.getTime() + jsOffset*1000*60)
 }

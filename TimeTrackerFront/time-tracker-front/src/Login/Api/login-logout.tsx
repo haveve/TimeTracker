@@ -1,15 +1,20 @@
 import { ajax } from 'rxjs/ajax';
-import { map, catchError, Observer } from 'rxjs';
+import { map, catchError, Observer, Observable } from 'rxjs';
 import {
   redirect,
   useNavigate,
 } from "react-router-dom";
 import { LogoutDeleteCookie } from '../../Components/Navbar';
-
+import { useTranslation } from "react-i18next";
+import { TFunction } from "i18next";
+import { GetTokenObservable, domainBack } from '../../Redux/Requests/TimeRequests';
+import { GetAjaxObservable } from '../../Redux/Requests/TimeRequests';
+import { mergeMap } from 'rxjs';
 
 export const accessTokenLiveTime = 60;
 
-const url = "https://localhost:7226/graphql-login";
+const url = "https://"+domainBack+"/graphql-login";
+
 /*    "errors": [
         {
             "message": "User does not auth"
@@ -66,7 +71,8 @@ export type LoginType = {
       access_token: RequestTokenType,
       user_id: string,
       is_fulltimer: string,
-      refresh_token: RequestTokenType
+      refresh_token: RequestTokenType,
+      redirect_url:string,
     }
   },
   errors: LoginErrorType[]
@@ -83,7 +89,7 @@ export type RefreshType = {
   errors: LoginErrorType[]
 }
 
-export function ajaxForLogin(variables: {}) {
+export function ajaxForLogin(variables: {}){
   return ajax<LoginType>({
     url: url,
     method: "POST",
@@ -106,13 +112,14 @@ export function ajaxForLogin(variables: {}) {
             expiredAt
           }
           is_fulltimer
+          redirect_url
         }
       }`,
       variables
     }),
     withCredentials: true,
   }).pipe(
-    map((value): void => {
+    map((value): string => {
 
 
       let fullResponse = value.response;
@@ -123,22 +130,47 @@ export function ajaxForLogin(variables: {}) {
         throw fullResponse.errors[0].message;
 
 
-        const access_token_to_save: StoredTokenType = {
-          issuedAt: new Date(response.access_token.issuedAt).getTime(),
-          expiredAt: new Date (response.access_token.expiredAt).getTime(),
-          token: response.access_token.token
-        }
-  
-        const refresh_token_to_save: StoredTokenType = {
-          issuedAt: new Date (response.refresh_token.issuedAt).getTime(),
-          expiredAt: new Date (response.refresh_token.expiredAt).getTime(),
-          token: response.refresh_token.token
-        }
+      if(response.redirect_url){
+          return response.redirect_url;
+      }
 
-      setCookie({ name: "access_token", value: JSON.stringify(access_token_to_save), expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
-      setCookie({ name: "user_id", value: response.user_id, expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
-      setCookie({ name: "refresh_token", value: JSON.stringify(refresh_token_to_save), expires_second: refresh_token_to_save.expiredAt / 1000, path: "/" });
-      setCookie({ name: "is_fulltimer", value: response.is_fulltimer, expires_second: 365 * 24 * 60 * 60, path: "/" });
+      const access_token_to_save: StoredTokenType = {
+        issuedAt: new Date(response.access_token.issuedAt).getTime(),
+        expiredAt: new Date(response.access_token.expiredAt).getTime(),
+        token: response.access_token.token
+      }
+
+      const refresh_token_to_save: StoredTokenType = {
+        issuedAt: new Date(response.refresh_token.issuedAt).getTime(),
+        expiredAt: new Date(response.refresh_token.expiredAt).getTime(),
+        token: response.refresh_token.token
+      }
+      setCookie({
+        name: "access_token",
+        value: JSON.stringify(access_token_to_save),
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "user_id",
+        value: response.user_id,
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "refresh_token",
+        value: JSON.stringify(refresh_token_to_save),
+        expires_second: refresh_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "is_fulltimer",
+        value: JSON.stringify(response.is_fulltimer),
+        expires_second: 60*60*24*365,
+        path: "/"
+      });
+
+      return "/";
     }),
     catchError((error) => {
       throw error
@@ -147,22 +179,22 @@ export function ajaxForLogin(variables: {}) {
 }
 
 
-export function IsRefreshError(error:any){
-    const refreshError:RefreshError = error
-    return refreshError.error&&refreshError.errorType === RefreshErrorEnum.RefreshError;
-  }
+export function IsRefreshError(error: any) {
+  const refreshError: RefreshError = error
+  return refreshError.error && refreshError.errorType === RefreshErrorEnum.RefreshError;
+}
 
 
-export enum RefreshErrorEnum  {
+export enum RefreshErrorEnum {
   RefreshError
 }
 
 export type RefreshError = {
-  error:string,
-  errorType:RefreshErrorEnum
+  error: string,
+  errorType: RefreshErrorEnum
 }
 
-export function ajaxForRefresh(variables: {},token:string) {
+export function ajaxForRefresh(variables: {}, token: string) {
   return ajax<RefreshType>({
     url: url,
     method: "POST",
@@ -194,9 +226,9 @@ export function ajaxForRefresh(variables: {},token:string) {
     map((value): void => {
 
       let response = value.response.data.refreshToken;
-      let refreshError:RefreshError = {
-        error:"",
-        errorType:RefreshErrorEnum.RefreshError
+      let refreshError: RefreshError = {
+        error: "",
+        errorType: RefreshErrorEnum.RefreshError
       }
 
       if (isUnvalidTokenError(value.response as any)) {
@@ -210,18 +242,33 @@ export function ajaxForRefresh(variables: {},token:string) {
 
       const access_token_to_save: StoredTokenType = {
         issuedAt: new Date(response.access_token.issuedAt).getTime(),
-        expiredAt: new Date (response.access_token.expiredAt).getTime(),
+        expiredAt: new Date(response.access_token.expiredAt).getTime(),
         token: response.access_token.token
       }
 
       const refresh_token_to_save: StoredTokenType = {
-        issuedAt: new Date (response.refresh_token.issuedAt).getTime(),
-        expiredAt: new Date (response.refresh_token.expiredAt).getTime(),
+        issuedAt: new Date(response.refresh_token.issuedAt).getTime(),
+        expiredAt: new Date(response.refresh_token.expiredAt).getTime(),
         token: response.refresh_token.token
       }
-      setCookie({ name: "access_token", value: JSON.stringify(access_token_to_save), expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
-      setCookie({ name: "user_id", value: response.user_id, expires_second: access_token_to_save.expiredAt / 1000, path: "/" });
-      setCookie({ name: "refresh_token", value: JSON.stringify(refresh_token_to_save), expires_second: refresh_token_to_save.expiredAt / 1000, path: "/" });
+      setCookie({
+        name: "access_token",
+        value: JSON.stringify(access_token_to_save),
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "user_id",
+        value: response.user_id,
+        expires_second: access_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
+      setCookie({
+        name: "refresh_token",
+        value: JSON.stringify(refresh_token_to_save),
+        expires_second: refresh_token_to_save.expiredAt / 1000,
+        path: "/"
+      });
     }),
     catchError((error) => {
       throw error
@@ -260,17 +307,93 @@ export function ajaxForLogout(token: string) {
   );
 }
 
+const serviceUrl = "https://"+domainBack+"/foreign-service-auth"
+
+export function ajaxForServiceLogin(serviceName:string) {
+ window.location.href = serviceUrl+`?serviceName=${serviceName}`;
+}
+
+const _2fAuthUrl = "https://"+domainBack+"/2f-auth"
+
+export interface _2fAuthResult{
+  qrUrl:string,
+  manualEntry:string,
+  key:string
+}
+
+export function ajaxFor2fAuth(){
+  return GetTokenObservable().pipe( mergeMap(()=>{
+    const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+   return ajax<_2fAuthResult>({
+      url:_2fAuthUrl,
+      method: "POST",
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token.token,
+      }
+  })}))
+}
+
+const _2fSetUrl = "https://"+domainBack+"/set-2f-auth";
+
+export function axajSetUser2fAuth(key:string,code:string){
+  return GetTokenObservable().pipe( mergeMap(()=>{
+  const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+   return ajax<_2fAuthResult>({
+      url:_2fSetUrl+`?key=${key}&code=${code}`,
+      method: "POST",
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token.token,
+      }
+  })}))
+}
+
+const _2fVerifyServiceUrl = "https://"+domainBack+"/verify-2f-auth";
+
+export function ajaxVerifyUserCode(token:string,code:string){
+    return ajax({
+      url: _2fVerifyServiceUrl + `?token=${token}&code=${code}`
+    })
+}
+
+const _2fDropUrl = "https://"+domainBack+"/drop-2f-auth"
+
+export enum WayToDrop2f
+{
+    Code = 0,
+    Email = 1
+}
+
+export function ajaxFor2fDrop(code:string,way:WayToDrop2f){
+
+  return GetTokenObservable().pipe( mergeMap(()=>{
+    const token: StoredTokenType = JSON.parse(getCookie("access_token")!)
+     return ajax<string>({
+        url:_2fDropUrl+`?code=${code}&way=${way}`,
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token.token,
+        }
+    })}))
+}
 
 type navigateType = ReturnType<typeof useNavigate>;
 
-export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, setLoginByToken: () => void, commitNavigate: navigateType, path: string): Observer<any> => {
+export const getQueryObserver = (setError: (value: string) => void, setShowError: (value: boolean) => void, setLoginByToken: () => void, commitNavigate: navigateType, t: TFunction): Observer<any> => {
   return {
-    next: () => {
+    next: (path) => {
       commitNavigate(path);
       setLoginByToken();
     },
-    error: (value) => { value == "User was disabled" ? setError(value) : setError("Wrong login/email or password"); setShowError(true); },
-    complete: () => { }
+    error: (value) => {
+
+      value == t("Login.disabledUser") ? setError(value) : setError(t("Login.wrongCredentialsError"));
+      setShowError(true);
+    },
+    complete: () => {
+    }
   }
 }
 
@@ -311,11 +434,17 @@ export function getTokenOrNavigate(isLoginRedirect: boolean = false) {
   const token = getCookie("refresh_token");
   if (!token && !isLoginRedirect) {
     return redirect("/Login");
-  }
-  else if (isLoginRedirect && token)
+  } else if (isLoginRedirect && token)
     return redirect("/");
 
   return token;
 }
 
-type setCookieParamas = { name: string, value: string, expires_second?: number, path?: string, domain?: string, secure?: boolean }
+export type setCookieParamas = {
+  name: string,
+  value: string,
+  expires_second?: number,
+  path?: string,
+  domain?: string,
+  secure?: boolean
+}

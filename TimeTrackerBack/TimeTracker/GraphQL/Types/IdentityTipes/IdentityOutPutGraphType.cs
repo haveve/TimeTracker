@@ -9,11 +9,11 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes
     {
         public IdentityOutPutGraphType() 
         {
-            Field(l => l.access_token, nullable: false, type: typeof(TokenResultGraphType));
+            Field(l => l.access_token, nullable: true, type: typeof(TokenResultGraphType));
             Field(l => l.user_id, nullable: false);
-            Field(l => l.refresh_token, nullable: false, type: typeof(TokenResultGraphType));
+            Field(l => l.refresh_token, nullable: true, type: typeof(TokenResultGraphType));
             Field(l => l.is_fulltimer, nullable: false, type: typeof(BooleanGraphType));
-
+            Field(l => l.redirect_url, nullable: true);
         }
     }
 }

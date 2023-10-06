@@ -41,6 +41,20 @@ namespace TimeTracker.Repositories
                 return db.Query<User>($"SELECT * FROM Users WHERE FullName LIKE '%{FullName}%' ORDER BY FullName ASC").ToList();
             }
         }
+        public List<User> GetFulltimers()
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<User>("SELECT * FROM Users WHERE WorkHours = 100 AND Enabled = 1").ToList();
+            }
+        }
+        public List<User> GetEnabledUsers()
+        {
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                return db.Query<User>("SELECT * FROM Users WHERE Enabled = 1").ToList();
+            }
+        }
         public User GetUser(int id)
         {
             using (IDbConnection db = new SqlConnection(connectionString))
@@ -165,6 +179,10 @@ namespace TimeTracker.Repositories
                 var sqlQuery = "UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1";
                 db.Execute(sqlQuery);
             }
+        }
+        public string GetQueryAddUsersVacationDays()
+        {
+            return "UPDATE Users SET VacationDays = VacationDays + 2 WHERE Enabled = 1";
         }
         public void DisableUser(int id)
         {

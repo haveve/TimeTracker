@@ -1,0 +1,315 @@
+{
+  "agree": "Agree",
+  "reject": "Reject",
+  "update": "Update",
+  "cancel": "Cancel",
+  "add": "Add",
+  "create": "Create",
+  "submit": "Submit",
+  "close": "Close",
+  "edit": "Edit",
+  "delete": "Delete",
+  "chooseLang": "Choose language",
+  "createRange": "Create Range",
+  "Login": {
+    "or":"or",
+    "header": "Sign in to TimeTracker",
+    "username": "Username or email adress",
+    "password": "Password",
+    "submitButton": "Sign in",
+    "resetPass": "Reset via login or email",
+    "fillFieldsError": "Fill all fields",
+    "wrongCredentialsError": "Wrong login/email or password",
+    "disabledUser": "User was disabled"
+  },
+  "RequestResetPassword": {
+    "header": "Request password reset",
+    "credentials": "Login or Email",
+    "submitButton": "Reset password",
+    "submittedText": "Request has been sent",
+    "fillFieldsError": "Fill field!"
+  },
+  "ResetPassword": {
+    "header": "Reset password",
+    "password": "New password",
+    "repeatPassword": "Repeat new password",
+    "submitButton": "Reset password",
+    "passMatchError": "Both passwords should match!",
+    "passValidationError": "Path length must be between 8 and 50!",
+    "Responses": {
+      "userNotFoundError": "User not found",
+      "noRequestError": "User was not requesting password change",
+      "noMatchCodeError": "Reset code not match",
+      "successful": "Password reseted successfully"
+    }
+  },
+  "Navbar": {
+    "questionIP": "Can we use your IP to locate you?",
+    "timeItem": "Time",
+    "usersItem": "Users",
+    "createUserItem": "Create User",
+    "calendarItem": "Calendar",
+    "settings": "Settings",
+    "logoutItem": "Logout"
+  },
+  "MainMenu": {
+    "welcome": "Welcome to TimeTracker",
+    "timeItem": "Time",
+    "usersItem": "Users",
+    "createUserItem": "Create User",
+    "calendarItem": "Calendar"
+  },
+  "UserProfile": {
+    "editButton": "Edit",
+    "changePassButton": "Change Password",
+    "presence": "Presence",
+    "workedToday": "Worked today",
+    "workedWeek": "Worked this week",
+    "workedMonth": "Worked this month",
+    "set2Auth":"Set 2f Auth",
+    "drop2Auth":"Drop 2f Auth",
+    "EditModal": {
+      "header": "Edit your information",
+      "fullName": "Full Name",
+      "login": "Login",
+      "email": "Email",
+      "password": "Password",
+      "hintPassword": "Type in your password to confirm changes",
+      "fillFieldsError": "Fill all fields",
+      "Responses": {
+        "success": "User updated successfully",
+        "incorrectPassword": "Password is incorrect",
+        "takenLogin": "Login is already used"
+      }
+    },
+    "ChangePasswordModal": {
+      "header": "Change password",
+      "newPass": "New password",
+      "repeatNewPass": "Repeat new password",
+      "oldPass": "Old password",
+      "hintPassword": "Type in your password to confirm changes",
+      "passMatchError": "Both passwords should match!",
+      "passValidationError": "Path length must be between 8 and 50!",
+      "Responses": {
+        "incorrectPassError": "Password is incorrect",
+        "successful": "Password updated successfully"
+      }
+    },
+    "AbsenceModal": {
+      "header": "Presence",
+      "absenceItem": "Absence",
+      "illnessItem": "Illness",
+      "fillFieldsError": "Fill all fields",
+      "takenDayError": "Already absent on this date"
+    }
+  },
+  "UserDetails": {
+    "PermissionsButton": "Permissions",
+    "ApproversButton": "Approvers",
+    "PresenceButton": "Presence",
+    "DisableButton": "Disable",
+    "workedToday": "Worked today",
+    "workedWeek": "Worked this week",
+    "workedMonth": "Worked this month",
+    "DisableModal": {
+      "header": "Disable user",
+      "text": "Are you sure you want to disable user",
+      "disable": "Disable"
+    },
+    "PermissionsModal": {
+      "header": "Permissions",
+      "viewUsers": "View users",
+      "exportExcel": "Export excel",
+      "manageUsers": "Manage users",
+      "manageApprovers": "Manage approvers",
+      "manageWorkHours": "Manage work hours",
+      "managePresence": "Manage presence",
+      "manageDayOffs": "Manage day offs",
+      "permissionsUpdated": "Permissions updated successfully"
+    },
+    "AbsenceModal": {
+      "header": "Presence",
+      "absenceItem": "Absence",
+      "illnessItem": "Illness",
+      "fillFieldsError": "Fill all fields",
+      "takenDayError": "Already absent on this date"
+    },
+    "ApproversModal": {
+      "header": "Approvers",
+      "ApproversList": "Approvers list",
+      "Remove": "Remove from approvers",
+      "Add": "Approvers to add",
+      "Search": "Search",
+      "Sortby": "Sort by",
+      "Login": "Login",
+      "Name": "Name",
+      "Pick": "Pick",
+      "NoUsers": "No users found"
+    },
+    "TimeSessions": {
+      "sDate": "Start Date",
+      "eDate": "End Date",
+      "tSession": "Sessions"
+    },
+    "CreateSessionModal": {
+      "header": "Create session",
+      "sDate": "Start Date",
+      "eDate": "End Date",
+      "FillFields": "Fill date fields",
+      "CorrectInterval": "Select correct interval",
+      "Created": "Session was created successfully",
+      "Error": "Session is already exists"
+    },
+    "DeleteSessionModal": {
+      "header": "Delete session",
+      "IsSure": "Are you sure you want to delete session ",
+      "Deleted": "Session was deleted successfully",
+      "Error": "Session is already exists"
+    }
+  },
+  "VacationRequests": {
+    "myRequestsHeader": "My requests",
+    "incomingRequestHeader": "Incoming requests",
+    "VacationType": {
+      "selectTypeHeader": "Select type",
+      "allItem": "All",
+      "pendingItem": "Pending",
+      "canceledItem": "Canceled",
+      "approvedItem": "Approved",
+      "declinedItem": "Declined"
+    },
+    "createVacReqButton": "Create vacation request",
+    "CreateVacReqModal": {
+      "header": "Create vacation request",
+      "remainingDays": "Remaining days",
+      "requestInfo": "Some info about request",
+      "startDate": "Start date",
+      "finishDate": "Finish date",
+      "fillDateFieldsError": "Fill date fields",
+      "incorrectDateIntervalError": "Select correct interval"
+    },
+    "VacReq": {
+      "Status": {
+        "approved": "Approved",
+        "declined": "Declined",
+        "canceled": "Canceled",
+        "pending": "Pending"
+      },
+      "approve": "Approve",
+      "decline": "Decline",
+      "reactionList": "Reaction",
+      "ReactionList": {
+        "header": "Approvers reaction",
+        "noReaction": "No reaction yet",
+        "approved": "Approved",
+        "declined": "Declined"
+      },
+      "cancelRequest": "Cancel request",
+      "requester": "Requester",
+      "remainingDays": "available days",
+      "yourReaction": "Your reaction",
+      "reactionMessage": "Reaction message",
+      "changeReactionButton": "Change reaction",
+      "ChangeReactionModal": {
+        "header": "Change reaction",
+        "reaction": "Choose reaction",
+        "selectHeader": "Select reaction",
+        "approve": "Approve",
+        "decline": "Decline",
+        "reactionMessage": "Reaction message"
+      },
+      "ReactionMessageModal": {
+        "header": "Add reaction message",
+        "reactionMessage": "Reaction message"
+      }
+    }
+  },
+  "UserCreate": {
+    "header": "Create user",
+    "fullName": "User full name",
+    "email": "User email address",
+    "workHours": "Work hours",
+    "permissions": "Permissions",
+    "viewUsers": "View users",
+    "exportExcel": "Export excel",
+    "manageUsers": "Manage users",
+    "manageApprovers": "Manage approvers",
+    "manageWorkHours": "Manage work hours",
+    "managePresence": "Manage presence",
+    "manageDayOffs": "Manage day offs",
+    "sendEmailButton": "Send email",
+    "userCreated": "User created successfully"
+  },
+  "Calendar": {
+    "todayButton": "today",
+    "othersButton": "others",
+    "monthButton": "month",
+    "weekButton": "week",
+    "CalendarManage": {
+      "title": "Period time manage for",
+      "fDay": "from day",
+      "uDay": "until day",
+      "wTitle": "with title",
+      "from": "from",
+      "until": "until",
+      "rangeOpt": "Range options",
+      "PeriodTimeOpt": "Period time options",
+      "dayFormatSample": "format DD/MM/YYYY (for exmaple 01/12/2023)",
+      "timeFormatSample": "format hh:mm (for exmaple 45:32)",
+      "selectRToUpdate": "select range to update",
+      "selectRToDelete": "select range to delete"
+    },
+    "GlobalCalendarManange": {
+      "wType": "with type"
+    }
+  },
+  "CalendarUsers": {
+    "searchPlaseH": "Search",
+    "mCalendarButton": "Manage Calendar",
+    "bToMeButton": "Back to me",
+    "selectButton": "Select",
+    "title": "Select User Calendar"
+  },
+  "TimeTracker": {
+    "tInD": "Time in Day",
+    "tInW": "Time in Week",
+    "tInM": "Time in Month",
+    "sDate": "Start Date",
+    "eDate": "End Date",
+    "tSession": "Time Session",
+    "editButton": "Edit",
+    "timeManage": "Time Manage",
+    "todayFilter": "Today",
+    "weekFilter": "Current Week",
+    "monthFilter": "Current Month",
+    "yearFilter": "Current Year"
+  },
+  "UserList": {
+    "header": "Users",
+    "Search": "Search",
+    "Sortby": "Sort by",
+    "Email": "Email",
+    "Name": "Name",
+    "Enabled": "Enabled",
+    "AllUsers": "All users",
+    "Disabled": "Disabled",
+    "ExcelSettings": "Prepare excel with current search settings",
+    "DownloadExcell": "Download",
+    "NoUsers": "No users found"
+  },
+  "Settings": {
+    "header": "Settings",
+    "chooseLang": "App lenguage",
+    "location": "Location"
+  },
+  "Auth2factor":{
+    "successfullySet": "You succesfully set 2 factor autorization",
+    "successfullyDrop": "You succesfully droped 2 factor autorization",
+    "notMatched":"Codes are not matched",
+    "oneTimeCde": "one-time code",
+    "manualCode": "If you cannot use QR code, use manual code",
+    "useQr":"Use QR code",
+    "drop2fTitle":"Drop 2 factor authorization",
+    "set2fTitle":"Set 2 factor authorization"
+  }
+}

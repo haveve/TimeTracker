@@ -123,6 +123,7 @@ namespace TimeTracker.GraphQL.Types.IdentityTipes.AuthorizationManager
     audience: _configuration["JWT:Audience"],
     claims: new[] {
             new Claim("UserId", userId.ToString()),
+            new Claim("IsAccess",true.ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, issuedAtOffset.ToUnixTimeSeconds().ToString()),
             new Claim("CRUDUsers",permissions.CRUDUsers.ToString()),
             new Claim("ViewUsers",permissions.ViewUsers.ToString()),

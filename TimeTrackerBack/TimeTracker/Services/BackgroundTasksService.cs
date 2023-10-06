@@ -1,4 +1,6 @@
-﻿using TimeTracker.GraphQL.Types.Calendar;
+﻿using System.Globalization;
+using TimeTracker.GraphQL.Types.Calendar;
+using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Repositories;
 
 namespace TimeTracker.Services
@@ -10,132 +12,121 @@ namespace TimeTracker.Services
         public ICalendarRepository CalendarRepository { get; }
         public IAbsenceRepository AbsenceRepository { get; }
         public IVacationRepository VacationRepository { get; }
+        public IUpdateRepository UpdateRepository { get; }
+        public IEmailSender EmailSender { get; }
+        public ITransactionService TransactionService { get; }
+        public ILogger<BackgroundTasksService> Logger { get; }
 
-        public BackgroundTasksService(ITimeRepository timeRepository, IUserRepository userRepository, ICalendarRepository calendarRepository, IAbsenceRepository absenceRepository, IVacationRepository vacationRepository)
+        public BackgroundTasksService(ITimeRepository timeRepository,
+            IUserRepository userRepository,
+            ICalendarRepository calendarRepository,
+            IAbsenceRepository absenceRepository,
+            IVacationRepository vacationRepository,
+            IUpdateRepository updateRepository,
+            IEmailSender emailSender,
+            ITransactionService transactionService,
+            ILogger<BackgroundTasksService> logger
+            )
         {
+            Logger = logger;
             TimeRepository = timeRepository;
             UserRepository = userRepository;
             CalendarRepository = calendarRepository;
             AbsenceRepository = absenceRepository;
             VacationRepository = vacationRepository;
+            UpdateRepository = updateRepository;
+            EmailSender = emailSender;
+            TransactionService = transactionService;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             do
             {
-                int hourSpan = 24 - DateTime.Now.Hour;
-                int numberOfHours = hourSpan;
+                Comparer comparer = new Comparer();
+                DateTime date = DateTime.UtcNow;
 
-                if (hourSpan == 24)
+                if (!comparer.DateEquals(UpdateRepository.GetLastUpdate(), date))
                 {
-                    //do something
-                    updateFullTimersWorkTime(DateTime.Now.AddHours(-1), AbsenceRepository, VacationRepository);
-                    if (DateTime.Now.Day == 1)
+                    TransactionService.AddToExecuteString(UpdateRepository.GetQuerySetLastUpdate(date));
+                    updateFullTimersWorkTime(date);
+
+                    if (date.Day == 1)
                     {
                         UserRepository.AddUsersVacationDays();
+                        TransactionService.AddToExecuteString(UserRepository.GetQueryAddUsersVacationDays());
+                        CheckUsersWorkTime(date);
                     }
-                    Console.WriteLine("Background daily task " + hourSpan);
-                    numberOfHours = 24;
+                    
+                    try
+                    {
+                        TransactionService.Execute();
+                    }
+                    catch
+                    {
+                        Logger.LogInformation("Background task that updates time already was invoked");
+                    }
                 }
-                await Task.Delay(TimeSpan.FromHours(numberOfHours), stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
             while (!stoppingToken.IsCancellationRequested);
         }
-        private void updateFullTimersWorkTime(DateTime date,
-            IAbsenceRepository AbsenceRepository,
-            IVacationRepository VacationRepository)
+
+        private void updateFullTimersWorkTime(DateTime date)
         {
             bool bIsShortDay = false;
-            bool bIsCelebrateOrHoliday = false;
-            var globalCalendar = CalendarRepository.GetAllGlobalEvents();
-            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
-            globalCalendar = globalCalendar.FindAll(e => e.Date.ToString("yyyy-MM-dd") == date.ToString("yyyy-MM-dd") || e.Date.ToString("yyyy-MM-dd") == date.AddDays(1).ToString("yyyy-MM-dd"));
-            globalCalendar.ForEach(e =>
+
+            var globalevent = CalendarRepository.GetDateGlobalEvent(date);
+
+            if (globalevent != null)
             {
-                if (e.Date.ToString("yyyy-MM-dd") == date.ToString("yyyy-MM-dd"))
+                if (globalevent.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay)
                 {
-                    if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate || e.TypeOfGlobalEvent == TypeOfGlobalEvent.Holiday)
-                    {
-                        Console.WriteLine("No work due to selebration/holiday");
-                        bIsCelebrateOrHoliday = true;
-                        return;
-                    }
-                    if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay) { bIsShortDay = true; Console.WriteLine("Short day"); }
+                    bIsShortDay = true;
                 }
-                if (e.Date.ToString("yyyy-MM-dd") == date.AddDays(1).ToString("yyyy-MM-dd"))
-                {
-                    if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate) { bIsShortDay = true; Console.WriteLine("Short day"); }
-                }
-            });
-            if (bIsCelebrateOrHoliday) return;
-            var users = UserRepository.GetUsers().Where(u => u.WorkHours == 100 && u.Enabled == true).ToList();
+                else return;
+            }
+
+            var users = UserRepository.GetFulltimers();
+
+            var time = new Models.Time();
+
+            time.StartTimeTrackDate = new DateTime(date.Year, date.Month, date.Day, 9, 0, 0);
+
+            time.EndTimeTrackDate = bIsShortDay ? new DateTime(date.Year, date.Month, date.Day, 17, 0, 0) :
+                new DateTime(date.Year, date.Month, date.Day, 16, 0, 0);
+
             foreach (var user in users)
             {
-                if (CheckUserDay(user.Id, date, AbsenceRepository, VacationRepository) == "Work")
+                if (CheckUserDay(user.Id, date) == "Work")
                 {
-                    if (bIsShortDay)
-                    {
-                        TimeRepository.CreateTime(date.AddDays(-1).AddHours(8), user.Id);
-                        TimeRepository.SetEndTrackDate(date.AddDays(-1).AddHours(15), user.Id);
-                    }
-                    else
-                    {
-                        TimeRepository.CreateTime(date.AddDays(-1).AddHours(8), user.Id);
-                        TimeRepository.SetEndTrackDate(date.AddDays(-1).AddHours(16), user.Id);
-                    }
+                    //TimeRepository.CreateTimeWithEnd(time, user.Id);
+                    TransactionService.AddToExecuteString(TimeRepository.GetQueryCreateTimeWithEnd(time, user.Id));
                 }
             }
         }
-        public static void updateFullTimerWorkTime(int userId, DateTime date,
-            ICalendarRepository CalendarRepository,
-            IUserRepository UserRepository,
-            ITimeRepository TimeRepository,
-            IAbsenceRepository AbsenceRepository,
-            IVacationRepository VacationRepository)
-        {
-            bool bIsShortDay = false;
-            bool bIsCelebrateOrHoliday = false;
-            var globalCalendar = CalendarRepository.GetAllGlobalEvents();
-            globalCalendar.AddRange(CalendarQueryGraphQLType.ukraineGovernmentCelebrations);
-            globalCalendar = globalCalendar.FindAll(e => e.Date.ToString("yyyy-MM-dd") == date.ToString("yyyy-MM-dd") || e.Date.ToString("yyyy-MM-dd") == date.AddDays(1).ToString("yyyy-MM-dd"));
-            globalCalendar.ForEach(e =>
-            {
-                if (e.Date.ToString("yyyy-MM-dd") == date.ToString("yyyy-MM-dd"))
-                {
-                    if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate || e.TypeOfGlobalEvent == TypeOfGlobalEvent.Holiday)
-                    {
-                        Console.WriteLine("No work due to selebration/holiday");
-                        bIsCelebrateOrHoliday = true;
-                        return;
-                    }
-                    if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.ShortDay) { bIsShortDay = true; Console.WriteLine("Short day"); }
-                }
-                if (e.Date.ToString("yyyy-MM-dd") == date.AddDays(1).ToString("yyyy-MM-dd"))
-                {
-                    if (e.TypeOfGlobalEvent == TypeOfGlobalEvent.Celebrate) { bIsShortDay = true; Console.WriteLine("Short day"); }
-                }
-            });
-            if (bIsCelebrateOrHoliday) return;
-            var user = UserRepository.GetUser(userId);
-            if (CheckUserDay(user.Id, date, AbsenceRepository, VacationRepository) == "Work")
-            {
-                if (bIsShortDay)
-                {
-                    TimeRepository.CreateTime(date.AddDays(-1).AddHours(8), user.Id);
-                    TimeRepository.SetEndTrackDate(date.AddDays(-1).AddHours(15), user.Id);
-                }
-                else
-                {
-                    TimeRepository.CreateTime(date.AddDays(-1).AddHours(8), user.Id);
-                    TimeRepository.SetEndTrackDate(date.AddDays(-1).AddHours(16), user.Id);
-                }
-            }
-        }
-        public static string CheckUserDay(int userId, DateTime date, IAbsenceRepository AbsenceRepository, IVacationRepository VacationRepository)
+        public string CheckUserDay(int userId, DateTime date)
         {
             if (AbsenceRepository.GetUserDayAbsence(userId, date) != null) return "Absent";
             if (VacationRepository.GetCurrentVacationRequest(userId, date) != null) return "Vacation";
             return "Work";
+        }
+
+        public void CheckUsersWorkTime(DateTime d)
+        {
+            d = d.AddDays(-1);
+            var list = UserRepository.GetEnabledUsers();
+
+            foreach (var user in list)
+            {
+                var userTime = TimeQueryGraphQLType.GetTimeFromSession(TimeRepository.GetUserMonthTime(user.Id, d.Month), new List<ViewModels.TimeMark>(), 0, startOfWeek.Monday);
+
+                var time = TimeQueryGraphQLType.GetMonthWorkTime(user.Id, d, UserRepository, CalendarRepository);
+
+                if (time > userTime.Time.MonthSeconds)
+                {
+                    EmailSender.SendBadMonthlyWorkResults(user, time, userTime.Time.MonthSeconds);
+                }
+            }
         }
     }
 }

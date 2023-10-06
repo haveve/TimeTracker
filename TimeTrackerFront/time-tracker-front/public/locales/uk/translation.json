@@ -1,0 +1,313 @@
+{
+  "agree": "Погоджуюсь",
+  "reject": "Відмовлююсь",
+  "update": "Оновити",
+  "cancel": "Відміна",
+  "add": "Додати",
+  "create": "Створити",
+  "submit": "Відправити",
+  "close": "Закрити",
+  "delete": "Видалити",
+  "chooseLang": "Виберіть мову",
+  "createRange": "Створити проміжок",
+  "edit": "Змінити",
+  "Login": {
+    "or":"або",
+    "header": "Вхід до TimeTracker",
+    "username": "Ім'я або електронна пошта користувача",
+    "password": "Пароль",
+    "submitButton": "Увійти",
+    "resetPass": "Скинути пароль через ім'я або елекронну пошту",
+    "fillFieldsError": "Заповніть усі поля!",
+    "wrongCredentialsError": "Неправильний логін/емейл або пароль",
+    "disabledUser": "Юзер був відключений"
+  },
+  "RequestResetPassword": {
+    "header": "Запит на зміну пароля",
+    "credentials": "Логін або електронна пошта",
+    "submitButton": "Змінити пароль",
+    "submittedText": "Запит надісланий",
+    "fillFieldsError": "Заповніть поле!"
+  },
+  "ResetPassword": {
+    "header": "Зміна пароля",
+    "password": "Новий пароль",
+    "repeatPassword": "Повторіть новий пароль",
+    "submitButton": "Змінити пароль",
+    "passMatchError": "Обидва паролі повинні співпадати",
+    "passValidationError": "Довжина паролю повинна бути від 8 до 50 символів!",
+    "userNotFoundError": "Користувач не знайдений",
+    "noRequestError": "У користувача немає запиту на зміну паролю",
+    "noMatchCodeError": "Коди відновлення не співпадають",
+    "successful": "Пароль змінено успішно!"
+  },
+  "Navbar": {
+    "questionIP": "Ми можемо використати ваш IP, щоб визначити ваше місцеположення?",
+    "timeItem": "Час",
+    "usersItem": "Користувачі",
+    "createUserItem": "Створити користувача",
+    "calendarItem": "Календар",
+    "settings": "Налаштування",
+    "logoutItem": "Вийти"
+  },
+  "MainMenu": {
+    "welcome": "Вітаємо TimeTracker",
+    "timeItem": "Час",
+    "usersItem": "Користувачі",
+    "createUserItem": "Створити користувача",
+    "calendarItem": "Календар"
+  },
+  "UserProfile": {
+    "editButton": "Редагувати",
+    "changePassButton": "Змінити пароль",
+    "presence": "Відсутності",
+    "workedToday": "Відпрацьовано сьогодні",
+    "workedWeek": "Відпрацьовано цього тижня",
+    "workedMonth": "Відпрацьовано цього місяця",
+    "set2Auth":"Установити 2fa",
+    "drop2Auth":"Зкинути 2fa",
+    "EditModal": {
+      "header": "Зміна вашої інформації",
+      "fullName": "ПІБ",
+      "login": "Логін",
+      "email": "Електронна пошта",
+      "password": "Пароль",
+      "hintPassword": "Введіть ваш пароль, щоб підтвердити зміни",
+      "fillFieldsError": "Заповніть усі поля!",
+      "Responses": {
+        "success": "Користувач успішно змінений!",
+        "incorrectPassword": "Неправильний пароль",
+        "takenLogin": "Логін вже зайнятий"
+      }
+    },
+    "ChangePasswordModal": {
+      "header": "Зміна паролю",
+      "newPass": "Новий пароль",
+      "repeatNewPass": "Повторіть новий пароль",
+      "oldPass": "Старий пароль",
+      "hintPassword": "Введіть ваш старий пароль, щоб підтвердити зміни",
+      "passMatchError": "Обидва паролі повинні співпадати!",
+      "passValidationError": "Довжина паролю повинна бути від 8 до 50 символів!",
+      "Responses": {
+        "incorrectPassError": "Пароль невірний",
+        "successful": "Пароль змінено успішно"
+      }
+    },
+    "AbsenceModal": {
+      "header": "Присутність",
+      "absenceItem": "Відсутність",
+      "illnessItem": "Хвороба",
+      "fillFieldsError": "Заповніть усі поля!",
+      "takenDayError": "Вже є відсутність у цей день"
+    }
+  },
+  "UserDetails": {
+    "PermissionsButton": "Дозволи",
+    "ApproversButton": "Затверджувачі",
+    "PresenceButton": "Присутність",
+    "DisableButton": "Вимкнути",
+    "workedToday": "Відпрацьовано сьогодні",
+    "workedWeek": "Відпрацьовано цього тижня",
+    "workedMonth": "Відпрацьовано цього місяця",
+    "DisableModal": {
+      "header": "Вимкнути користувача",
+      "text": "Ви впевнені, що хочете вимкнути користувача",
+      "disable": "Вимкнути"
+    },
+    "PermissionsModal": {
+      "header": "Дозволи",
+      "viewUsers": "Передивлятись користувачів",
+      "exportExcel": "Вивантажувати ексель",
+      "manageUsers": "Керування користувачами",
+      "manageApprovers": "Керування затверджувачами",
+      "manageWorkHours": "Керування робочими годинами",
+      "managePresence": "Керування присутностями",
+      "manageDayOffs": "Керування відсутностями",
+      "permissionsUpdated": "Дозволи успішно оновлені"
+    },
+    "AbsenceModal": {
+      "header": "Присутність",
+      "absenceItem": "Відсутність",
+      "illnessItem": "Хвороба",
+      "fillFieldsError": "Заповніть усі поля",
+      "takenDayError": "Вже є відсутність у цей день"
+    },
+    "ApproversModal": {
+      "header": "Затвержувачі",
+      "ApproversList": "Спичок Затвержувачів",
+      "Remove": "Прибрати",
+      "Add": "Додати Затвержувачів",
+      "Search": "Пошук",
+      "Sortby": "Сортувати",
+      "Login": "Логін",
+      "Name": "Ім'я",
+      "Pick": "Обрати",
+      "NoUsers": "Користувачів не знайдено"
+    },
+    "TimeSessions": {
+      "sDate": "Дата початку",
+      "eDate": "Дата закінчення",
+      "tSession": "Ceciї"
+    },
+    "CreateSessionModal": {
+      "header": "Створити сесію",
+      "sDate": "Дата початку",
+      "eDate": "Дата закінчення",
+      "FillFields": "Заповніть усі поля",
+      "CorrectInterval": "Оберіть коректний інтервал",
+      "Created": "Сесія успішно створена",
+      "Error": "Сесія вже існує"
+    },
+    "DeleteSessionModal": {
+      "header": "Видалити сесію",
+      "IsSure": "Ви впевнені, що хочете видалити сесію ",
+      "Deleted": "Сесія успішно видалена"
+    }
+  },
+  "VacationRequests": {
+    "myRequestsHeader": "Мої запити",
+    "incomingRequestHeader": "Вхідні запити",
+    "VacationType": {
+      "selectTypeHeader": "Виберіть тип",
+      "allItem": "Усі",
+      "pendingItem": "В очікуванні",
+      "canceledItem": "Відміненні",
+      "approvedItem": "Схвалені",
+      "declinedItem": "Відхилені"
+    },
+    "createVacReqButton": "Створити запит на відпуску",
+    "CreateVacReqModal": {
+      "header": "Створення запиту на відпуску",
+      "remainingDays": "Залишилося днів",
+      "requestInfo": "Інформація до запиту",
+      "startDate": "Дата початку",
+      "finishDate": "Дата кінця",
+      "fillDateFieldsError": "Заповніть поля з датою",
+      "incorrectDateIntervalError": "Виберіть коректний інтервал часу"
+    },
+    "VacReq": {
+      "Status": {
+        "approved": "Схвалений",
+        "declined": "Відхилений",
+        "canceled": "Відмінений",
+        "pending": "У очікуванні"
+      },
+      "approve": "Схвалити",
+      "decline": "Відхилити",
+      "reactionList": "Реакції",
+      "ReactionList": {
+        "header": "Реакції апруверів",
+        "noReaction": "Ще немає реакції",
+        "approved": "Схвалено",
+        "declined": "Відхилено"
+      },
+      "cancelRequest": "Відмінити запит",
+      "requester": "Запитувач",
+      "remainingDays": "доступні дні",
+      "yourReaction": "Ваша реакція",
+      "reactionMessage": "Повідомлення до реакції ",
+      "changeReactionButton": "Змінити реакцію",
+      "ChangeReactionModal": {
+        "header": "Зміна реакції",
+        "reaction": "Виберіть реакцію",
+        "selectHeader": "Виберіть реакцію",
+        "approve": "Схвалити",
+        "decline": "Відхилити",
+        "reactionMessage": "Повідомлення до реакції"
+      },
+      "ReactionMessageModal": {
+        "header": "Додати повідомлення до реакціЇ",
+        "reactionMessage": "Повідомлення до реакціЇ"
+      }
+    }
+  },
+  "UserCreate": {
+    "header": "Створити користувача",
+    "fullName": "Повне ім'я користувача",
+    "email": "Електрона адреса користувача",
+    "workHours": "Робочі години",
+    "permissions": "Дозволи",
+    "viewUsers": "Передивлятись користувачів",
+    "exportExcel": "Вивантажувати ексель",
+    "manageUsers": "Керування користувачами",
+    "manageApprovers": "Керування затверджувачами",
+    "manageWorkHours": "Керування робочими годинами",
+    "managePresence": "Керування присутностями",
+    "manageDayOffs": "Керування відсутностями",
+    "sendEmailButton": "Надіслати електронний лист",
+    "fillFieldsError": "Заповніть усі поля!",
+    "userCreated": "Користувач створенний успішно"
+  },
+  "Calendar": {
+    "todayButton": "сьогодні",
+    "othersButton": "інші",
+    "monthButton": "місяць",
+    "weekButton": "тиждень",
+    "CalendarManage": {
+      "title": "Управління періодичним часом для",
+      "fDay": "з дня",
+      "uDay": "до дня",
+      "wTitle": "з назвою",
+      "from": "з",
+      "until": "до",
+      "rangeOpt": "Параметри діапазону",
+      "PeriodTimeOpt": "Параметри періодичного часу",
+      "dayFormatSample": "формат ДД/ММ/РРРР (наприклад 01/12/2023)",
+      "timeFormatSample": "формат гг:хх (наприклад 45:32)",
+      "selectRToUpdate": "виберіть діапазон для оновлення",
+      "selectRToDelete": "виберіть діапазон для видалення"
+    },
+    "GlobalCalendarManange": {
+      "wType": "з типом"
+    }
+  },
+  "CalendarUsers": {
+    "searchPlaseH": "Пошук",
+    "mCalendarButton": "Управління календарем",
+    "bToMeButton": "Повернутися до мене",
+    "selectButton": "Вибрати",
+    "title": "Вибір календаря користувача"
+  },
+  "TimeTracker": {
+    "tInD": "Час в день",
+    "tInW": "Час в тиждень",
+    "tInM": "Час в місяць",
+    "sDate": "Дата початку",
+    "eDate": "Дата закінчення",
+    "tSession": "Сесія часу",
+    "editButton": "Редагувати",
+    "timeManage": "Управління часом",
+    "todayFilter": "Cьогодні",
+    "weekFilter": "Тиждень",
+    "monthFilter": "Місяць",
+    "yearFilter": "Рік"
+  },
+  "UserList": {
+    "header": "Користувачі",
+    "Search": "Пошук",
+    "Sortby": "Сортувати",
+    "Email": "Пошта",
+    "Name": "Ім'я",
+    "Enabled": "Увімкнений",
+    "AllUsers": "Усі",
+    "Disabled": "Вимкнені",
+    "ExcelSettings": "Підготувати Excel з поточними налаштуваннями",
+    "DownloadExcell": "Завантажити",
+    "NoUsers": "Користувачів не знайдено"
+  },
+  "Settings": {
+    "header": "Налаштування",
+    "chooseLang": "Мова додатку",
+    "location": "Місцезнаходження"
+  },
+  "Auth2factor":{
+    "successfullySet": "Ви успішно встановили двофакторну аутентифікацію",
+    "successfullyDrop": "Ви успішно зкинули двофакторну аутентифікацію",
+    "notMatched":"Коди не співпадають",
+    "oneTimeCde": "одноразовий код",
+    "manualCode": "Якщо ви не можите використати QR код, знизу є для ручного вводу",
+    "useQr":"Використати QR код",
+    "drop2fTitle":"Зкинути двофакторну аутентифікацію",
+    "set2fTitle":"Встановити двофакторну аутентифікацію"
+  }
+}

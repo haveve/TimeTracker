@@ -5,28 +5,13 @@ using TimeTracker.GraphQL.Types.TimeQuery;
 using TimeTracker.Models;
 using TimeTracker.Repositories;
 using TimeTracker.ViewModels;
+using TimeTracker.GraphQL.Types.Time;
 
 namespace TimeTracker.GraphQL.Types.Calendar
 {
     public class CalendarQueryGraphQLType : ObjectGraphType
     {
         private readonly ICalendarRepository _calendarRepository;
-
-        public static readonly List<GlobalEventsViewModel> ukraineGovernmentCelebrations = new List<GlobalEventsViewModel>
-        {
-            new GlobalEventsViewModel("Новий рік", new DateTime(DateTime.Now.Year, 1, 1),TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Різдво Христове за юліанським календарем", new DateTime(DateTime.Now.Year, 1, 7), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Соборності України", new DateTime(DateTime.Now.Year, 1, 22), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Міжнародний жіночий день", new DateTime(DateTime.Now.Year, 3, 8), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Міжнародний день праці", new DateTime(DateTime.Now.Year, 5, 1), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Конституції України", new DateTime(DateTime.Now.Year, 6, 28), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Української Державності", new DateTime(DateTime.Now.Year, 7, 28), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Державного Прапора України", new DateTime(DateTime.Now.Year, 8, 23), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День незалежності України", new DateTime(DateTime.Now.Year, 8, 24), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День захисників і захисниць України", new DateTime(DateTime.Now.Year, 10, 14), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("День Збройних Сил України", new DateTime(DateTime.Now.Year, 12, 6), TypeOfGlobalEvent.Celebrate),
-            new GlobalEventsViewModel("Різдво Христове", new DateTime(DateTime.Now.Year, 12, 25), TypeOfGlobalEvent.Celebrate),
-        };
 
         public CalendarQueryGraphQLType(ICalendarRepository calendarRepository)
         {
@@ -41,27 +26,9 @@ namespace TimeTracker.GraphQL.Types.Calendar
                     var userId = context.GetArgument<int?>("userId") ?? TimeQueryGraphQLType.GetUserIdFromClaims(context.User!);
                     var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
                     var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
-
-
-                    var events = _calendarRepository.GetAllEvents(userId);
-                    events.AddRange(_calendarRepository.GetAllUsersAbsences(userId));
-                    events.AddRange(_calendarRepository.GetAllUsersVacations(userId));
-                    switch (weekOrMonth)
-                    {
-                        case MonthOrWeek.Month:
-                            int month = date.Month;
-                            int monthAmount = 0;
-                            for (int i = 1; i <= month; i++)
-                            {
-                                monthAmount += DateTime.DaysInMonth(2023, i);
-                            }
-                            return events.Where(c =>
-                            {
-                                return Math.Ceiling((decimal)date.DayOfYear / monthAmount) == Math.Ceiling((decimal)c.StartDate.DayOfYear / monthAmount) && date.Month == c.StartDate.Month;
-
-                            });
-                        case MonthOrWeek.Week: return events.Where(c => Math.Ceiling((decimal)c.StartDate.DayOfYear / 7) == Math.Ceiling((decimal)date.DayOfYear / 7));
-                    }
+                    var events = _calendarRepository.GetAllEvents(userId, weekOrMonth, date);
+                    events.AddRange(_calendarRepository.GetAllUsersAbsences(userId, weekOrMonth, date));
+                    events.AddRange(_calendarRepository.GetAllUsersVacations(userId, weekOrMonth, date));
 
                     return events;
                 });
@@ -95,24 +62,8 @@ namespace TimeTracker.GraphQL.Types.Calendar
         var date = TimeQueryGraphQLType.ToUtcDateTime(context.GetArgument<DateTime>("date"));
         var weekOrMonth = context.GetArgument<MonthOrWeek>("weekOrMonth");
 
-        var globalCalendar = _calendarRepository.GetAllGlobalEvents();
+        var globalCalendar = _calendarRepository.GetAllGlobalEvents(weekOrMonth, date);
 
-        switch (weekOrMonth)
-        {
-            case MonthOrWeek.Month:
-                int month = date.Month;
-                int monthAmount = 0;
-                for (int i = 1; i <= month; i++)
-                {
-                    monthAmount += DateTime.DaysInMonth(2023, i);
-                }
-                return globalCalendar.Where(c =>
-                {
-                    return Math.Ceiling((decimal)date.DayOfYear / monthAmount) == Math.Ceiling((decimal)c.Date.DayOfYear / monthAmount) && date.Month == c.Date.Month;
-
-                });
-            case MonthOrWeek.Week: return globalCalendar.Where(c => Math.Ceiling((decimal)c.Date.DayOfYear / 7) == Math.Ceiling((decimal)date.DayOfYear / 7));
-        }
 
         return globalCalendar;
     });

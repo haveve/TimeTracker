@@ -11,11 +11,7 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
     public class AbsenceMutationGraphQLType : ObjectGraphType
     {
         public AbsenceMutationGraphQLType(
-            ICalendarRepository CalendarRepository,
-            IUserRepository UserRepository,
-            ITimeRepository TimeRepository,
-            IAbsenceRepository AbsenceRepository,
-            IVacationRepository VacationRepository)
+            IAbsenceRepository AbsenceRepository)
         {
             Field<StringGraphType>("addUserAbsence")
                 .Argument<NonNullGraphType<AbsenceInputGraphType>>("Absence")
@@ -23,8 +19,6 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 {
                     var absence = context.GetArgument<Absence>("Absence");
                     AbsenceRepository.AddAbsence(absence);
-                    if(absence.Date >= DateTime.Now) return "Absence added successfully";
-                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100) TimeRepository.DeleteDayTime(absence.UserId, absence.Date);
                     return "Absence added successfully";
                 });
 
@@ -35,8 +29,6 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                     var absence = context.GetArgument<Absence>("Absence");
                     absence.UserId = GetUserIdFromClaims(context.User!);
                     AbsenceRepository.AddAbsence(absence);
-                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
-                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100) TimeRepository.DeleteDayTime(absence.UserId, absence.Date);
                     return "Absence added successfully";
                 });
 
@@ -46,16 +38,6 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                 {
                     var absence = context.GetArgument<Absence>("Absence");
                     AbsenceRepository.RemoveAbsence(absence);
-                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
-                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100)
-                    {
-                        BackgroundTasksService.updateFullTimerWorkTime(absence.UserId, absence.Date,
-                        CalendarRepository,
-                        UserRepository,
-                        TimeRepository,
-                        AbsenceRepository,
-                        VacationRepository);
-                    }
                     return "Absence removed successfully";
                 }).AuthorizeWithPolicy("ControlPresence");
 
@@ -66,16 +48,6 @@ namespace TimeTracker.GraphQL.Types.AbsenceTypes
                     var absence = context.GetArgument<Absence>("Absence");
                     absence.UserId = GetUserIdFromClaims(context.User!);
                     AbsenceRepository.RemoveAbsence(absence);
-                    if (absence.Date >= DateTime.Now) return "Absence added successfully";
-                    if (UserRepository.GetUser(absence.UserId).WorkHours == 100)
-                    {
-                        BackgroundTasksService.updateFullTimerWorkTime(absence.UserId, absence.Date,
-                        CalendarRepository,
-                        UserRepository,
-                        TimeRepository,
-                        AbsenceRepository,
-                        VacationRepository);
-                    }
                     return "Absence removed successfully";
                 });
         }

@@ -26,7 +26,6 @@ namespace TimeTracker.GraphQL.Types.UserTypes
                     user.ResetCode = code;
                     user.Password = code;
                     repo.CreateUser(user, permissions);
-                    Console.Write(user.Email);
                     emailSender.SendRegistrationEmail(code, user.Email);
                     return "User created successfully";
                 }).AuthorizeWithPolicy("CRUDUsers");

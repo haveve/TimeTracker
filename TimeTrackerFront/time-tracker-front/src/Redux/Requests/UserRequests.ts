@@ -168,7 +168,8 @@ export function RequestCurrentUser(): Observable<User> {
                         fullName
                         email
                         enabled
-                        vacationDays
+                        vacationDays,
+                        key2Auth
                       }
                     }
                   }

@@ -12004,13 +12004,7 @@ body {
   background-color: #2a2a2a;
 }
 
-.height-main {
-  height: 90% !important;
-}
 
-.height-header {
-  height: 10% !important;
-}
 
 .garamond-font {
   font-family: Garamond;
@@ -12066,3 +12060,14 @@ body {
   overflow-y: scroll;
 }/*# sourceMappingURL=Custom.css.map */
 
+.after-before-line {
+  width: 100%; 
+  height: 2px;
+  text-align: center; 
+  margin: 10px 0 20px;
+  background-color: white; 
+} 
+
+.autoWordSpace{
+  overflow-wrap: anywhere;
+}
