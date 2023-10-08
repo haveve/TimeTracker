@@ -76,7 +76,6 @@ builder.Services.AddAuthentication(opt =>
 //    };
 //});
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
-//builder.Services.AddControllers();
 
 //CORS
 builder.Services.AddCors();
@@ -94,8 +93,6 @@ builder.Services.AddSingleton<ISchema, IdentitySchema>(services =>
     var scheme = new IdentitySchema(new SelfActivatingServiceProvider(services));
     return scheme;
 });
-
-builder.Services.AddMvc();
 
 /*builder.Services.AddSingleton<ISchema, VacationSchema>(services =>
 {
