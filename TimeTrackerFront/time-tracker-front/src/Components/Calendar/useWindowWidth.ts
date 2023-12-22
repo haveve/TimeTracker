@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, Dispatch as DispatchReact, SetState
 
 
 export default function useWindowWidth(){
-    const [width,setWidth] = setWidth(window.outerWidth)
+    const [width,setWidth] = useState(window.outerWidth)
 
     useEffect(() => {
         setWidth(window.outerWidth)
